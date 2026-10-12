@@ -1,6 +1,6 @@
 # SyncBingo
 
-Kahoot-style, phone-first Bingo web app. A host creates a session; participants join by scanning a QR code or typing a game code, plus a host-set game password. This repo is also a **portfolio project** meant to show real experience with the stack below, so code quality, tests, docs and infrastructure-as-code matter as much as features.
+Phone-first, drop-in party Bingo web app. A host creates a session; participants join by scanning a QR code or typing a game code, plus a host-set game password. This repo is also a **portfolio project** meant to show real experience with the stack below, so code quality, tests, docs and infrastructure-as-code matter as much as features.
 
 ## Status
 

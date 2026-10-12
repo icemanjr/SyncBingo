@@ -104,7 +104,7 @@ Run the full stack in containers (web, api and redis):
 docker compose up --build         # then open http://localhost:8080
 ```
 
-Planned: `docker compose --profile dev up` for hot reload, and `docker compose run --rm tests` for the test suites.
+Planned: `docker compose --profile dev up` for hot reload, and `docker compose run --rm tests` for the Playwright end-to-end tests.
 
 Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 

@@ -10,7 +10,7 @@
 | `api` | multi-stage build: .NET SDK → chiseled ASP.NET runtime (no shell, non-root) | Env: `Redis__ConnectionString`, later `Cors__Origins` and token/password settings. Host port 5080 for debugging |
 | `redis` | `redis:7.4-alpine` (matches the Redis OSS 7.x line on ElastiCache) | No volume; data is disposable |
 
-Commands: `docker compose up --build` (everything, then open http://localhost:8080). Planned: `docker compose --profile dev up` (hot reload) and `docker compose run --rm tests` (unit + integration). Integration tests use **Testcontainers** for Redis, so they do not need Compose.
+Commands: `docker compose up --build` (everything, then open http://localhost:8080). Planned: `docker compose --profile dev up` (hot reload) and `docker compose run --rm tests`, which will run the Playwright end-to-end suite against the running stack. The .NET and web unit/integration suites run directly (locally and in CI); integration tests use **Testcontainers** for Redis, so they do not need Compose.
 
 CI builds both images on every PR so a broken Dockerfile is caught before merge.
 

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="../SyncBingo.Application/SyncBingo.Application.csproj" />
+    <ProjectReference Include="../SyncBingo.Infrastructure/SyncBingo.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

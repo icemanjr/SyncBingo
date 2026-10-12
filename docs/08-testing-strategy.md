@@ -15,7 +15,8 @@
 ## 2. Key scenarios
 
 **Domain / property tests**
-- Every generated card has numbers in the correct column ranges, no duplicates, centre free.
+- Every generated card has numbers in the correct column ranges, no duplicates, centre free; columns are shuffled and every number is equally likely in its column.
+- The generator never deals a card that is already in play, deals every distinct card of a tiny variant before failing, and fails clearly when none are left.
 - Every pattern evaluates correctly for hand-built mark sets, including all 12 Normal Bingo lines and each letter shape.
 - Auto-fill marks only the *previous* ball, only on cards containing it, and never marks a ball that was not called.
 - Marks cannot be set for uncalled numbers.
@@ -24,6 +25,7 @@
 **Integration**
 - Join: wrong password (401), duplicate name (409, case-insensitive), join mid-round (409), rate limiting (429).
 - Two simultaneous joins with the same name → exactly one succeeds.
+- Concurrent joins and redraws never leave two identical cards in play; a redrawn or kicked player's card is released.
 - Token recovery: disconnect, reconnect, same card and marks.
 - Pause freezes auto-calls; resume continues; manual draw works while paused.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.

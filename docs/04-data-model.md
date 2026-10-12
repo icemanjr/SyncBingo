@@ -22,7 +22,7 @@ erDiagram
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
 | **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, hostParticipates, autoFill, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
 | **Participant** | `id`, `name`, `nameKey` (normalised), `isHost`, `tokenHash`, `joinedAt`, `connected`, `cards[]` |
-| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
+| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
 | **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
@@ -33,6 +33,8 @@ A participant holds a **list** of cards. The MVP always has exactly one; the lis
 ## 2. Card generation
 
 For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the centre is the free cell), and place them in random order down the column (not sorted, as on a real card). A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
+
+**No identical cards in play (FR-39).** Two cards are the same when every cell holds the same number; the card's `fingerprint` captures exactly that. The generator deals a candidate and asks the caller to *claim* its fingerprint; if the claim fails (the card is already in play), it deals again, giving up with an error after 1,000 tries (a real 75-ball session never gets near that: there are about 5.5 × 10²⁶ distinct cards). The claim must be atomic so that two concurrent deals cannot both win the same card; see the `cards` set in §4.
 
 ## 3. Bitmask representation
 
@@ -51,12 +53,13 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 | `s:{code}:participants` | hash | field = participantId → participant JSON (incl. cards and marks) |
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
 | `s:{code}:tokens` | hash | tokenHash → participantId |
+| `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:round:{n}` | hash/list | round summary, ordered ball calls, win records |
 | `s:{code}:stats` | hash | wins per participant, rounds played |
 | `schedule` | sorted set | session code → next auto-call due time (see 02 §5) |
 | (pub/sub) | channels | SignalR backplane |
 
-Marks and redraws update one `participants` field. Draw, pause, round changes and settings take the per-session lock and bump `version`.
+Marks and redraws update one `participants` field; a redraw also claims the new card's fingerprint and releases the old one. A host redraw of every card at round start runs under the session lock: it clears the `cards` set, then deals and claims each new card. Draw, pause, round changes and settings take the per-session lock and bump `version`.
 
 ## 5. Identity and secrets
 

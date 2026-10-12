@@ -109,6 +109,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 - Mutations that change shared session state (draw, pause, start/end round, settings, win condition) run under a **short per-session Redis lock** and bump a session `version`.
 - Participant-only mutations (marks, redraw) touch just that participant's hash field, so 100 players tapping do not contend with the host.
 - Name uniqueness uses `HSETNX` on a normalised-name index, so two simultaneous joins with the same name cannot both succeed.
+- Card uniqueness (FR-39) works the same way: dealing a card `SADD`s its fingerprint to the session's `cards` set and redeals if the fingerprint was already there, so concurrent joins or redraws never end up with identical cards.
 - Auto-fill is applied by the server at draw time, inside the draw's critical section, so a fill and the ball that triggers it are consistent.
 
 ## 7. Frontend

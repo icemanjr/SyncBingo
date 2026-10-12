@@ -81,7 +81,14 @@ docs/                          design documents and ADRs
 
 ## Run it locally
 
-*Planned; available once Phase 0 lands.*
+Build and test the backend (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download)):
+
+```bash
+dotnet build
+dotnet test
+```
+
+The full stack in containers is *planned; available once Phase 0 lands*:
 
 ```bash
 docker compose up                 # web, api and redis

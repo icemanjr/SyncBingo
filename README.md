@@ -88,6 +88,16 @@ dotnet build
 dotnet test
 ```
 
+Run and test the web app (requires [Node.js](https://nodejs.org/) 24 or later):
+
+```bash
+cd web
+npm install
+npm run dev     # http://localhost:5173
+npm run lint
+npm test
+```
+
 The full stack in containers is *planned; available once Phase 0 lands*:
 
 ```bash

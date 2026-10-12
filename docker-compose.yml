@@ -1,0 +1,31 @@
+# Local stack: docker compose up --build, then open http://localhost:8080
+
+services:
+  web:
+    build:
+      context: web
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: src/SyncBingo.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Redis__ConnectionString: redis:6379
+    ports:
+      - "5080:8080" # direct access for debugging, e.g. http://localhost:5080/healthz
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

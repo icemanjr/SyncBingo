@@ -98,13 +98,13 @@ npm run lint
 npm test
 ```
 
-The full stack in containers is *planned; available once Phase 0 lands*:
+Run the full stack in containers (web, api and redis):
 
 ```bash
-docker compose up                 # web, api and redis
-docker compose --profile dev up   # with hot reload
-docker compose run --rm tests     # unit and integration tests
+docker compose up --build         # then open http://localhost:8080
 ```
+
+Planned: `docker compose --profile dev up` for hot reload, and `docker compose run --rm tests` for the test suites.
 
 Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 

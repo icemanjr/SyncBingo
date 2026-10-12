@@ -1,0 +1,72 @@
+# 04 — Data Model
+
+Everything is ephemeral. There is no relational schema; live state sits in Redis with a TTL and disappears with the session.
+
+## 1. Domain model
+
+```mermaid
+erDiagram
+  SESSION ||--o{ PARTICIPANT : has
+  SESSION ||--o{ ROUND : plays
+  SESSION ||--|| SETTINGS : configured_by
+  SESSION }o--|| BINGO_VARIANT : uses
+  PARTICIPANT ||--o{ CARD : holds
+  ROUND ||--o{ BALL_CALL : records
+  ROUND ||--o{ WIN_RECORD : records
+  WIN_RECORD }o--|| PARTICIPANT : credits
+  BINGO_VARIANT ||--o{ WIN_PATTERN : defines
+```
+
+| Entity | Key fields |
+|--------|-----------|
+| **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
+| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, hostParticipates, autoFill, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Participant** | `id`, `name`, `nameKey` (normalised), `isHost`, `tokenHash`, `joinedAt`, `connected`, `cards[]` |
+| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
+| **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
+| **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
+| **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
+| **BingoVariant** | `id`, `ballMax` (75), `columns` (5), `rows` (5), `columnRanges`, `freeCell`, `patterns[]` |
+
+A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (multiple purchased cards) needs no model change.
+
+## 2. Card generation
+
+For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the centre is the free cell), then sort or shuffle per product choice. A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
+
+## 3. Bitmask representation
+
+- Cell index `i = row * 5 + col`; bit `i` of `marks` is 1 if marked.
+- A `WinPattern` is `{ id, name, masks: uint[] }` (any mask satisfied wins; one mask for most patterns, twelve for Normal Bingo).
+- `IsWin(marks, pattern) = pattern.masks.Any(m => (marks & m) == m)`.
+- Changing card size or ball range later means changing `BingoVariant` data, not the evaluator.
+
+## 4. Redis layout
+
+All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on activity; hard cap on total lifetime).
+
+| Key | Type | Contents |
+|-----|------|----------|
+| `s:{code}:meta` | hash | state, version, passwordHash, current round number, settings (JSON), variant id |
+| `s:{code}:participants` | hash | field = participantId → participant JSON (incl. cards and marks) |
+| `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
+| `s:{code}:tokens` | hash | tokenHash → participantId |
+| `s:{code}:round:{n}` | hash/list | round summary, ordered ball calls, win records |
+| `s:{code}:stats` | hash | wins per participant, rounds played |
+| `schedule` | sorted set | session code → next auto-call due time (see 02 §5) |
+| (pub/sub) | channels | SignalR backplane |
+
+Marks and redraws update one `participants` field. Draw, pause, round changes and settings take the per-session lock and bump `version`.
+
+## 5. Identity and secrets
+
+- **Game code:** 16 characters from `23456789abcdefghjkmnpqrstuvwxyz` (31 symbols, ≈ 79 bits), generated with a CSPRNG, displayed as `xxxx-xxxx-xxxx-xxxx`. Input is accepted case-insensitively with or without hyphens.
+- **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
+- **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
+- **Host token:** same mechanism, flagged `isHost`.
+- Names: trimmed, 1–20 characters, normalised for comparison (case-folding, collapsed whitespace), basic profanity filter (configurable) because children are expected users.
+
+## 6. Reserved for "Serious Bingo" (not built in the MVP)
+
+- `CardClaim`: `{ id, sessionCode, issuedAt, expiresAt, redeemedBy? }`, a single-use claim stored at `s:{code}:claims:{id}`. The host's "generate card" returns a claim QR; scanning it redeems the claim and adds a card to the scanner's participant record. The host can also add a card directly to a participant.
+- Cards carry `issuedInRound`; cards issued this way are removed when the round ends.

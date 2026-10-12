@@ -84,7 +84,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | NFR-5 | **Security:** server-side validation of all commands, join rate limiting, no cross-participant card leakage. |
 | NFR-6 | **Accessibility:** WCAG 2.1 AA targets, ≥48 px tap targets, state never conveyed by colour alone, reduced-motion support, no flashing content. |
 | NFR-7 | **Portability:** runs locally with one `docker compose up`; deploys to AWS via CDK. |
-| NFR-8 | **Extensibility:** ball range, card size and win patterns come from configuration, not hard-coded logic. |
+| NFR-8 | **Extensibility:** ball range, card size and win patterns are data evaluated by generic code, not hard-coded logic; loading them from configuration comes with custom variants. |
 
 ## 5. Out of scope (initially)
 

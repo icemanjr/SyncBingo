@@ -56,6 +56,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-36 | Participants mark squares themselves; a square can only be marked if its number has actually been called. |
 | FR-37 | Ties: the first to claim may be recorded as the winner, but the host decides who is credited (see assumption A1). |
 | FR-38 | The host can **inspect a participant's card** to verify a claimed win. |
+| FR-39 | **No two cards in play are identical.** Within a session, no two cards held at the same time have the same number in every cell. This covers cards dealt on join, host redraws at round start, participant redraws and (future) extra cards. A card that is replaced, or whose holder is removed, stops counting. |
 
 ### 3.4 Statistics
 

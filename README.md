@@ -1,37 +1,133 @@
-SyncBingo
-A Real-Time, Session-Based Multiplayer Bingo Platform
-[Live Demo Link] | [Architecture Docs]
-SyncBingo is a lightweight, zero-barrier web application designed for synchronized group play. Built to eliminate the friction of traditional party games, it enables a single host to launch a room and dozens of players to instantly join using an ephemeral session—no persistent accounts, registrations, or app downloads required.
-⚙️ Technical Highlights
-Bi-Directional State Synchronization: Powered by web sockets to deliver sub-second event broadcasts from the host to all active clients.
-Ephemeral Session Architecture: Utilizes temporary, memory-mapped socket identifiers and stateless tokens to manage active game lobbies without the overhead of persistent database accounts.
-Responsive Second-Screen Interface: Designed with a mobile-first UI layout, ensuring seamless grid rendering and interactive dabber physics on consumer mobile browsers.
+# SyncBingo
 
-2. The Product & Marketing Pitch (Public Release Focus)
-Use a clean visual break or a specific section header to pivot to how the game feels for an everyday user.
-🎯 What is SyncBingo?
-Think of it as a live crowd-play party game engine for Bingo. Whether you are hosting a virtual happy hour, managing a classroom activity, or streaming to an audience, SyncBingo turns standard Bingo into an interactive, synchronized community event.
-✨ Key Features
-Zero-Friction Entry: Players scan a QR code or enter a 4-digit room code, pick a temporary nickname, and they are immediately in the lobby.
-Live-Synced Drawing: When the host draws a number, every connected player’s digital card updates instantly in real time.
-Instant Digital Cards: No paper, no missing markers. Clean, responsive digital boards that scale perfectly from small smartphones to massive laptop screens.
-Automated Claim Verification: When a player hits "BINGO!", the system instantly checks their board layout against the host’s historical draw logs, eliminating manual review delays.
+**A real-time, session-based multiplayer Bingo platform.**
 
-3. Portfolio Architecture Comparison
-When talking to recruiters versus pitching to players, you want to frame the exact same mechanics differently.
-Feature
-Portfolio Architecture Pitch (Recruiters)
-Product Launch Pitch (Players)
-No Accounts
-Stateless, ephemeral session management with room-token authentication.
-"Drop-in and play. No passwords, no registration, no spam."
-Real-time Draws
-Event-driven WebSocket broadcasting with low-latency client updates.
-"Live, synchronized number drops on every screen at once."
-BINGO Check
-Server-side cryptographic grid validation against memory-cached draw logs.
-"Instant, automated winner verification. No cheating, no waiting."
-Device Support
-Hardware-agnostic web interface optimized for high-density dynamic viewport layouts.
-"Turn any smartphone, tablet, or laptop into your personal game controller."
+[Design docs](docs/README.md) · [Architecture decisions](docs/adr/README.md) · [Roadmap](docs/09-roadmap.md) · Live demo: *coming in Phase 3*
 
+> **Status:** design complete, implementation starting (Phase 0). The [design documents](docs/README.md) are the source of truth; this README describes the planned system.
+
+## What is SyncBingo?
+
+Nobody brings bingo cards and balls to a family party, but everyone has a phone. SyncBingo is a Kahoot-style party game for Bingo: one person hosts, everyone else joins from their own phone, and the app deals the cards, calls the numbers and keeps track of the winners. It works for a family gathering with small children, a classroom, a virtual happy hour or a room of adults who want to play seriously.
+
+There are no accounts, no downloads and no personal data. A session lives only as long as the game, then it is gone.
+
+### Key features
+
+- **Easy to join.** Players scan a QR code or type the game code, enter the host's game password, pick a name and they're in. Players can join between rounds.
+- **Live, synchronised calls.** When a ball is drawn, it reaches every phone at once. The host chooses automatic calling on a timer, or calls each ball aloud.
+- **Digital cards.** Standard 75-ball cards that fit a small phone screen without scrolling. Players mark their own squares, and only numbers that have actually been called can be marked.
+- **Many ways to win.** Normal Bingo (row, column or diagonal), Four Corners, the letters **B I N G O**, and Blackout. The host can switch mid-round, say from Normal to Blackout, without clearing the cards.
+- **The host is in charge.** Pause for a prize, start a new round, inspect a card, award a win, show the leaderboard.
+- **Kid mode or serious mode.** Settings such as auto-fill for missed numbers, highlighting matching squares, a Bingo button, win celebrations and automatic win detection make it forgiving for small children; turn them off for adults who want to pay attention.
+- **Drop-out proof.** A phone that goes to sleep reconnects with the same name, card and marks.
+
+## Technical highlights
+
+- **Server-authoritative game state.** Clients send intents (mark square, claim Bingo); the server validates every one and broadcasts the result.
+- **REST for commands, SignalR for events.** Commands are plain HTTP endpoints described in OpenAPI. A WebSocket-only SignalR hub pushes events through a Redis backplane, so any API instance can reach any player. Events carry sequence numbers, and a snapshot endpoint lets a client rebuild its state after a gap.
+- **Rules as data.** A card's marks are a 25-bit mask, a win pattern is a list of masks, and a win is `(marks & mask) == mask`. Letter shapes, Four Corners and Blackout are configuration, not code.
+- **Ephemeral Redis state.** All session data lives in Redis with a TTL. Shared mutations take a short per-session lock; marks only touch the player's own hash field, so 100 players tapping at once don't contend with the host.
+- **Leaderless auto-calling.** A Redis sorted set plus an atomic Lua claim with a lease means exactly one instance draws each ball, even across multiple containers, and a crashed instance hands over automatically.
+- **Security without accounts.** 16-character game codes from a CSPRNG, hashed passwords and session tokens, rate-limited joins, and a player only ever receives their own card.
+- **Infrastructure as code.** AWS CDK in C# provisions ECS Fargate, ElastiCache, S3 + CloudFront, Route 53 and ACM; GitHub Actions deploys using OIDC, with no long-lived keys.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Clients
+    H["Host device<br/>React SPA"]
+    P["Player phones<br/>React SPA"]
+  end
+  CF["CloudFront + S3<br/>static SPA"]
+  ALB["Application Load Balancer"]
+  subgraph ECS["ECS Fargate"]
+    A1["API + SignalR"]
+    A2["API + SignalR"]
+  end
+  R[("ElastiCache Redis<br/>state, backplane, scheduler")]
+  H & P --> CF
+  H & P -- "REST + WebSocket" --> ALB
+  ALB --> A1 & A2
+  A1 & A2 --> R
+```
+
+Locally, the same shape runs in Docker Compose as `web`, `api` and `redis`. More detail is in [02 — Architecture](docs/02-architecture.md).
+
+## Tech stack
+
+| Area | Choices |
+|------|---------|
+| Backend | C# / .NET 10, ASP.NET Core minimal APIs, SignalR |
+| Frontend | React 19, TypeScript (strict), Vite, React Router, Zustand, Tailwind CSS |
+| State | Redis (ephemeral, TTL); no relational database |
+| Local and test | Docker Compose, Testcontainers |
+| Cloud | AWS ECS Fargate, ElastiCache, S3 + CloudFront, Route 53, ACM, provisioned with AWS CDK in C# |
+| CI/CD | GitHub Actions with OIDC |
+
+## Project layout
+
+```
+src/SyncBingo.Domain/          pure C#, no I/O
+src/SyncBingo.Application/     commands, handlers, ports
+src/SyncBingo.Infrastructure/  Redis store, scheduler, hashing
+src/SyncBingo.Api/             endpoints, SignalR hub, auth
+tests/                         unit and integration tests
+web/                           React + TypeScript SPA
+infra/                         AWS CDK (C#)
+docs/                          design documents and ADRs
+```
+
+## Run it locally
+
+*Planned; available once Phase 0 lands.*
+
+```bash
+docker compose up                 # web, api and redis
+docker compose --profile dev up   # with hot reload
+docker compose run --rm tests     # unit and integration tests
+```
+
+Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
+
+## Testing
+
+| Level | Tooling | Focus |
+|-------|---------|-------|
+| Domain unit | xUnit, Shouldly, FsCheck | Card generation, win patterns, state machine, game codes |
+| Application | xUnit with fakes | Command handlers, authorisation, events |
+| API integration | WebApplicationFactory + Testcontainers (Redis) | Endpoints, auth, rate limits, scheduler, concurrency |
+| Real-time | SignalR .NET client | Event delivery, audiences, reconnect and resync |
+| Frontend unit | Vitest + Testing Library | Components, hooks, store |
+| End-to-end | Playwright | Host and several players through full games, mobile viewports |
+| Load | k6 | 100 players per session, draw fan-out latency |
+
+The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
+
+## Architecture decision records
+
+| ADR | Decision |
+|-----|----------|
+| [0001](docs/adr/0001-server-authoritative-state.md) | Server-authoritative game state |
+| [0002](docs/adr/0002-rest-commands-signalr-events.md) | REST for commands, SignalR for events |
+| [0003](docs/adr/0003-redis-ephemeral-state.md) | Redis with TTL, no relational database |
+| [0004](docs/adr/0004-rules-as-data-bitmasks.md) | Variants and win patterns as data (bitmasks) |
+| [0005](docs/adr/0005-session-tokens-no-accounts.md) | Session tokens, no accounts |
+| [0006](docs/adr/0006-game-code-format.md) | Game code format |
+| [0007](docs/adr/0007-fargate-and-cdk-csharp.md) | ECS Fargate hosting, AWS CDK in C# |
+| [0008](docs/adr/0008-host-credited-wins.md) | Host credits wins |
+
+## Roadmap
+
+0. **Foundations:** solution layout, Docker Compose, CI, domain model with tests
+1. **Core game (MVP):** sessions, joining, calling, marking, win conditions, rounds, leaderboard
+2. **Polish and hardening:** accessibility, rate limiting, Playwright and k6 suites
+3. **AWS deployment:** CDK stacks, OIDC pipeline, dashboards, live demo
+4. **Future:** "Serious Bingo" (multiple cards per player), custom variants, waiting room
+
+Details are in [09 — Roadmap](docs/09-roadmap.md).
+
+## License
+
+Source-available for portfolio review and evaluation only; see [LICENSE](LICENSE). Hosting or monetising this software requires written permission.

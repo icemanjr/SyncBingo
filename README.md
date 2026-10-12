@@ -8,7 +8,7 @@
 
 ## What is SyncBingo?
 
-Nobody brings bingo cards and balls to a family party, but everyone has a phone. SyncBingo is a Kahoot-style party game for Bingo: one person hosts, everyone else joins from their own phone, and the app deals the cards, calls the numbers and keeps track of the winners. It works for a family gathering with small children, a classroom, a virtual happy hour or a room of adults who want to play seriously.
+Nobody brings bingo cards and balls to a family party, but everyone has a phone. SyncBingo is a web app, drop-in-style party game for Bingo: one person hosts, everyone else joins from their own phone, and the app deals the cards, calls the numbers and keeps track of the winners. It works for a family gathering with small children, a classroom, a virtual happy hour or a room of adults who want to play seriously.
 
 There are no accounts, no downloads and no personal data. A session lives only as long as the game, then it is gone.
 

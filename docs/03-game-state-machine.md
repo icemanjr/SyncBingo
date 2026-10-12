@@ -92,4 +92,4 @@ X...X    ..X..    X..XX    X...X    X...X
 XXXX.    XXXXX    X...X    XXXXX    XXXXX
 ```
 
-These live in configuration (`WinPatterns`), not code, so shapes can be tuned or new patterns added.
+These are data, not logic: each shape is written as a picture like the ones above (`StandardVariants.Classic75`) and every pattern is checked by the same evaluator, so shapes can be tuned or new patterns added without new code. Loading variants and patterns from configuration files is deferred until custom variants are built (roadmap Phase 4).

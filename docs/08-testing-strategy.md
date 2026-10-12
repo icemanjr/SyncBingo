@@ -4,7 +4,7 @@
 
 | Level | Tooling | Focus |
 |-------|---------|-------|
-| **Domain unit** | xUnit, FluentAssertions, FsCheck | Card generation, pattern evaluation, state machine, auto-fill rule, name normalisation, game-code generator |
+| **Domain unit** | xUnit, Shouldly, FsCheck | Card generation, pattern evaluation, state machine, auto-fill rule, name normalisation, game-code generator |
 | **Application** | xUnit + fakes for ports | Command handlers: authorisation, state preconditions, event emission |
 | **Integration (API)** | `WebApplicationFactory` + Testcontainers (Redis) | REST endpoints, auth, rate limits, Redis layout, scheduler claiming, concurrent joins |
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |

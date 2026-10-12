@@ -1,6 +1,6 @@
 # ADR 0008 — Host credits wins
 
-**Status:** Proposed (confirm assumption A1)
+**Status:** Accepted
 
 ## Context
 Ties are sometimes decided by who shouted first, serious games leave recognising a win to the player, and the host must be able to pause for a prize. The leaderboard needs a definitive winner list.

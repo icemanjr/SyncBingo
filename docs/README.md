@@ -2,7 +2,7 @@
 
 > A Kahoot-style, phone-first Bingo web app for family gatherings, parties and groups of adults. One person hosts, everyone else joins from their own phone by scanning a QR code or typing a game code.
 
-**Stack:** C# / .NET (API + SignalR) · React + TypeScript (SPA) · Redis (ephemeral state) · Docker for local/test · AWS (ECS Fargate, ElastiCache, S3/CloudFront) provisioned with AWS CDK in C#.
+**Stack:** C# / .NET 10 (API + SignalR) · React 19 + TypeScript (SPA) · Redis (ephemeral state) · Docker for local/test · AWS (ECS Fargate, ElastiCache, S3/CloudFront) provisioned with AWS CDK in C#.
 
 **Status:** Design phase. These documents are the source of truth before implementation begins.
 

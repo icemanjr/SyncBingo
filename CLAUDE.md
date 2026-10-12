@@ -8,8 +8,8 @@ Kahoot-style, phone-first Bingo web app. A host creates a session; participants 
 
 ## Stack
 
-- Backend: C# / .NET, ASP.NET Core minimal APIs + SignalR
-- Frontend: React 18 + TypeScript (strict), Vite, React Router, Zustand, Tailwind, `@microsoft/signalr`
+- Backend: C# / .NET 10, ASP.NET Core minimal APIs + SignalR
+- Frontend: React 19 + TypeScript (strict), Vite, React Router, Zustand, Tailwind, `@microsoft/signalr`
 - State: Redis only (ephemeral, TTL). No relational database, no accounts.
 - Local/test: Docker Compose (`web`, `api`, `redis`), Testcontainers for integration tests
 - Cloud: AWS (ECS Fargate, ElastiCache, S3 + CloudFront, Route 53, ACM) provisioned with **AWS CDK in C#**; CI/CD with GitHub Actions + OIDC
@@ -51,9 +51,9 @@ docker-compose.yml
 
 Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size reserved slots (placeholders for now). Never pop-ups or anything that can cover the play area. Mobile-first, 48 px minimum tap targets, WCAG AA, reduced-motion support, no flashing. The landing page shows a greyed-out, non-functional "Serious Bingo - coming soon" tile.
 
-## Assumptions still to confirm with the owner (`docs/01-requirements.md` section 7)
+## Confirmed assumptions (`docs/01-requirements.md` section 7)
 
-A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 host-participant appears on the leaderboard. A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry. A8 free centre cell always marked.
+A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 host-participant appears on the leaderboard. A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked.
 
 ## Out of scope (for now)
 

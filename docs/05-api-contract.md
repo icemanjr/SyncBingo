@@ -16,7 +16,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `GET /sessions/{code}/snapshot` | – | Full state for the caller (own cards, settings visible to them, called balls if shown). Used on load, reconnect and gap detection. |
+| `GET /sessions/{code}/snapshot` | – | Full state for the caller (own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Used on load, reconnect and gap detection. |
 | `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects uncalled numbers (422). Returns updated marks. |
 | `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `200 { valid }`; invalid claims are not reported to the host. |
 | `POST /sessions/{code}/cards/redraw` | `{ cardId }` | Only when policy allows and state is BetweenRounds. |
@@ -53,7 +53,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `WinConditionChanged` | all | `{ condition }` |
 | `RoundStarted` | all | `{ round, cards[] for self }` (own cards only) |
 | `RoundEnded` | all | `{ round, winners[] }` |
-| `BallCalled` | host always; participants only if *Show ball* is on | `{ number, letter, sequence }` |
+| `BallCalled` | host always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
 | `Paused` / `Resumed` | all | – |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |

@@ -32,7 +32,7 @@ A participant holds a **list** of cards. The MVP always has exactly one; the lis
 
 ## 2. Card generation
 
-For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the centre is the free cell), then sort or shuffle per product choice. A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
+For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the centre is the free cell), and place them in random order down the column (not sorted, as on a real card). A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
 
 ## 3. Bitmask representation
 
@@ -43,7 +43,7 @@ For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 
 
 ## 4. Redis layout
 
-All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on activity; hard cap on total lifetime).
+All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on activity; hard cap of 12 hours on total lifetime).
 
 | Key | Type | Contents |
 |-----|------|----------|

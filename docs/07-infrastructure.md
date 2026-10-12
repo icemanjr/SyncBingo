@@ -12,6 +12,8 @@
 
 Commands: `docker compose up` (everything), `docker compose --profile dev up` (hot reload), `docker compose run --rm tests` (unit + integration). Integration tests use **Testcontainers** for Redis, so they do not need Compose.
 
+Podman works in place of Docker: enable the user socket (`systemctl --user enable --now podman.socket`), set `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`, and use `podman compose` or `docker-compose`.
+
 ## 2. AWS target
 
 ```mermaid

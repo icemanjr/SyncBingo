@@ -94,7 +94,9 @@ Persistent accounts; payments or any handling of money; chat; custom card images
 
 The app handles **no money**. The host collects payment, then generates a card (new single-use QR that a participant scans to add that card to themselves) or adds a card to a named participant. Cards expire at the end of each round. The MVP data model already allows a participant to hold more than one card (see 04). Note that real-money games are regulated in many jurisdictions; this should be reviewed before any such feature ships.
 
-## 7. Assumptions to confirm
+## 7. Confirmed assumptions
+
+Confirmed by the owner on 2026-10-12.
 
 | # | Assumption |
 |---|-----------|
@@ -104,5 +106,5 @@ The app handles **no money**. The host collects payment, then generates a card (
 | A4 | Starting a round begins in *Running*; in Auto mode the first ball arrives after one interval, or immediately via "Grab a new ball". |
 | A5 | A host who is also a participant appears on the leaderboard. |
 | A6 | "Grab a new ball" while paused is an explicit host action and is allowed. |
-| A7 | Default max participants per session is 100; default session idle expiry is 4 hours. |
+| A7 | Default max participants per session is 100; default session idle expiry is 4 hours, with a hard cap of 12 hours on total session lifetime. |
 | A8 | The free centre space is always marked and counts toward every pattern that includes it. |

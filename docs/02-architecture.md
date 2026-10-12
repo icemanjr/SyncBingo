@@ -40,6 +40,8 @@ Locally, the same shape runs in Docker Compose: `web`, `api`, `redis`.
 
 ### 3.1 Solution layout
 
+Target framework: **.NET 10** (LTS). The SDK version is pinned in `global.json`.
+
 ```
 SyncBingo/
 ├─ src/
@@ -83,7 +85,7 @@ sequenceDiagram
   participant Redis
   participant PB as API instance B
   participant Player
-  Host->>API: POST /balls/draw
+  Host->>API: POST /sessions/{code}/balls
   API->>Redis: lock session, draw ball, persist
   API->>Redis: apply auto-fill (if enabled)
   API-->>PB: publish BallCalled (backplane)
@@ -111,7 +113,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 
 ## 7. Frontend
 
-React 18 + TypeScript (strict), Vite, React Router, Zustand for session state, Tailwind CSS, `@microsoft/signalr`, `qrcode` for client-side QR rendering.
+React 19 + TypeScript (strict), Vite, React Router, Zustand for session state, Tailwind CSS, `@microsoft/signalr`, `qrcode` for client-side QR rendering.
 
 ```
 web/src/

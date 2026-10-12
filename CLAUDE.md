@@ -1,4 +1,4 @@
-# Bingo Night (working title)
+# SyncBingo
 
 Kahoot-style, phone-first Bingo web app. A host creates a session; participants join by scanning a QR code or typing a game code, plus a host-set game password. This repo is also a **portfolio project** meant to show real experience with the stack below, so code quality, tests, docs and infrastructure-as-code matter as much as features.
 
@@ -18,10 +18,10 @@ Kahoot-style, phone-first Bingo web app. A host creates a session; participants 
 ## Planned layout
 
 ```
-src/BingoNight.Domain/          pure C#, no I/O
-src/BingoNight.Application/     commands, handlers, ports
-src/BingoNight.Infrastructure/  Redis store, scheduler, hashing
-src/BingoNight.Api/             endpoints, SignalR hub, auth
+src/SyncBingo.Domain/           pure C#, no I/O
+src/SyncBingo.Application/      commands, handlers, ports
+src/SyncBingo.Infrastructure/   Redis store, scheduler, hashing
+src/SyncBingo.Api/              endpoints, SignalR hub, auth
 tests/                          Domain, Application, Api.IntegrationTests
 web/                            React + TypeScript
 infra/                          AWS CDK (C#)

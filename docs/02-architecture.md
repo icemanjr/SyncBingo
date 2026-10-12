@@ -41,16 +41,16 @@ Locally, the same shape runs in Docker Compose: `web`, `api`, `redis`.
 ### 3.1 Solution layout
 
 ```
-bingo-night/
+SyncBingo/
 ├─ src/
-│  ├─ BingoNight.Domain/          # pure C#: no I/O, no framework deps
-│  ├─ BingoNight.Application/     # commands, handlers, ports (interfaces)
-│  ├─ BingoNight.Infrastructure/  # Redis store, scheduler, token/password hashing
-│  └─ BingoNight.Api/             # ASP.NET Core: endpoints, SignalR hub, auth, DI
+│  ├─ SyncBingo.Domain/           # pure C#: no I/O, no framework deps
+│  ├─ SyncBingo.Application/      # commands, handlers, ports (interfaces)
+│  ├─ SyncBingo.Infrastructure/   # Redis store, scheduler, token/password hashing
+│  └─ SyncBingo.Api/              # ASP.NET Core: endpoints, SignalR hub, auth, DI
 ├─ tests/
-│  ├─ BingoNight.Domain.Tests/
-│  ├─ BingoNight.Application.Tests/
-│  └─ BingoNight.Api.IntegrationTests/   # Testcontainers (Redis) + WebApplicationFactory
+│  ├─ SyncBingo.Domain.Tests/
+│  ├─ SyncBingo.Application.Tests/
+│  └─ SyncBingo.Api.IntegrationTests/    # Testcontainers (Redis) + WebApplicationFactory
 ├─ web/                            # React + TypeScript (Vite)
 ├─ infra/                          # AWS CDK (C#)
 ├─ docs/

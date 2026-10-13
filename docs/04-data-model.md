@@ -20,7 +20,7 @@ erDiagram
 | Entity | Key fields |
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
-| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; changes apply next round), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showCallBoard, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; changes apply next round), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
 | **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
 | **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `qualified` (did the card qualify at that moment), `status` (pending/awarded/dismissed) |
 | **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask; the centre bit starts set with an *Always marked* free space and unset with an *Earned* one), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |

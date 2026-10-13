@@ -32,8 +32,8 @@
 │  2 7 12  17 ■ 27                            │
 │  ...                                        │
 ├─────────────────────────────────────────────┤
-│ 🔔 Sam: BINGO ✓ qualifies                   │
-│        [Inspect] [Award] [Dismiss] [Remove] │
+│ 🔔 Sam: BINGO ✓ 2 lines · 2 awardable       │
+│  [Inspect] [Award 1] [Award 2] [Dismiss] [⋯]│
 │ Players (14) ▸   [ Clear cards ] [Leaderbd] │
 ├─────────────────────────────────────────────┤
 │ [Ad: bottom banner]                         │
@@ -58,6 +58,18 @@
 │ [Ad: bottom banner]   │
 └───────────────────────┘
 ```
+
+### Claim alerts on the host console
+
+Every Bingo press appears as an alert with the player's name, the time, the lines completed and the wins still **awardable** (FR-37a, FR-43). Its buttons follow *Multiple wins*:
+
+| Situation | Buttons |
+|-----------|---------|
+| *Once per pattern* or *once per round*, awardable 1 | **Inspect**, **Award**, **Dismiss**, ⋯ (**Remove player**) |
+| *Every declared win*, awardable *n* ≥ 1 | **Inspect**, **Award 1** … **Award n** (one button per count, so the host taps the number the player declared; a stepper above 4), **Dismiss**, ⋯ |
+| Awardable 0 ("No awardable matches") | **Inspect**, **Dismiss**, **Remove player**; *Award anyway* stays under ⋯ because the host decides (ADR 0008) |
+
+Every button keeps the 48 px tap target. An award sends the claim's id, so a double tap counts once.
 
 ### Call board (FR-27)
 

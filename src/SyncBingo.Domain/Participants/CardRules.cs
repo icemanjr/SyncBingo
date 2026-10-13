@@ -64,15 +64,29 @@ public static class CardRules
     }
 
     /// <summary>
-    /// Whether the card qualifies for the current win condition: the pattern's cells are
-    /// all called, and also marked when <see cref="SessionSettings.RequireMarksForClaims"/> is on (FR-23).
+    /// How many of the current pattern's masks the card completes: for Normal Bingo the
+    /// number of finished lines (two when one ball completes a row and a column), for
+    /// single-shape patterns 0 or 1. With <paramref name="marks"/> <c>null</c> only called
+    /// cells count (win detection, FR-19); otherwise this follows claim rules (FR-23).
     /// </summary>
-    public static bool Qualifies(Card card, uint marks, Session session)
+    public static int MatchCount(Card card, uint? marks, Session session)
     {
         ArgumentNullException.ThrowIfNull(session);
 
         var called = CalledMask(card, session);
-        var covered = session.Settings.RequireMarksForClaims ? called & marks : called;
-        return session.Variant.GetPattern(session.WinConditionId).IsSatisfiedBy(covered);
+        var covered = marks is { } m && session.Settings.RequireMarksForClaims ? called & m : called;
+        return session.Variant.GetPattern(session.WinConditionId).Masks.Count(mask => (covered & mask) == mask);
     }
+
+    /// <summary>
+    /// Whether the card's called cells meet the current win condition, ignoring marks.
+    /// Used by win detection (FR-19): "this card has a winning line, noticed or not".
+    /// </summary>
+    public static bool MeetsWinCondition(Card card, Session session) => MatchCount(card, null, session) > 0;
+
+    /// <summary>
+    /// Whether the card qualifies for the current win condition: the pattern's cells are
+    /// all called, and also marked when <see cref="SessionSettings.RequireMarksForClaims"/> is on (FR-23).
+    /// </summary>
+    public static bool Qualifies(Card card, uint marks, Session session) => MatchCount(card, marks, session) > 0;
 }

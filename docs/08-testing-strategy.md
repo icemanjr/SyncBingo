@@ -24,6 +24,7 @@
 - Undo restores the card to its marks at the last call whatever the unmarking setting, keeps auto-fill marks, before the first ball returns the card as dealt, and is a no-op when nothing changed since the last ball (FsCheck: any sequence of marks, unmarks and undos between two draws ends in a state reachable by the rules).
 - Auto-fill applies only to participants who switched it on, and only while the host makes it available.
 - Win detection uses called numbers, not marks; claims qualify on called numbers, plus marks when *Require marks* is on.
+- *Multiple wins*: a double Bingo reports 2 lines; once per round, once per pattern and every declared win award as specified; a second line noticed later can be claimed and awarded; awarding the same claim twice counts once; a press with nothing left to award shows 0 awardable in every mode.
 - Game codes are 16 characters, from the allowed alphabet, with no collisions in a large sample.
 
 **Integration**

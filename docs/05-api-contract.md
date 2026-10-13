@@ -40,12 +40,14 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `GET /sessions/{code}/leaderboard` | – | Wins per participant + round summaries. |
 | `POST /sessions/{code}/leaderboard/show` | `{ visible }` | Show or hide the leaderboard on participants' screens. |
 | `POST /sessions/{code}/end` | – | End the session; data discarded. |
+| `POST /sessions/{code}/display-links` | – | `201 { displayUrl }`: a read-only display link (FR-28), token in the URL fragment. |
+| `DELETE /sessions/{code}/display-links` | – | Revoke every display link; open display views disconnect. |
 
 Future (Serious Bingo): `POST /sessions/{code}/cards/generate` → `{ claimId, claimUrl }`; `POST /claims/{claimId}/redeem`.
 
 ## 4. SignalR hub
 
-Endpoint: `/hubs/game?access_token={token}`. WebSockets only. On connect the server adds the caller to `s:{code}` (and `s:{code}:host` for the host).
+Endpoint: `/hubs/game?access_token={token}`. WebSockets only. On connect the server adds the caller to the group for its role: `s:{code}:players`, `s:{code}:host` or `s:{code}:display`. In the table below, "all" means all three groups. A display token may call only the snapshot endpoint, which returns public state (board, last ball, win condition, round, state; the leaderboard when shown).
 
 Every event includes `seq` (session event counter). Events are hints; the snapshot endpoint is authoritative.
 
@@ -56,7 +58,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `WinConditionChanged` | all | `{ condition }` |
 | `RoundStarted` | all | `{ round, cards[] for self }` (own cards only) |
 | `RoundEnded` | all | `{ round, winners[] }` |
-| `BallCalled` | host always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
+| `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
 | `Paused` / `Resumed` | all | – |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |

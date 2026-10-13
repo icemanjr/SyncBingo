@@ -73,7 +73,7 @@ Structured logging (Serilog → CloudWatch), correlation IDs, ASP.NET Core rate 
 ## 4. Real-time design
 
 - Commands travel over **REST** (easy to test, idempotent, clear HTTP semantics). The **SignalR hub only pushes**: it keeps open connections and fans out events.
-- Each connection authenticates with its session token and joins SignalR groups `s:{code}` (everyone) and `s:{code}:host` (host only).
+- Each connection authenticates with its session token and joins one SignalR group per role: `s:{code}:players`, `s:{code}:host`, or `s:{code}:display` (the read-only display view, FR-28). Events addressed to "all" go to all three; private events go only to the right group or connection.
 - **Redis backplane** lets any API instance publish to connections held by another instance.
 - Every pushed event carries a monotonically increasing `seq`. A client that detects a gap, or reconnects, calls `GET /sessions/{code}/snapshot` and rebuilds state. Events are hints; the snapshot is truth.
 - Clients use WebSockets only (`skipNegotiation`), which avoids sticky-session requirements behind the ALB.

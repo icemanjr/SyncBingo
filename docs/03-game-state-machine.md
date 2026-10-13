@@ -31,7 +31,8 @@ stateDiagram-v2
 | Pause / Resume | – | ✔ / – | – / ✔ | Pause cancels the auto-call schedule |
 | Draw ball ("Grab a new ball") | – | ✔ | ✔ | Explicit host action, allowed while paused (A6) |
 | Auto draw (scheduler) | – | ✔ | ✖ | Only in Auto mode |
-| Mark / unmark square | ✖ | ✔ | ✔ | *Free marking* on: any square, unmark allowed. Off: called numbers only, no unmarking (FR-22). The free cell is always marked |
+| Mark square | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22) |
+| Unmark square | ✖ | ✔ | ✔ | Only if *Allow unmarking* is on (FR-24). The free cell is always marked |
 | Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled. Always alerts the host, valid or not (FR-37a) |
 | Change win condition | – | ✔ | ✔ | Same ball draw and marks continue |
 | Change settings | ✔ | ✔ | ✔ | Some apply from the next round (e.g. redraw policy) |

@@ -41,7 +41,8 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-18 | **Win highlight** | On/off. Celebratory display on the winner's screen (and optionally everyone's) so young children notice a win. |
 | FR-19 | **Win detection** | *Off* (serious mode: players must recognise their own win), *Alert host* (host is told, by name, whose card has a winning pattern of **called** numbers, whether or not the player has noticed or marked it), *Alert host and pause* (the same, and the game pauses until the host resumes). Detection only alerts; a win still needs a claim and the host's award. |
 | FR-20 | **Card redraw policy** | *Host controls* redraws, or *participants may pick a new card* between rounds. |
-| FR-22 | **Free marking** | On (default) / off. *On:* participants may mark any square, including numbers not yet called ("mismarks"), and may unmark squares; careless marking can cost a player the game, which is part of the challenge for older players. *Off* (strict, for young children): only called numbers can be marked and nothing can be unmarked. |
+| FR-22 | **Free marking** | On (default) / off. *On:* participants may mark any square, including numbers not yet called ("mismarks"); careless marking can cost a player the game, which is part of the challenge for older players. *Off* (for young children): only called numbers can be marked. |
+| FR-24 | **Allow unmarking** | On (default) / off, independent of *Free marking*. *On:* participants may unmark a square they marked, e.g. after a mis-tap. *Off:* a mark stays once made. The free cell can never be unmarked. |
 | FR-23 | **Require marks for claims** | Off (default) / on. *Off:* a claim is valid when every cell of the pattern on the card has been called. *On:* those cells must also be marked by the player. |
 | FR-21 | **Win condition** | Normal Bingo (any row, column or diagonal), Four Corners, letters **B**, **I**, **N**, **G**, **O** (the letter drawn on the card), Blackout. |
 
@@ -55,7 +56,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-33 | After a win the host can: continue for more winners, change the win condition, or **Clear cards** to start a new round. |
 | FR-34 | **Clear cards** ends the round, clears all marks, returns all balls to the hopper, and optionally redraws every card. This starts a new round. |
 | FR-35 | The host can **end a round early**. Between rounds, joining and (per FR-20) card redraw are available. |
-| FR-36 | Participants mark squares themselves, following *Free marking* (FR-22). The server stores exactly what each participant marked, and always judges wins against the balls actually called. |
+| FR-36 | Participants mark squares themselves, following *Free marking* (FR-22) and *Allow unmarking* (FR-24). The server stores exactly what each participant marked, and always judges wins against the balls actually called. |
 | FR-37 | Ties: the first to claim may be recorded as the winner, but the host decides who is credited (see assumption A1). |
 | FR-37a | **Every Bingo press reaches the host**, valid or not, like a shout the caller must hear. The host sees the name, the time, and whether the card currently qualifies (FR-23). The player only sees that their Bingo was sent to the host. The host can award the win, dismiss the claim, or remove (FR-7) a player who keeps calling false Bingos. |
 | FR-38 | The host can **inspect a participant's card** to verify a claimed win. |

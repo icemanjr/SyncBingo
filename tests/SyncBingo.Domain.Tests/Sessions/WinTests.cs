@@ -113,7 +113,7 @@ public sealed class WinTests
 
         var detected = kit.Session.DetectWins([kit.Player], Now).Single<WinDetected>();
 
-        detected.ShouldBe(new WinDetected("p1", "Sam", 1, "normal") { Seq = detected.Seq });
+        detected.ShouldBe(new WinDetected("p1", "Sam", 1, "normal", Matches: 1) { Seq = detected.Seq });
         kit.Marks.ShouldBe(Bits(Free), "the player never marked anything");
         kit.Call(2);
         kit.Session.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("no repeat alerts");

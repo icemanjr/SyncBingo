@@ -9,7 +9,10 @@ public enum ClaimStatus
 
 /// <summary>
 /// A Bingo press (FR-37a). Every press is recorded and sent to the host, valid or not;
-/// <see cref="Qualified"/> says whether the card met the win condition at that moment.
+/// <see cref="Matches"/> is how many lines the card completed at that moment (0 = not
+/// qualified, 2 = a "double Bingo" on Normal) and <see cref="AlreadyAwarded"/> how many
+/// wins this card already got for this pattern this round, so the host can check a
+/// declaration, including a second line the player only noticed later.
 /// </summary>
 public sealed record Claim(
     int Id,
@@ -19,8 +22,12 @@ public sealed record Claim(
     int CardId,
     string WinConditionId,
     DateTimeOffset ClaimedAt,
-    bool Qualified,
-    ClaimStatus Status);
+    int Matches,
+    int AlreadyAwarded,
+    ClaimStatus Status)
+{
+    public bool Qualified => Matches > 0;
+}
 
 public enum WinSource
 {
@@ -34,15 +41,19 @@ public enum WinSource
     Manual,
 }
 
-/// <summary>A win the host credited (ADR 0008). One per participant, win condition and round.</summary>
+/// <summary>
+/// Wins the host credited in one award (ADR 0008): usually one, more when the player
+/// declared several and <see cref="MultipleWins.EveryDeclaredWin"/> is on (FR-43).
+/// </summary>
 public sealed record WinRecord(
     int Round,
     string ParticipantId,
     string Name,
-    int? CardId,
+    int CardId,
     string WinConditionId,
     DateTimeOffset AwardedAt,
-    WinSource Source);
+    WinSource Source,
+    int Wins = 1);
 
 public sealed record LeaderboardEntry(string ParticipantId, string Name, int Wins);
 
@@ -60,8 +71,11 @@ public sealed record WinClaimed(Claim Claim) : SessionEvent;
 /// <summary>The host cleared a claim without awarding it (host only).</summary>
 public sealed record ClaimDismissed(int ClaimId) : SessionEvent;
 
-/// <summary>A card met the win condition on called numbers, whether or not the player noticed (host only, FR-19).</summary>
-public sealed record WinDetected(string ParticipantId, string Name, int CardId, string WinConditionId) : SessionEvent;
+/// <summary>
+/// A card met the win condition on called numbers, whether or not the player noticed
+/// (host only, FR-19). <see cref="Matches"/> is how many lines it completes.
+/// </summary>
+public sealed record WinDetected(string ParticipantId, string Name, int CardId, string WinConditionId, int Matches) : SessionEvent;
 
 /// <summary>The host credited a win.</summary>
 public sealed record WinAwarded(WinRecord Win) : SessionEvent;

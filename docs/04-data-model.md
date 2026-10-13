@@ -20,16 +20,16 @@ erDiagram
 | Entity | Key fields |
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
-| **Settings** | auto-call interval, showBallToPlayers, highlightMatches, showCallBoard, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; changes apply next round), callBoardFace (ball / square), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Settings** | auto-call interval, showBallToPlayers, highlightMatches, showCallBoard, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; changes apply next round), callBoardFace (ball / square), multipleWins (oncePerRound / oncePerPattern / everyDeclaredWin; changes apply next round), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
 | **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
-| **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `qualified` (did the card qualify at that moment), `status` (pending/awarded/dismissed) |
+| **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `matches` (lines completed at that moment; 0 = not qualified), `alreadyAwarded` (wins this card already got for this pattern this round), `status` (pending/awarded/dismissed) |
 | **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask; the centre bit starts set with an *Always marked* free space and unset with an *Earned* one), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
-| **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
+| **WinRecord** | `round`, `participantId`, `cardId`, `winCondition`, `awardedAt`, `source` (detected/claimed/manual), `wins` (1, or more for a declared multiple win) |
 | **BingoVariant** | `id`, `ballMax` (75), `columns` (5), `rows` (5), `columnRanges`, `freeCell`, `patterns[]` |
 
-**Settings defaults** (`SessionSettings.Default`): 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show call board on, auto-fill available off, Bingo button on, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*, call board shows the *ball* side. *Free space* and *Redraw policy* are round-scoped: changed mid-round, they are held as `nextRoundSettings` and apply when the next round starts.
+**Settings defaults** (`SessionSettings.Default`): 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show call board on, auto-fill available off, Bingo button on, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*, call board shows the *ball* side, multiple wins *once per pattern*. *Free space*, *Redraw policy* and *Multiple wins* are round-scoped: changed mid-round, they are held as `nextRoundSettings` and apply when the next round starts.
 
 A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (multiple purchased cards) needs no model change.
 

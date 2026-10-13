@@ -248,10 +248,17 @@ public sealed class Participant
     /// <summary>Whether a card qualifies for the current win condition (FR-23); see <see cref="CardRules.Qualifies"/>.</summary>
     public Result<bool> Qualifies(int cardId, Session session)
     {
+        var matches = Matches(cardId, session);
+        return matches.IsSuccess ? Result.Success(matches.Value > 0) : matches.Error!;
+    }
+
+    /// <summary>How many lines (pattern masks) a card completes under claim rules; see <see cref="CardRules.MatchCount"/>.</summary>
+    public Result<int> Matches(int cardId, Session session)
+    {
         ArgumentNullException.ThrowIfNull(session);
 
         return FindCard(cardId) is { } card
-            ? Result.Success(CardRules.Qualifies(card.Card, card.Marks, session))
+            ? Result.Success(CardRules.MatchCount(card.Card, card.Marks, session))
             : UnknownCard(cardId);
     }
 

@@ -91,8 +91,10 @@ Rules:
 - A card raises **at most one detection alert per win condition per round**. Claims are not limited: every press reaches the host, who can remove a player who abuses the button.
 - Claim order is recorded with a server timestamp so the host can see who was first.
 - The host can **award a win** to one or several participants, including when detection and the Bingo button are both off (serious mode: a player shouts, the host verifies via *inspect card*, then awards).
-- A participant may win more than once per round, once for each win condition the host plays.
-- Awarding is idempotent for the same participant + win condition + round.
+- How many wins a card can earn in a round follows *Multiple wins* (FR-43): once per round, once per pattern (default), or every declared win (the host awards the number declared, e.g. 2 for a double Bingo).
+- Claims and detection alerts carry the number of lines the card completes; claims also carry the wins it already got for this pattern this round.
+- Detection alerts once per card, pattern and round; with *every declared win* it alerts again when more lines complete; with *once per round* a card that has won is not checked again.
+- Repeating an award changes nothing: the same card and pattern in the "once" modes, or the same claim in any mode (a double click).
 
 ## 5. Win patterns (5×5, row-major, centre = free)
 

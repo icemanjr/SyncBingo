@@ -34,7 +34,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |
 | `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
 | `PUT /sessions/{code}/win-condition` | `{ condition }` | `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`. |
-| `POST /sessions/{code}/wins` | `{ participantId, cardId? }` | Award win for the current win condition (idempotent). |
+| `POST /sessions/{code}/wins` | `{ participantId, cardId?, wins?, claimId? }` | Award a win for the current win condition, as *Multiple wins* allows (FR-43). `wins` > 1 only with *every declared win*. Passing the `claimId` makes repeats harmless; awards without a claim (a shouted Bingo) should send an `Idempotency-Key` header so a double click counts once. |
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
 | `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim. |
 | `DELETE /sessions/{code}/participants/{id}` | – | Kick. |
@@ -68,9 +68,9 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `AutoCallingStarted` / `AutoCallingPaused` | host | – (the room sees no difference; there is no paused banner) |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantRemoved` | host (removed: also that participant) | `{ id, name }` |
 | `ClaimDismissed` | host | `{ claimId }` |
-| `WinDetected` | host | `{ participantId, name, cardId, condition }` |
-| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, qualified }` |
-| `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition }` |
+| `WinDetected` | host | `{ participantId, name, cardId, condition, matches }` |
+| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, matches, alreadyAwarded }` |
+| `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition, wins }` |
 | `LeaderboardUpdated` | host; all when shown | `{ entries[] }` |
 | `LeaderboardVisibilityChanged` | all | `{ visible }` |
 | `CardReplaced` | that participant | `{ card }` |

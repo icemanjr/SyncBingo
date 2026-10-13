@@ -20,7 +20,8 @@ public sealed class Session
     private readonly List<Claim> _claims = [];
     private readonly List<WinRecord> _wins = [];
     private readonly List<RoundSummary> _rounds = [];
-    private readonly HashSet<(string ParticipantId, int CardId, string WinConditionId)> _alerted = [];
+    /// <summary>Lines already alerted per card and win condition this round, so alerts never repeat.</summary>
+    private readonly Dictionary<(string ParticipantId, int CardId, string WinConditionId), int> _alerted = [];
 
     private Session(GameCode code, BingoVariant variant, SessionSettings settings, string winConditionId, DateTimeOffset now)
     {
@@ -289,14 +290,17 @@ public sealed class Session
             return Failure(DomainErrorCode.NotAllowed, "The Bingo button is off in this game. Shout \"Bingo!\" instead.");
         }
 
-        var qualified = participant.Qualifies(cardId, this);
-        if (!qualified.IsSuccess)
+        var matches = participant.Matches(cardId, this);
+        if (!matches.IsSuccess)
         {
-            return qualified.Error!;
+            return matches.Error!;
         }
 
+        var alreadyAwarded = _wins
+            .Where(w => w.Round == RoundNumber && w.ParticipantId == participant.Id && w.CardId == cardId && w.WinConditionId == WinConditionId)
+            .Sum(w => w.Wins);
         var claim = new Claim(
-            _claims.Count + 1, RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, qualified.Value, ClaimStatus.Pending);
+            _claims.Count + 1, RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, matches.Value, alreadyAwarded, ClaimStatus.Pending);
         _claims.Add(claim);
         return Commit(now, new WinClaimed(claim));
     }
@@ -325,10 +329,13 @@ public sealed class Session
     }
 
     /// <summary>
-    /// Win detection after a draw (FR-19): alert the host about every card that now meets
-    /// the win condition on called numbers, at most once per card, condition and round.
-    /// With <see cref="WinDetection.AlertHostAndPause"/> an alert in auto mode also pauses
-    /// (back to manual). Marks play no part, so this runs only on draws, under the lock.
+    /// Win detection after a draw (FR-19): alert the host about cards that meet the win
+    /// condition on called numbers. Alerts never repeat: once per card, condition and round,
+    /// except that with <see cref="MultipleWins.EveryDeclaredWin"/> a card alerts again when
+    /// it completes more lines; with <see cref="MultipleWins.OncePerRound"/> a card that has
+    /// won is not checked again. With <see cref="WinDetection.AlertHostAndPause"/> an alert
+    /// in auto mode also pauses (back to manual). Marks play no part, so this runs only on
+    /// draws, under the lock.
     /// </summary>
     public Result<IReadOnlyList<SessionEvent>> DetectWins(IEnumerable<Participant> participants, DateTimeOffset now)
     {
@@ -349,9 +356,19 @@ public sealed class Session
         {
             foreach (var card in participant.Cards)
             {
-                if (CardRules.MeetsWinCondition(card.Card, this) && _alerted.Add((participant.Id, card.Id, WinConditionId)))
+                if (Settings.MultipleWins == MultipleWins.OncePerRound && HasWonThisRound(participant.Id, card.Id))
                 {
-                    events.Add(new WinDetected(participant.Id, participant.Name.Display, card.Id, WinConditionId));
+                    continue;
+                }
+
+                var matches = CardRules.MatchCount(card.Card, null, this);
+                var key = (participant.Id, card.Id, WinConditionId);
+                var alreadyAlerted = _alerted.GetValueOrDefault(key);
+                var isNew = Settings.MultipleWins == MultipleWins.EveryDeclaredWin ? matches > alreadyAlerted : alreadyAlerted == 0;
+                if (matches > 0 && isNew)
+                {
+                    _alerted[key] = matches;
+                    events.Add(new WinDetected(participant.Id, participant.Name.Display, card.Id, WinConditionId, matches));
                 }
             }
         }
@@ -371,11 +388,19 @@ public sealed class Session
     }
 
     /// <summary>
-    /// The host credits a win for the current win condition (ADR 0008). Awarding the same
-    /// participant twice for the same condition in a round changes nothing. The host may
+    /// The host credits a win on a card for the current win condition (ADR 0008), as
+    /// <see cref="SessionSettings.MultipleWins"/> allows (FR-43):
+    /// <list type="bullet">
+    /// <item><b>Once per round</b>: a card that has won is done until the next round.</item>
+    /// <item><b>Once per pattern</b>: one win per card and condition; a new pattern allows another.</item>
+    /// <item><b>Every declared win</b>: each award adds <paramref name="wins"/>, e.g. 2 for a "double Bingo".</item>
+    /// </list>
+    /// Repeating an award that is already recorded changes nothing: the same card and condition
+    /// in the "once" modes, or the same <paramref name="claimId"/> in any mode. The host may
     /// award without any alert, e.g. after checking a shouted Bingo (FR-38).
     /// </summary>
-    public Result<IReadOnlyList<SessionEvent>> AwardWin(Participant participant, int? cardId, DateTimeOffset now)
+    public Result<IReadOnlyList<SessionEvent>> AwardWin(
+        Participant participant, int? cardId, DateTimeOffset now, int wins = 1, int? claimId = null)
     {
         ArgumentNullException.ThrowIfNull(participant);
 
@@ -384,31 +409,64 @@ public sealed class Session
             return WrongState("award a win");
         }
 
-        if (cardId is { } id && participant.Cards.All(card => card.Id != id))
+        var card = cardId ?? (participant.Cards.Count == 1 ? participant.Cards[0].Id : (int?)null);
+        if (card is not { } awardedCard || participant.Cards.All(c => c.Id != awardedCard))
         {
-            return Failure(DomainErrorCode.Invalid, $"{participant.Name.Display} has no card {id}.");
+            return Failure(DomainErrorCode.Invalid, cardId is null
+                ? $"Say which of {participant.Name.Display}'s cards won."
+                : $"{participant.Name.Display} has no card {cardId}.");
         }
 
-        if (_wins.Any(win => win.Round == RoundNumber && win.ParticipantId == participant.Id && win.WinConditionId == WinConditionId))
+        if (wins < 1 || (wins > 1 && Settings.MultipleWins != MultipleWins.EveryDeclaredWin))
         {
-            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+            return Failure(DomainErrorCode.Invalid, wins < 1
+                ? "Award at least one win."
+                : "This game counts one win per award. Choose \"Every declared win\" to award several.");
         }
 
-        var source = _claims.Any(claim => IsOpenClaimBy(claim, participant.Id))
+        if (claimId is { } id)
+        {
+            var claim = _claims.Find(c => c.Id == id);
+            if (claim is null || claim.ParticipantId != participant.Id || claim.CardId != awardedCard)
+            {
+                return Failure(DomainErrorCode.Invalid, $"Claim {id} is not {participant.Name.Display}'s claim for that card.");
+            }
+
+            switch (claim.Status)
+            {
+                case ClaimStatus.Awarded:
+                    return Result.Success<IReadOnlyList<SessionEvent>>([]);
+                case ClaimStatus.Dismissed:
+                    return Failure(DomainErrorCode.NotAllowed, $"Claim {id} was dismissed.");
+            }
+        }
+
+        var earlier = _wins.Where(w => w.Round == RoundNumber && w.ParticipantId == participant.Id && w.CardId == awardedCard).ToList();
+        var samePattern = earlier.Any(w => w.WinConditionId == WinConditionId);
+        switch (Settings.MultipleWins)
+        {
+            case MultipleWins.OncePerRound when samePattern:
+            case MultipleWins.OncePerPattern when samePattern:
+                return Result.Success<IReadOnlyList<SessionEvent>>([]);
+            case MultipleWins.OncePerRound when earlier.Count > 0:
+                return Failure(DomainErrorCode.NotAllowed, "This card has already won this round.");
+        }
+
+        var source = claimId is not null || _claims.Any(c => IsOpenClaim(c, participant.Id, awardedCard))
             ? WinSource.Claimed
-            : _alerted.Any(alert => alert.ParticipantId == participant.Id && alert.WinConditionId == WinConditionId)
+            : _alerted.ContainsKey((participant.Id, awardedCard, WinConditionId))
                 ? WinSource.Detected
                 : WinSource.Manual;
 
         for (var i = 0; i < _claims.Count; i++)
         {
-            if (IsOpenClaimBy(_claims[i], participant.Id))
+            if (IsOpenClaim(_claims[i], participant.Id, awardedCard))
             {
                 _claims[i] = _claims[i] with { Status = ClaimStatus.Awarded };
             }
         }
 
-        var win = new WinRecord(RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, source);
+        var win = new WinRecord(RoundNumber, participant.Id, participant.Name.Display, awardedCard, WinConditionId, now, source, wins);
         _wins.Add(win);
         ReplaceCurrentRound(CurrentRound! with { Wins = [.. CurrentRound!.Wins, win] });
         return Commit(now, new WinAwarded(win));
@@ -458,7 +516,7 @@ public sealed class Session
     public IReadOnlyList<LeaderboardEntry> Leaderboard() =>
         [.. _wins
             .GroupBy(win => win.ParticipantId)
-            .Select(group => new LeaderboardEntry(group.Key, group.Last().Name, group.Count()))
+            .Select(group => new LeaderboardEntry(group.Key, group.Last().Name, group.Sum(win => win.Wins)))
             .OrderByDescending(entry => entry.Wins)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)];
 
@@ -487,11 +545,15 @@ public sealed class Session
         return Commit(now, new SessionEnded());
     }
 
-    private bool IsOpenClaimBy(Claim claim, string participantId) =>
+    private bool IsOpenClaim(Claim claim, string participantId, int cardId) =>
         claim.Round == RoundNumber
         && claim.ParticipantId == participantId
+        && claim.CardId == cardId
         && claim.WinConditionId == WinConditionId
         && claim.Status == ClaimStatus.Pending;
+
+    private bool HasWonThisRound(string participantId, int cardId) =>
+        _wins.Any(w => w.Round == RoundNumber && w.ParticipantId == participantId && w.CardId == cardId);
 
     private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
 

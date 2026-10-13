@@ -33,7 +33,7 @@ public sealed class SessionSettingsTests
     [Fact]
     public void During_a_round_round_scoped_settings_wait_for_the_next_round()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         var changed = SessionSettings.Default with
         {
             FreeSpace = FreeSpace.Earned,
@@ -57,7 +57,7 @@ public sealed class SessionSettingsTests
     [Fact]
     public void Nothing_waits_when_only_immediate_settings_change_mid_round()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
 
         session.UpdateSettings(SessionSettings.Default with { HighlightMatches = true }, Now).IsSuccess.ShouldBeTrue();
 

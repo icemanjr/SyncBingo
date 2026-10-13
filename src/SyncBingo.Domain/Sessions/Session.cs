@@ -33,7 +33,7 @@ public sealed class Session
 
     public SessionState State { get; private set; } = SessionState.BetweenRounds;
 
-    public bool IsInRound => State is SessionState.Running or SessionState.Paused;
+    public bool IsInRound => State is SessionState.Manual or SessionState.Auto;
 
     /// <summary>Settings in force now.</summary>
     public SessionSettings Settings { get; private set; }
@@ -93,7 +93,11 @@ public sealed class Session
 
     public bool HasBeenCalled(int number) => _calledNumbers.Contains(number);
 
-    /// <summary>Start the next round, or "Clear cards" mid-round (ends the current one first).</summary>
+    /// <summary>
+    /// Start the next round, or "Clear cards" mid-round (ends the current one first).
+    /// Every round starts in <see cref="SessionState.Manual"/>: nothing is called until the
+    /// host grabs a ball or switches to auto mode.
+    /// </summary>
     public Result<IReadOnlyList<SessionEvent>> StartRound(bool redrawCards, DateTimeOffset now)
     {
         if (State == SessionState.Ended)
@@ -116,7 +120,7 @@ public sealed class Session
         _calls.Clear();
         _calledNumbers.Clear();
         RoundNumber++;
-        State = SessionState.Running;
+        State = SessionState.Manual;
         events.Add(new RoundStarted(RoundNumber, redrawCards));
         return Commit(now, events);
     }
@@ -133,58 +137,60 @@ public sealed class Session
         return Commit(now, new RoundEnded(RoundNumber));
     }
 
+    /// <summary>
+    /// "Auto mode": draw a ball at once, then the scheduler draws every
+    /// <see cref="SessionSettings.AutoCallInterval"/> until the host pauses.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> StartAutoCalling(IRandomSource random, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(random);
+
+        if (State != SessionState.Manual)
+        {
+            return WrongState("switch to auto mode");
+        }
+
+        if (BallsRemaining == 0)
+        {
+            return HopperEmpty();
+        }
+
+        State = SessionState.Auto;
+        return Commit(now, new AutoCallingStarted(), CallNextBall(DrawSource.Auto, random, now));
+    }
+
+    /// <summary>"Pause": stop automatic calls and return to manual calling.</summary>
     public Result<IReadOnlyList<SessionEvent>> Pause(DateTimeOffset now)
     {
-        if (State != SessionState.Running)
+        if (State != SessionState.Auto)
         {
             return WrongState("pause");
         }
 
-        State = SessionState.Paused;
-        return Commit(now, new SessionPaused());
-    }
-
-    public Result<IReadOnlyList<SessionEvent>> Resume(DateTimeOffset now)
-    {
-        if (State != SessionState.Paused)
-        {
-            return WrongState("resume");
-        }
-
-        State = SessionState.Running;
-        return Commit(now, new SessionResumed());
+        State = SessionState.Manual;
+        return Commit(now, new AutoCallingPaused());
     }
 
     /// <summary>
-    /// Draw a ball from the hopper. The host may draw while paused (A6); the scheduler
-    /// only draws while running and in <see cref="CallerMode.Auto"/>.
+    /// Draw a ball from the hopper: the host's "Grab ball" in manual mode, or the
+    /// scheduler's tick in auto mode. Each source is refused in the other mode.
     /// </summary>
     public Result<IReadOnlyList<SessionEvent>> DrawBall(DrawSource source, IRandomSource random, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(random);
 
-        var allowed = source == DrawSource.Manual ? IsInRound : State == SessionState.Running;
-        if (!allowed)
+        var required = source == DrawSource.Manual ? SessionState.Manual : SessionState.Auto;
+        if (State != required)
         {
-            return WrongState(source == DrawSource.Manual ? "draw a ball" : "auto-draw a ball");
-        }
-
-        if (source == DrawSource.Auto && Settings.CallerMode != CallerMode.Auto)
-        {
-            return Failure(DomainErrorCode.NotAllowed, "Automatic calls are only made in Auto caller mode.");
+            return WrongState(source == DrawSource.Manual ? "grab a ball" : "auto-draw a ball");
         }
 
         if (BallsRemaining == 0)
         {
-            return Failure(DomainErrorCode.HopperEmpty, "Every ball has been called. Clear the cards to start a new round.");
+            return HopperEmpty();
         }
 
-        var number = PickFromHopper(random);
-        var previous = LastCall?.Number;
-        var call = new BallCall(_calls.Count + 1, number, Variant.Columns[Variant.ColumnOf(number)].Label, now, source);
-        _calls.Add(call);
-        _calledNumbers.Add(number);
-        return Commit(now, new BallCalled(call, previous));
+        return Commit(now, CallNextBall(source, random, now));
     }
 
     public Result<IReadOnlyList<SessionEvent>> ChangeWinCondition(string winConditionId, DateTimeOffset now)
@@ -262,6 +268,19 @@ public sealed class Session
         return Commit(now, new SessionEnded());
     }
 
+    private BallCalled CallNextBall(DrawSource source, IRandomSource random, DateTimeOffset now)
+    {
+        var number = PickFromHopper(random);
+        var previous = LastCall?.Number;
+        var call = new BallCall(_calls.Count + 1, number, Variant.Columns[Variant.ColumnOf(number)].Label, now, source);
+        _calls.Add(call);
+        _calledNumbers.Add(number);
+        return new BallCalled(call, previous);
+    }
+
+    private static DomainError HopperEmpty() =>
+        new(DomainErrorCode.HopperEmpty, "Every ball has been called. Clear the cards to start a new round.");
+
     private int PickFromHopper(IRandomSource random)
     {
         // The n-th uncalled ball, counting up from 1: uniform over the hopper.
@@ -296,8 +315,8 @@ public sealed class Session
     private static string Describe(SessionState state) => state switch
     {
         SessionState.BetweenRounds => "between rounds",
-        SessionState.Running => "running",
-        SessionState.Paused => "paused",
+        SessionState.Manual => "in manual mode",
+        SessionState.Auto => "in auto mode",
         SessionState.Ended => "ended",
         _ => state.ToString(),
     };

@@ -30,8 +30,8 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 
 | ID | Setting | Options |
 |----|---------|---------|
-| FR-10 | **Caller mode** | *Auto*: the app draws on a configurable interval. *Manual*: the host draws and calls the number aloud; the new ball appears on the host's screen. |
-| FR-11 | **Grab a new ball** | Host button that draws immediately in either mode, including while paused. |
+| FR-10 | **Calling: manual and auto** | Every round starts in **manual** mode: the host presses **Grab ball** for each ball and calls it aloud. Pressing **Auto mode** draws a ball **immediately**, then the app draws one every *auto-call interval* (a setting, 3–120 s). In auto mode the host's only calling button is **Pause**, which returns to manual mode; to speed up or slow down, the host pauses, changes the interval, and presses Auto mode again. |
+| FR-11 | **Grab ball** | Host button that draws immediately; shown in manual mode only (FR-10). |
 | FR-12 | **Show ball to participants** | On/off. When on, the latest ball appears in the corner of each participant's screen. |
 | FR-13 | **Highlight matching square** | On/off. When on, a called number is highlighted on cards that contain it. |
 | FR-14 | **Show recent calls** | On/off. Board of called numbers visible to participants. |
@@ -52,7 +52,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 
 | ID | Requirement |
 |----|-------------|
-| FR-30 | The host can **pause and resume** at any time (e.g. a winner walks to the front for a prize). While paused the auto-call timer freezes and participants may still mark numbers already called. |
+| FR-30 | The host can **pause** auto mode at any time (e.g. a winner walks to the front for a prize), which simply returns to manual mode: no more automatic calls, participants keep marking, and no "paused" banner is shown to anyone. **Auto mode** resumes, drawing the next ball at once. |
 | FR-31 | The game **never stops automatically** just because someone may have won, unless the host enabled *Alert host and pause*. |
 | FR-32 | The host can **change the win condition mid-round** (e.g. Normal → Blackout) and continue calling with the same balls and marks. |
 | FR-33 | After a win the host can: continue for more winners, change the win condition, or **Clear cards** to start a new round. |
@@ -110,8 +110,8 @@ Confirmed by the owner on 2026-10-12.
 | A1 | **Wins are credited by the host.** Detection and claims raise alerts; the host confirms who is credited, which feeds the leaderboard. |
 | A2 | The game code alphabet omits look-alike characters (0/o, 1/i/l) for easier typing; length stays 16 (4×4). |
 | A3 | A join attempt during a round is refused with a message (no waiting room in the MVP). |
-| A4 | Starting a round begins in *Running*; in Auto mode the first ball arrives after one interval, or immediately via "Grab a new ball". |
+| A4 | ~~Starting a round begins in *Running*.~~ *Amended 2026-10-12:* every round starts in **manual** mode; nothing is called until the host presses Grab ball or Auto mode (FR-10). |
 | A5 | ~~A host who is also a participant appears on the leaderboard.~~ Superseded by the removal of FR-15: a host who plays joins as a regular participant and appears on the leaderboard like anyone else. |
-| A6 | "Grab a new ball" while paused is an explicit host action and is allowed. |
+| A6 | "Grab a new ball" while paused is an explicit host action and is allowed. *Amended 2026-10-12:* pausing returns to manual mode, where Grab ball is the normal way to draw; Grab ball is not offered in auto mode. |
 | A7 | Default max participants per session is 100; default session idle expiry is 4 hours, with a hard cap of 12 hours on total session lifetime. |
 | A8 | The free centre space is always marked and counts toward every pattern that includes it. *Amended 2026-10-12:* this is the default; the host can choose the *Earned* free space instead (FR-26). |

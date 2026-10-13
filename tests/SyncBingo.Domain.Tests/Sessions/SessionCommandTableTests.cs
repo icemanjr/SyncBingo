@@ -11,57 +11,55 @@ namespace SyncBingo.Domain.Tests.Sessions;
 public sealed class SessionCommandTableTests
 {
     private const SessionState Lobby = SessionState.BetweenRounds;
-    private const SessionState Running = SessionState.Running;
-    private const SessionState Paused = SessionState.Paused;
+    private const SessionState Manual = SessionState.Manual;
+    private const SessionState Auto = SessionState.Auto;
     private const SessionState Ended = SessionState.Ended;
-
-    private static readonly SessionSettings AutoCaller = new() { CallerMode = CallerMode.Auto };
 
     private static readonly Dictionary<string, Func<Session, bool>> Commands = new()
     {
         ["Start round / Clear cards"] = s => s.StartRound(redrawCards: true, Now).IsSuccess,
         ["End round"] = s => s.EndRound(Now).IsSuccess,
+        ["Auto mode"] = s => s.StartAutoCalling(new SeededRandom(1), Now).IsSuccess,
         ["Pause"] = s => s.Pause(Now).IsSuccess,
-        ["Resume"] = s => s.Resume(Now).IsSuccess,
-        ["Draw ball (host)"] = s => s.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess,
+        ["Grab ball (host)"] = s => s.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess,
         ["Auto draw (scheduler)"] = s => s.DrawBall(DrawSource.Auto, new SeededRandom(1), Now).IsSuccess,
         ["Change win condition"] = s => s.ChangeWinCondition("blackout", Now).IsSuccess,
-        ["Change settings"] = s => s.UpdateSettings(AutoCaller with { ShowCallBoard = false }, Now).IsSuccess,
+        ["Change settings"] = s => s.UpdateSettings(SessionSettings.Default with { ShowCallBoard = false }, Now).IsSuccess,
         ["Join"] = s => s.CheckCanAdmit(currentParticipants: 0).IsSuccess,
         ["End session"] = s => s.End(Now).IsSuccess,
     };
 
     public static TheoryData<string, SessionState, bool> Table => new()
     {
-        { "Start round / Clear cards", Lobby, true }, { "Start round / Clear cards", Running, true },
-        { "Start round / Clear cards", Paused, true }, { "Start round / Clear cards", Ended, false },
+        { "Start round / Clear cards", Lobby, true }, { "Start round / Clear cards", Manual, true },
+        { "Start round / Clear cards", Auto, true }, { "Start round / Clear cards", Ended, false },
 
-        { "End round", Lobby, false }, { "End round", Running, true },
-        { "End round", Paused, true }, { "End round", Ended, false },
+        { "End round", Lobby, false }, { "End round", Manual, true },
+        { "End round", Auto, true }, { "End round", Ended, false },
 
-        { "Pause", Lobby, false }, { "Pause", Running, true },
-        { "Pause", Paused, false }, { "Pause", Ended, false },
+        { "Auto mode", Lobby, false }, { "Auto mode", Manual, true },
+        { "Auto mode", Auto, false }, { "Auto mode", Ended, false },
 
-        { "Resume", Lobby, false }, { "Resume", Running, false },
-        { "Resume", Paused, true }, { "Resume", Ended, false },
+        { "Pause", Lobby, false }, { "Pause", Manual, false },
+        { "Pause", Auto, true }, { "Pause", Ended, false },
 
-        { "Draw ball (host)", Lobby, false }, { "Draw ball (host)", Running, true },
-        { "Draw ball (host)", Paused, true }, { "Draw ball (host)", Ended, false },
+        { "Grab ball (host)", Lobby, false }, { "Grab ball (host)", Manual, true },
+        { "Grab ball (host)", Auto, false }, { "Grab ball (host)", Ended, false },
 
-        { "Auto draw (scheduler)", Lobby, false }, { "Auto draw (scheduler)", Running, true },
-        { "Auto draw (scheduler)", Paused, false }, { "Auto draw (scheduler)", Ended, false },
+        { "Auto draw (scheduler)", Lobby, false }, { "Auto draw (scheduler)", Manual, false },
+        { "Auto draw (scheduler)", Auto, true }, { "Auto draw (scheduler)", Ended, false },
 
-        { "Change win condition", Lobby, true }, { "Change win condition", Running, true },
-        { "Change win condition", Paused, true }, { "Change win condition", Ended, false },
+        { "Change win condition", Lobby, true }, { "Change win condition", Manual, true },
+        { "Change win condition", Auto, true }, { "Change win condition", Ended, false },
 
-        { "Change settings", Lobby, true }, { "Change settings", Running, true },
-        { "Change settings", Paused, true }, { "Change settings", Ended, false },
+        { "Change settings", Lobby, true }, { "Change settings", Manual, true },
+        { "Change settings", Auto, true }, { "Change settings", Ended, false },
 
-        { "Join", Lobby, true }, { "Join", Running, false },
-        { "Join", Paused, false }, { "Join", Ended, false },
+        { "Join", Lobby, true }, { "Join", Manual, false },
+        { "Join", Auto, false }, { "Join", Ended, false },
 
-        { "End session", Lobby, true }, { "End session", Running, true },
-        { "End session", Paused, true }, { "End session", Ended, false },
+        { "End session", Lobby, true }, { "End session", Manual, true },
+        { "End session", Auto, true }, { "End session", Ended, false },
     };
 
     [Fact]
@@ -76,7 +74,7 @@ public sealed class SessionCommandTableTests
     [MemberData(nameof(Table))]
     public void Command_is_allowed_exactly_where_the_design_says(string command, SessionState state, bool allowed)
     {
-        var session = InState(state, AutoCaller);
+        var session = InState(state);
         var versionBefore = session.Version;
 
         var succeeded = Commands[command](session);

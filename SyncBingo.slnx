@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/SyncBingo.Api.IntegrationTests/SyncBingo.Api.IntegrationTests.csproj" />
+    <Project Path="tests/SyncBingo.Application.Tests/SyncBingo.Application.Tests.csproj" />
     <Project Path="tests/SyncBingo.Domain.Tests/SyncBingo.Domain.Tests.csproj" />
   </Folder>
 </Solution>

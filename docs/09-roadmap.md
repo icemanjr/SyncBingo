@@ -1,8 +1,8 @@
 # 09 — Roadmap
 
 ## Phase 0 — Foundations
-- [ ] Repo, solution layout, Docker Compose (`web`, `api`, `redis`), CI skeleton
-- [ ] Domain: variant model, card generation, bitmask patterns, state machine (with tests)
+- [x] Repo, solution layout, Docker Compose (`web`, `api`, `redis`), CI skeleton
+- [x] Domain: variant model, card generation, bitmask patterns, state machine (with tests)
 
 ## Phase 1 — Core game (MVP)
 - [ ] Create session, game code, QR, password; join by QR and by code

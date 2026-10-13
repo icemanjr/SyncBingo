@@ -79,6 +79,7 @@
 **Launch considerations (not blockers for the portfolio build)**
 
 - The audience includes young children. Ad networks have child-directed rules and the US has COPPA; contextual (non-personalised) ads, a clear privacy page and no data collection should be part of any launch plan.
+- A **Terms of Use** page (linked from every page footer) states, among the usual terms, that hosts are responsible for any custom content they upload or display in their games (ADR 0009). The future custom-content **upload page** repeats this next to the upload control, and the host must tick an acknowledgement before uploading.
 - No real-money features are planned in the app (see 01 §6); the "Serious Bingo" tile is a non-interactive teaser.
 
 ## 3. Accessibility and kid-friendliness

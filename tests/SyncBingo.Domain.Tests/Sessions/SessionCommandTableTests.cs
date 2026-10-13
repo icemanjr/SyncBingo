@@ -1,4 +1,6 @@
+using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Sessions;
+using SyncBingo.Domain.Tests.Participants;
 using static SyncBingo.Domain.Tests.Sessions.SessionTestKit;
 
 namespace SyncBingo.Domain.Tests.Sessions;
@@ -26,6 +28,10 @@ public sealed class SessionCommandTableTests
         ["Change win condition"] = s => s.ChangeWinCondition("blackout", Now).IsSuccess,
         ["Change settings"] = s => s.UpdateSettings(SessionSettings.Default with { ShowCallBoard = false }, Now).IsSuccess,
         ["Join"] = s => s.CheckCanAdmit(currentParticipants: 0).IsSuccess,
+        ["Claim Bingo"] = s => s.ClaimBingo(Player(s), 1, Now).IsSuccess,
+        ["Award win"] = s => s.AwardWin(Player(s), 1, Now).IsSuccess,
+        ["Show leaderboard"] = s => s.ShowLeaderboard(true, Now).IsSuccess,
+        ["Remove participant"] = s => s.RemoveParticipant(Player(s), Now).IsSuccess,
         ["End session"] = s => s.End(Now).IsSuccess,
     };
 
@@ -58,9 +64,24 @@ public sealed class SessionCommandTableTests
         { "Join", Lobby, true }, { "Join", Manual, false },
         { "Join", Auto, false }, { "Join", Ended, false },
 
+        { "Claim Bingo", Lobby, false }, { "Claim Bingo", Manual, true },
+        { "Claim Bingo", Auto, true }, { "Claim Bingo", Ended, false },
+
+        { "Award win", Lobby, false }, { "Award win", Manual, true },
+        { "Award win", Auto, true }, { "Award win", Ended, false },
+
+        { "Show leaderboard", Lobby, true }, { "Show leaderboard", Manual, true },
+        { "Show leaderboard", Auto, true }, { "Show leaderboard", Ended, false },
+
+        { "Remove participant", Lobby, true }, { "Remove participant", Manual, true },
+        { "Remove participant", Auto, true }, { "Remove participant", Ended, false },
+
         { "End session", Lobby, true }, { "End session", Manual, true },
         { "End session", Auto, true }, { "End session", Ended, false },
     };
+
+    private static Participant Player(Session session) =>
+        Participant.Join("p1", PlayerTestKit.Name("Sam"), PlayerTestKit.KnownCard, session, Now);
 
     [Fact]
     public void The_table_covers_every_command_in_every_state()

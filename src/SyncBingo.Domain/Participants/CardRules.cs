@@ -64,6 +64,16 @@ public static class CardRules
     }
 
     /// <summary>
+    /// Whether the card's called cells meet the current win condition, ignoring marks.
+    /// Used by win detection (FR-19): "this card has a winning line, noticed or not".
+    /// </summary>
+    public static bool MeetsWinCondition(Card card, Session session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.Variant.GetPattern(session.WinConditionId).IsSatisfiedBy(CalledMask(card, session));
+    }
+
+    /// <summary>
     /// Whether the card qualifies for the current win condition: the pattern's cells are
     /// all called, and also marked when <see cref="SessionSettings.RequireMarksForClaims"/> is on (FR-23).
     /// </summary>

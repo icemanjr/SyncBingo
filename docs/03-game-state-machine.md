@@ -43,8 +43,8 @@ stateDiagram-v2
 | Award win | – | ✔ | ✔ | Credits a participant; feeds leaderboard |
 | Dismiss claim | – | ✔ | ✔ | Host clears a claim without awarding it |
 | Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |
-| Kick participant | ✔ | ✔ | ✔ | |
-| View leaderboard | ✔ | ✔ | ✔ | Host decides if shown to all |
+| Remove (kick) participant | ✔ | ✔ | ✔ | Dismisses their pending claims; wins already awarded stay in the history |
+| Show leaderboard to all | ✔ | ✔ | ✔ | The host always sees it; this shows or hides it for participants and the display |
 
 ## 3. Ball drawing
 

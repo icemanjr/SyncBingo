@@ -51,11 +51,14 @@ internal sealed class PlayerTestKit
         return parsed;
     }
 
+    /// <summary>A random source that makes the next draw pick exactly <paramref name="number"/>.</summary>
+    public IRandomSource Picks(int number) =>
+        new FixedRandom(Enumerable.Range(1, number - 1).Count(n => !Session.HasBeenCalled(n)));
+
     /// <summary>Calls exactly <paramref name="number"/> (manual draw) and returns the previous ball.</summary>
     public int? Call(int number)
     {
-        var below = Enumerable.Range(1, number - 1).Count(n => !Session.HasBeenCalled(n));
-        var called = Session.DrawBall(DrawSource.Manual, new FixedRandom(below), Now).Single<BallCalled>();
+        var called = Session.DrawBall(DrawSource.Manual, Picks(number), Now).Single<BallCalled>();
         called.Call.Number.ShouldBe(number);
         return called.PreviousNumber;
     }

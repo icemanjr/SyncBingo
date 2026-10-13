@@ -66,11 +66,13 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
 | `AutoCallingStarted` / `AutoCallingPaused` | host | – (the room sees no difference; there is no paused banner) |
-| `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |
+| `ParticipantJoined` / `ParticipantLeft` / `ParticipantRemoved` | host (removed: also that participant) | `{ id, name }` |
+| `ClaimDismissed` | host | `{ claimId }` |
 | `WinDetected` | host | `{ participantId, name, cardId, condition }` |
 | `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, qualified }` |
 | `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition }` |
 | `LeaderboardUpdated` | host; all when shown | `{ entries[] }` |
+| `LeaderboardVisibilityChanged` | all | `{ visible }` |
 | `CardReplaced` | that participant | `{ card }` |
 | `SessionEnded` | all | – |
 

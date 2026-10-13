@@ -1,3 +1,4 @@
+using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Rules;
 
 namespace SyncBingo.Domain.Sessions;
@@ -16,6 +17,10 @@ public sealed class Session
 
     private readonly List<BallCall> _calls = [];
     private readonly HashSet<int> _calledNumbers = [];
+    private readonly List<Claim> _claims = [];
+    private readonly List<WinRecord> _wins = [];
+    private readonly List<RoundSummary> _rounds = [];
+    private readonly HashSet<(string ParticipantId, int CardId, string WinConditionId)> _alerted = [];
 
     private Session(GameCode code, BingoVariant variant, SessionSettings settings, string winConditionId, DateTimeOffset now)
     {
@@ -67,6 +72,19 @@ public sealed class Session
 
     public DateTimeOffset LastActivityAt { get; private set; }
 
+    /// <summary>Every Bingo press this session, in order (FR-37a).</summary>
+    public IReadOnlyList<Claim> Claims => _claims;
+
+    /// <summary>Every win the host credited this session (FR-40).</summary>
+    public IReadOnlyList<WinRecord> Wins => _wins;
+
+    /// <summary>One summary per round started (FR-40).</summary>
+    public IReadOnlyList<RoundSummary> Rounds => _rounds;
+
+    public bool LeaderboardVisible { get; private set; }
+
+    private RoundSummary? CurrentRound => _rounds.Count == 0 ? null : _rounds[^1];
+
     public static Result<Session> Create(
         GameCode code,
         BingoVariant variant,
@@ -109,6 +127,7 @@ public sealed class Session
         if (IsInRound)
         {
             events.Add(new RoundEnded(RoundNumber));
+            CloseRound(now);
         }
 
         if (NextRoundSettings is { } next)
@@ -119,7 +138,9 @@ public sealed class Session
 
         _calls.Clear();
         _calledNumbers.Clear();
+        _alerted.Clear();
         RoundNumber++;
+        _rounds.Add(new RoundSummary(RoundNumber, now, null, [WinConditionId], []));
         State = SessionState.Manual;
         events.Add(new RoundStarted(RoundNumber, redrawCards));
         return Commit(now, events);
@@ -134,6 +155,7 @@ public sealed class Session
         }
 
         State = SessionState.BetweenRounds;
+        CloseRound(now);
         return Commit(now, new RoundEnded(RoundNumber));
     }
 
@@ -206,6 +228,11 @@ public sealed class Session
         }
 
         WinConditionId = winConditionId;
+        if (IsInRound && !CurrentRound!.WinConditionsUsed.Contains(winConditionId))
+        {
+            ReplaceCurrentRound(CurrentRound with { WinConditionsUsed = [.. CurrentRound.WinConditionsUsed, winConditionId] });
+        }
+
         return Commit(now, new WinConditionChanged(winConditionId));
     }
 
@@ -243,6 +270,198 @@ public sealed class Session
     }
 
     /// <summary>Whether one more participant may join now (FR-5, A3, A7).</summary>
+    /// <summary>
+    /// A Bingo press (FR-37a). Every press is recorded and sent to the host, valid or not,
+    /// like a shout the caller must hear; the host decides. The player is not told
+    /// whether it qualified.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> ClaimBingo(Participant participant, int cardId, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(participant);
+
+        if (!IsInRound)
+        {
+            return WrongState("call Bingo");
+        }
+
+        if (!Settings.BingoButton)
+        {
+            return Failure(DomainErrorCode.NotAllowed, "The Bingo button is off in this game. Shout \"Bingo!\" instead.");
+        }
+
+        var qualified = participant.Qualifies(cardId, this);
+        if (!qualified.IsSuccess)
+        {
+            return qualified.Error!;
+        }
+
+        var claim = new Claim(
+            _claims.Count + 1, RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, qualified.Value, ClaimStatus.Pending);
+        _claims.Add(claim);
+        return Commit(now, new WinClaimed(claim));
+    }
+
+    /// <summary>The host clears a claim without awarding it.</summary>
+    public Result<IReadOnlyList<SessionEvent>> DismissClaim(int claimId, DateTimeOffset now)
+    {
+        if (!IsInRound)
+        {
+            return WrongState("dismiss a claim");
+        }
+
+        var index = _claims.FindIndex(claim => claim.Id == claimId);
+        if (index < 0)
+        {
+            return Failure(DomainErrorCode.Invalid, $"There is no claim {claimId}.");
+        }
+
+        if (_claims[index].Status != ClaimStatus.Pending)
+        {
+            return Failure(DomainErrorCode.NotAllowed, $"Claim {claimId} has already been {_claims[index].Status.ToString().ToLowerInvariant()}.");
+        }
+
+        _claims[index] = _claims[index] with { Status = ClaimStatus.Dismissed };
+        return Commit(now, new ClaimDismissed(claimId));
+    }
+
+    /// <summary>
+    /// Win detection after a draw (FR-19): alert the host about every card that now meets
+    /// the win condition on called numbers, at most once per card, condition and round.
+    /// With <see cref="WinDetection.AlertHostAndPause"/> an alert in auto mode also pauses
+    /// (back to manual). Marks play no part, so this runs only on draws, under the lock.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> DetectWins(IEnumerable<Participant> participants, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(participants);
+
+        if (!IsInRound)
+        {
+            return WrongState("check for wins");
+        }
+
+        if (Settings.WinDetection == WinDetection.Off)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        var events = new List<SessionEvent>();
+        foreach (var participant in participants)
+        {
+            foreach (var card in participant.Cards)
+            {
+                if (CardRules.MeetsWinCondition(card.Card, this) && _alerted.Add((participant.Id, card.Id, WinConditionId)))
+                {
+                    events.Add(new WinDetected(participant.Id, participant.Name.Display, card.Id, WinConditionId));
+                }
+            }
+        }
+
+        if (events.Count == 0)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        if (Settings.WinDetection == WinDetection.AlertHostAndPause && State == SessionState.Auto)
+        {
+            State = SessionState.Manual;
+            events.Add(new AutoCallingPaused());
+        }
+
+        return Commit(now, events);
+    }
+
+    /// <summary>
+    /// The host credits a win for the current win condition (ADR 0008). Awarding the same
+    /// participant twice for the same condition in a round changes nothing. The host may
+    /// award without any alert, e.g. after checking a shouted Bingo (FR-38).
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> AwardWin(Participant participant, int? cardId, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(participant);
+
+        if (!IsInRound)
+        {
+            return WrongState("award a win");
+        }
+
+        if (cardId is { } id && participant.Cards.All(card => card.Id != id))
+        {
+            return Failure(DomainErrorCode.Invalid, $"{participant.Name.Display} has no card {id}.");
+        }
+
+        if (_wins.Any(win => win.Round == RoundNumber && win.ParticipantId == participant.Id && win.WinConditionId == WinConditionId))
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        var source = _claims.Any(claim => IsOpenClaimBy(claim, participant.Id))
+            ? WinSource.Claimed
+            : _alerted.Any(alert => alert.ParticipantId == participant.Id && alert.WinConditionId == WinConditionId)
+                ? WinSource.Detected
+                : WinSource.Manual;
+
+        for (var i = 0; i < _claims.Count; i++)
+        {
+            if (IsOpenClaimBy(_claims[i], participant.Id))
+            {
+                _claims[i] = _claims[i] with { Status = ClaimStatus.Awarded };
+            }
+        }
+
+        var win = new WinRecord(RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, source);
+        _wins.Add(win);
+        ReplaceCurrentRound(CurrentRound! with { Wins = [.. CurrentRound!.Wins, win] });
+        return Commit(now, new WinAwarded(win));
+    }
+
+    /// <summary>Show or hide the leaderboard on participants' screens and the display (FR-41).</summary>
+    public Result<IReadOnlyList<SessionEvent>> ShowLeaderboard(bool visible, DateTimeOffset now)
+    {
+        if (State == SessionState.Ended)
+        {
+            return WrongState("show the leaderboard");
+        }
+
+        LeaderboardVisible = visible;
+        return Commit(now, new LeaderboardVisibilityChanged(visible));
+    }
+
+    /// <summary>
+    /// Remove a participant (FR-7), e.g. one who keeps calling false Bingos. Their pending
+    /// claims are dismissed; wins already awarded stay in the history. The caller deletes
+    /// the participant and releases their name and card fingerprints.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> RemoveParticipant(Participant participant, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(participant);
+
+        if (State == SessionState.Ended)
+        {
+            return WrongState("remove a participant");
+        }
+
+        var events = new List<SessionEvent>();
+        for (var i = 0; i < _claims.Count; i++)
+        {
+            if (_claims[i].ParticipantId == participant.Id && _claims[i].Status == ClaimStatus.Pending)
+            {
+                _claims[i] = _claims[i] with { Status = ClaimStatus.Dismissed };
+                events.Add(new ClaimDismissed(_claims[i].Id));
+            }
+        }
+
+        events.Add(new ParticipantRemoved(participant.Id, participant.Name.Display));
+        return Commit(now, events);
+    }
+
+    /// <summary>Wins per participant across the session, most first (FR-41).</summary>
+    public IReadOnlyList<LeaderboardEntry> Leaderboard() =>
+        [.. _wins
+            .GroupBy(win => win.ParticipantId)
+            .Select(group => new LeaderboardEntry(group.Key, group.Last().Name, group.Count()))
+            .OrderByDescending(entry => entry.Wins)
+            .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)];
+
     public Result<int> CheckCanAdmit(int currentParticipants)
     {
         if (State != SessionState.BetweenRounds)
@@ -267,6 +486,16 @@ public sealed class Session
         State = SessionState.Ended;
         return Commit(now, new SessionEnded());
     }
+
+    private bool IsOpenClaimBy(Claim claim, string participantId) =>
+        claim.Round == RoundNumber
+        && claim.ParticipantId == participantId
+        && claim.WinConditionId == WinConditionId
+        && claim.Status == ClaimStatus.Pending;
+
+    private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
+
+    private void ReplaceCurrentRound(RoundSummary summary) => _rounds[^1] = summary;
 
     private BallCalled CallNextBall(DrawSource source, IRandomSource random, DateTimeOffset now)
     {

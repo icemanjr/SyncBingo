@@ -71,5 +71,6 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 
 - `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied.
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
+- Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - Rate limits: join endpoint per code + IP; marks per participant.
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SyncBingo.Domain.Rules;
 
 /// <summary>Built-in rule sets. Shapes match the tables in docs/03 §5.</summary>
@@ -8,6 +10,13 @@ public static class StandardVariants
     /// drawing from 1–15, 16–30, 31–45, 46–60 and 61–75.
     /// </summary>
     public static BingoVariant Classic75 { get; } = CreateClassic75();
+
+    /// <summary>Finds a built-in variant by <see cref="BingoVariant.Id"/>, e.g. when restoring a stored session.</summary>
+    public static bool TryGet(string id, [NotNullWhen(true)] out BingoVariant? variant)
+    {
+        variant = id == Classic75.Id ? Classic75 : null;
+        return variant is not null;
+    }
 
     private static BingoVariant CreateClassic75()
     {

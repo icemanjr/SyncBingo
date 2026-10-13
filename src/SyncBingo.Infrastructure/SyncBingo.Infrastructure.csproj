@@ -4,4 +4,8 @@
     <ProjectReference Include="../SyncBingo.Application/SyncBingo.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+
 </Project>

@@ -2,10 +2,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Testcontainers.Redis" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/SyncBingo.Api/SyncBingo.Api.csproj" />
+    <ProjectReference Include="../../src/SyncBingo.Infrastructure/SyncBingo.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

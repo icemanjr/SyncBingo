@@ -27,7 +27,7 @@ There are no accounts, no downloads and no personal data. A session lives only a
 - **Server-authoritative game state.** Clients send intents (mark square, claim Bingo); the server validates every one and broadcasts the result.
 - **REST for commands, SignalR for events.** Commands are plain HTTP endpoints described in OpenAPI. A WebSocket-only SignalR hub pushes events through a Redis backplane, so any API instance can reach any player. Events carry sequence numbers, and a snapshot endpoint lets a client rebuild its state after a gap.
 - **Rules as data.** A card's marks are a 25-bit mask, a win pattern is a list of masks, and a win is `(marks & mask) == mask`. Letter shapes, Four Corners and Blackout are configuration, not code.
-- **Ephemeral Redis state.** All session data lives in Redis with a TTL. Shared mutations take a short per-session lock; marks only touch the player's own hash field, so 100 players tapping at once don't contend with the host.
+- **Ephemeral Redis state.** All session data lives in Redis with a TTL. Shared mutations take a short per-session lock; marks only touch the player's own hash field, saved with a versioned compare-and-set, so 100 players tapping at once don't contend with the host and a draw's auto-fill never overwrites a tap.
 - **Leaderless auto-calling.** A Redis sorted set plus an atomic Lua claim with a lease means exactly one instance draws each ball, even across multiple containers, and a crashed instance hands over automatically.
 - **Security without accounts.** 16-character game codes from a CSPRNG, hashed passwords and session tokens, rate-limited joins, and a player only ever receives their own card.
 - **Infrastructure as code.** AWS CDK in C# provisions ECS Fargate, ElastiCache, S3 + CloudFront, Route 53 and ACM; GitHub Actions deploys using OIDC, with no long-lived keys.
@@ -81,7 +81,7 @@ docs/                          design documents and ADRs
 
 ## Run it locally
 
-Build and test the backend (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download)):
+Build and test the backend (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download), plus Docker or Podman for the integration tests, which start a real Redis with Testcontainers):
 
 ```bash
 dotnet build
@@ -114,7 +114,7 @@ Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 |-------|---------|-------|
 | Domain unit | xUnit, Shouldly, FsCheck | Card generation, win patterns, state machine, game codes |
 | Application | xUnit with fakes | Command handlers, authorisation, events |
-| API integration | WebApplicationFactory + Testcontainers (Redis) | Endpoints, auth, rate limits, scheduler, concurrency |
+| Integration | WebApplicationFactory + Testcontainers (Redis) | Redis store atomicity and expiry, endpoints, auth, rate limits, scheduler, concurrency |
 | Real-time | SignalR .NET client | Event delivery, audiences, reconnect and resync |
 | Frontend unit | Vitest + Testing Library | Components, hooks, store |
 | End-to-end | Playwright | Host and several players through full games, mobile viewports |

@@ -7,7 +7,7 @@
 | Landing | `/` | **Host a game**, **Join a game**, greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
 | Host console | `/host/:code` | **Call board by default** (FR-27), with QR + game code, last ball, draw/pause/round controls, claims and alerts, participant list, leaderboard. Rules and settings sit behind an **Options** button. **Open display** pops out the display view |
-| Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, paused banner, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
+| Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
 | Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
@@ -20,9 +20,9 @@
 │ [Ad: top banner]                            │
 ├─────────────────────────────────────────────┤
 │ 9ve4-shp3-k7mw-a2qx  [QR]   [Open display ⧉]│
-│ Round 3 · Normal Bingo · ▶ Running [Options]│
+│ Round 3 · Normal Bingo · ▶ Auto    [Options]│
 ├─────────────────────────────────────────────┤
-│  [ Grab ball ] [ Pause ]                    │
+│  Auto: [ Pause ]  Manual: [Grab][Auto mode] │
 │  ── call board (FR-27) ──                   │
 │               ┌──────┐                      │
 │               │ N 37 │ last ball            │
@@ -100,7 +100,7 @@ Opened from the host console with **Open display**, in a new tab or on another d
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  Round 3 · Normal Bingo [pattern]            ▶ Running       │
+│  Round 3 · Normal Bingo [pattern]                            │
 │                         ┌────────┐                           │
 │                         │  N 37  │  last ball                │
 │                         └────────┘                           │
@@ -156,4 +156,4 @@ Never shown: settings, claims, alerts, the participant list, inspect and award c
 
 ## 4. States to design
 
-Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · paused overlay (does not cover the card) · win highlight · empty hopper · host disconnected · session ended/expired.
+Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · win highlight · empty hopper · host disconnected · session ended/expired.

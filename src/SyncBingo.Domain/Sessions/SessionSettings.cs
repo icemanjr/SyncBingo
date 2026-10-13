@@ -1,14 +1,5 @@
 namespace SyncBingo.Domain.Sessions;
 
-public enum CallerMode
-{
-    /// <summary>The host draws each ball ("Grab a new ball") and calls it aloud.</summary>
-    Manual,
-
-    /// <summary>The server draws on <see cref="SessionSettings.AutoCallInterval"/>.</summary>
-    Auto,
-}
-
 public enum WinDetection
 {
     Off,
@@ -45,8 +36,7 @@ public sealed record SessionSettings
     public static readonly TimeSpan MinAutoCallInterval = TimeSpan.FromSeconds(3);
     public static readonly TimeSpan MaxAutoCallInterval = TimeSpan.FromMinutes(2);
 
-    public CallerMode CallerMode { get; init; } = CallerMode.Manual;
-
+    /// <summary>Time between draws in auto mode (FR-10).</summary>
     public TimeSpan AutoCallInterval { get; init; } = TimeSpan.FromSeconds(10);
 
     /// <summary>FR-12.</summary>
@@ -96,8 +86,7 @@ public sealed record SessionSettings
                 $"The auto-call interval must be between {MinAutoCallInterval.TotalSeconds:0} and {MaxAutoCallInterval.TotalSeconds:0} seconds.");
         }
 
-        return Enum.IsDefined(CallerMode)
-            && Enum.IsDefined(WinDetection)
+        return Enum.IsDefined(WinDetection)
             && Enum.IsDefined(RedrawPolicy)
             && Enum.IsDefined(Unmarking)
             && Enum.IsDefined(FreeSpace)

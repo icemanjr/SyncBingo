@@ -7,7 +7,7 @@
 ## Phase 1 — Core game (MVP)
 - [ ] Create session, game code, QR, password; join by QR and by code
 - [ ] Name uniqueness, session tokens, reconnect + snapshot
-- [ ] Manual and auto calling, "Grab a new ball", pause/resume
+- [ ] Manual and auto calling: rounds start manual ("Grab ball"); "Auto mode" draws at once then on a timer; "Pause" returns to manual
 - [ ] Marking with server validation; auto-fill; Bingo button
 - [ ] Win conditions: Normal, Four Corners, B/I/N/G/O, Blackout; change mid-round
 - [ ] Win detection modes; host awards wins; win highlight

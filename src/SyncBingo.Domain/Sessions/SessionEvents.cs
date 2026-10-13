@@ -5,10 +5,11 @@ public enum SessionState
     /// <summary>The lobby and the gap between rounds: joining and redraws happen here.</summary>
     BetweenRounds,
 
-    Running,
+    /// <summary>In a round with no timer: the host draws with "Grab ball". Every round starts here.</summary>
+    Manual,
 
-    /// <summary>Still in the round: marks and manual draws continue, auto-calls stop.</summary>
-    Paused,
+    /// <summary>In a round with the timer drawing every interval. "Pause" returns to <see cref="Manual"/>.</summary>
+    Auto,
 
     /// <summary>Terminal: the host ended the session (or it expired).</summary>
     Ended,
@@ -16,7 +17,7 @@ public enum SessionState
 
 public enum DrawSource
 {
-    /// <summary>The host pressed "Grab a new ball".</summary>
+    /// <summary>The host pressed "Grab ball" (manual mode).</summary>
     Manual,
 
     /// <summary>The auto-call scheduler.</summary>
@@ -39,9 +40,11 @@ public sealed record RoundStarted(int Round, bool RedrawCards) : SessionEvent;
 
 public sealed record RoundEnded(int Round) : SessionEvent;
 
-public sealed record SessionPaused : SessionEvent;
+/// <summary>The host pressed "Auto mode"; the first ball is drawn at once (a <see cref="BallCalled"/> follows).</summary>
+public sealed record AutoCallingStarted : SessionEvent;
 
-public sealed record SessionResumed : SessionEvent;
+/// <summary>The host pressed "Pause" (or a detected win paused the game): back to manual calling.</summary>
+public sealed record AutoCallingPaused : SessionEvent;
 
 /// <summary>
 /// A ball was drawn. <see cref="PreviousNumber"/> is the ball before it in this round,

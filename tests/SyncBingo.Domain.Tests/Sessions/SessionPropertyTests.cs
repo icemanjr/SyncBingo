@@ -14,8 +14,8 @@ public sealed class SessionPropertyTests
     [
         (s, _) => s.StartRound(redrawCards: false, Now),
         (s, _) => s.EndRound(Now),
+        (s, r) => s.StartAutoCalling(r, Now),
         (s, _) => s.Pause(Now),
-        (s, _) => s.Resume(Now),
         (s, r) => s.DrawBall(DrawSource.Manual, r, Now),
         (s, r) => s.DrawBall(DrawSource.Auto, r, Now),
         (s, r) => s.DrawBall(DrawSource.Manual, r, Now), // draws twice as often, to empty hoppers
@@ -27,7 +27,7 @@ public sealed class SessionPropertyTests
     [Property(MaxTest = 300)]
     public void Invariants_hold_after_any_sequence_of_commands(int seed, byte[] script)
     {
-        var session = NewSession(new SessionSettings { CallerMode = CallerMode.Auto });
+        var session = NewSession();
         var random = new SeededRandom(seed);
         var lastSeq = 0L;
 

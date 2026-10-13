@@ -30,8 +30,9 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `PUT /sessions/{code}/settings` | partial settings | Validates per state (§ 03). |
 | `POST /sessions/{code}/rounds` | `{ redrawCards: bool }` | Start next round / Clear cards. |
 | `POST /sessions/{code}/rounds/current/end` | – | End round early. |
-| `POST /sessions/{code}/pause` · `/resume` | – | |
-| `POST /sessions/{code}/balls` | – | "Grab a new ball". Returns the ball and `sequence`. |
+| `POST /sessions/{code}/auto` | – | Auto mode: draws a ball at once and starts the timer (409 unless in manual mode). |
+| `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |
+| `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
 | `PUT /sessions/{code}/win-condition` | `{ condition }` | `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`. |
 | `POST /sessions/{code}/wins` | `{ participantId, cardId? }` | Award win for the current win condition (idempotent). |
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
@@ -64,7 +65,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `RoundEnded` | all | `{ round, winners[] }` |
 | `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
-| `Paused` / `Resumed` | all | – |
+| `AutoCallingStarted` / `AutoCallingPaused` | host | – (the room sees no difference; there is no paused banner) |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |
 | `WinDetected` | host | `{ participantId, name, cardId, condition }` |
 | `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, qualified }` |

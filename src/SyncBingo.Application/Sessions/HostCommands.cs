@@ -1,3 +1,4 @@
+using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Cards;
@@ -62,15 +63,16 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
                 }
 
                 var notifications = await ResetParticipantsAsync(runner.Store, session, redrawCards ? random : null, ct).ConfigureAwait(false);
-                return Result.Success(new CommandOutcome(cleared.Value, notifications));
+                return notifications.IsSuccess ? Result.Success(new CommandOutcome(cleared.Value, notifications.Value)) : notifications.Error!;
             },
             cancellationToken);
 
     /// <summary>
     /// Resets every participant's marks for the session's current settings, dealing each a new
-    /// unique card when <paramref name="redraw"/> is given. Returns the card-replaced notifications.
+    /// unique card when <paramref name="redraw"/> is given. Returns the card-replaced notifications,
+    /// or an error if a participant could not be saved (the caller then saves nothing).
     /// </summary>
-    internal static async Task<IReadOnlyList<(Recipient, Notification)>> ResetParticipantsAsync(
+    internal static async Task<Result<IReadOnlyList<(Recipient, Notification)>>> ResetParticipantsAsync(
         ISessionStore store, Session session, IRandomSource? redraw, CancellationToken cancellationToken)
     {
         var code = session.Code;
@@ -82,24 +84,38 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
         }
 
         var generator = new ColumnCardGenerator(session.Variant);
-        foreach (var participant in participants)
+        foreach (var stored in participants)
         {
-            var newCards = new Queue<Card>();
-            for (var i = 0; redraw is not null && i < participant.Cards.Count; i++)
+            var newCards = new List<Card>();
+            for (var i = 0; redraw is not null && i < stored.Participant.Cards.Count; i++)
             {
-                newCards.Enqueue(await generator
+                newCards.Add(await generator
                     .DealUniqueAsync(redraw, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
                     .ConfigureAwait(false));
             }
 
-            var replaced = participant.ResetForNewRound(session, redraw is not null ? newCards.Dequeue : null);
-            await store.SaveParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false);
-            foreach (var replacement in replaced)
+            var replaced = await ParticipantUpdates.UpdateAsync(
+                    store,
+                    code,
+                    stored,
+                    participant =>
+                    {
+                        var next = 0; // the same new cards on every try
+                        return Result.Success(participant.ResetForNewRound(session, redraw is not null ? () => newCards[next++] : null));
+                    },
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (!replaced.IsSuccess)
             {
-                notifications.Add((new Recipient.Participant(participant.Id), new CardReplaced(replacement.CardId, replacement.NewCard.Cells)));
+                return replaced.Error!;
+            }
+
+            foreach (var replacement in replaced.Value)
+            {
+                notifications.Add((new Recipient.Participant(stored.Participant.Id), new CardReplaced(replacement.CardId, replacement.NewCard.Cells)));
             }
         }
 
-        return notifications;
+        return Result.Success<IReadOnlyList<(Recipient, Notification)>>(notifications);
     }
 }

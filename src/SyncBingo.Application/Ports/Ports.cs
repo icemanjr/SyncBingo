@@ -56,6 +56,13 @@ public sealed record AutoFillApplied(IReadOnlyList<AutoFilledCell> Cells) : Noti
 
 public sealed record CardReplaced(int CardId, IReadOnlyList<int> Cells) : Notification;
 
+/// <summary>
+/// A participant as loaded, with the version the store had. Saving back with
+/// <see cref="ISessionStore.TryUpdateParticipantAsync"/> succeeds only if nobody saved
+/// that participant since (optimistic concurrency, docs/02 §6).
+/// </summary>
+public sealed record StoredParticipant(Participant Participant, long Version);
+
 /// <summary>Pushes events to connected clients (SignalR in production).</summary>
 public interface IEventPublisher
 {
@@ -85,13 +92,26 @@ public interface ISessionStore
 
     Task<string?> GetPasswordHashAsync(GameCode code, CancellationToken cancellationToken);
 
-    Task<Participant?> GetParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken);
+    /// <summary>A fresh copy of the participant each time, so changes count only once saved.</summary>
+    Task<StoredParticipant?> GetParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Participant>> GetParticipantsAsync(GameCode code, CancellationToken cancellationToken);
+    /// <summary>Every participant, in joining order.</summary>
+    Task<IReadOnlyList<StoredParticipant>> GetParticipantsAsync(GameCode code, CancellationToken cancellationToken);
 
     Task<int> CountParticipantsAsync(GameCode code, CancellationToken cancellationToken);
 
-    Task SaveParticipantAsync(GameCode code, Participant participant, CancellationToken cancellationToken);
+    /// <summary>Stores a new participant; <c>false</c> if one with that id already exists.</summary>
+    Task<bool> TryAddParticipantAsync(GameCode code, Participant participant, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Saves a participant if it is still at <paramref name="expectedVersion"/>; <c>false</c> if
+    /// someone else saved it since, or it was removed. Players mark without the session lock
+    /// while a draw's auto-fill may write the same participant, so neither may overwrite the other.
+    /// </summary>
+    Task<bool> TryUpdateParticipantAsync(GameCode code, Participant participant, long expectedVersion, CancellationToken cancellationToken);
+
+    /// <summary>Deletes a participant and revokes their session tokens (FR-7).</summary>
+    Task DeleteParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken);
 
     /// <summary>Reserves a name key for a participant (HSETNX); <c>false</c> if it is taken (FR-4).</summary>
     Task<bool> TryReserveNameAsync(GameCode code, string nameKey, string participantId, CancellationToken cancellationToken);

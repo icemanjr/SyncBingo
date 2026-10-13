@@ -101,8 +101,7 @@ public sealed class HostAndDrawTests
     {
         var code = await _app.NewGameAsync(SessionSettings.Default with { AutoFillAvailable = true });
         var id = await _app.JoinAsync(code, "Ava");
-        var player = await _app.PlayerAsync(code, id);
-        player.SetAutoFill(true, await _app.SessionAsync(code)).IsSuccess.ShouldBeTrue();
+        (await _app.Players.SetAutoFillAsync(code, Caller.Participant(id), true, TestApp.Ct)).IsSuccess.ShouldBeTrue();
         await StartRoundAsync(code);
         var onCard = (await _app.PlayerAsync(code, id)).Cards[0].Card.Cells[0];
         _app.Draws.Next.Enqueue(onCard);

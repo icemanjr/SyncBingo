@@ -8,15 +8,17 @@ namespace SyncBingo.Application.Tests;
 
 /// <summary>
 /// An in-memory <see cref="ISessionStore"/> with the same atomic rules the Redis store
-/// must follow: name and card claims succeed only for the first caller, and the lock
-/// really is exclusive per session.
+/// must follow: name and card claims succeed only for the first caller, the lock really
+/// is exclusive per session, and participants are stored as snapshots with a version, so
+/// every load is a fresh copy and a stale save is refused.
 /// </summary>
 internal sealed class InMemorySessionStore : ISessionStore
 {
     private readonly ConcurrentDictionary<string, Session> _sessions = new();
     private readonly ConcurrentDictionary<string, string> _passwords = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
-    private readonly ConcurrentDictionary<(string Code, string Id), Participant> _participants = new();
+    private readonly Dictionary<(string Code, string Id), (ParticipantSnapshot Snapshot, long Version)> _participants = [];
+    private readonly Lock _participantsGate = new();
     private readonly ConcurrentDictionary<(string Code, string Key), string> _names = new();
     private readonly ConcurrentDictionary<(string Code, string Fingerprint), byte> _cards = new();
     private readonly ConcurrentDictionary<(string Code, string Hash), Caller> _tokens = new();
@@ -25,6 +27,18 @@ internal sealed class InMemorySessionStore : ISessionStore
     public HashSet<string> TakenCodes { get; } = [];
 
     public int Saves { get; private set; }
+
+    /// <summary>Card claims attempted, successful or not.</summary>
+    public int CardClaims { get; private set; }
+
+    /// <summary>
+    /// Runs once, just before the next participant update is checked: a test uses it to
+    /// make another write land between a command's load and its save.
+    /// </summary>
+    public Func<Task>? BeforeNextParticipantUpdate { get; set; }
+
+    public IReadOnlyCollection<string> Tokens(GameCode code) =>
+        [.. _tokens.Where(t => t.Key.Code == code.Value).Select(t => t.Value.ParticipantId ?? t.Value.Role.ToString())];
 
     public IReadOnlyCollection<string> CardsInPlay(GameCode code) =>
         [.. _cards.Keys.Where(k => k.Code == code.Value).Select(k => k.Fingerprint)];
@@ -63,19 +77,73 @@ internal sealed class InMemorySessionStore : ISessionStore
     public Task<string?> GetPasswordHashAsync(GameCode code, CancellationToken cancellationToken) =>
         Task.FromResult(_passwords.GetValueOrDefault(code.Value));
 
-    public Task<Participant?> GetParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken) =>
-        Task.FromResult(_participants.GetValueOrDefault((code.Value, participantId)));
-
-    public Task<IReadOnlyList<Participant>> GetParticipantsAsync(GameCode code, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<Participant>>(
-            [.. _participants.Where(p => p.Key.Code == code.Value).Select(p => p.Value).OrderBy(p => p.JoinedAt)]);
-
-    public Task<int> CountParticipantsAsync(GameCode code, CancellationToken cancellationToken) =>
-        Task.FromResult(_participants.Keys.Count(k => k.Code == code.Value));
-
-    public Task SaveParticipantAsync(GameCode code, Participant participant, CancellationToken cancellationToken)
+    public Task<StoredParticipant?> GetParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken)
     {
-        _participants[(code.Value, participant.Id)] = participant;
+        lock (_participantsGate)
+        {
+            return Task.FromResult(_participants.TryGetValue((code.Value, participantId), out var stored) ? Load(stored) : null);
+        }
+    }
+
+    public Task<IReadOnlyList<StoredParticipant>> GetParticipantsAsync(GameCode code, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            return Task.FromResult<IReadOnlyList<StoredParticipant>>(
+                [.. _participants.Where(p => p.Key.Code == code.Value).Select(p => Load(p.Value)).OrderBy(p => p.Participant.JoinedAt)]);
+        }
+    }
+
+    public Task<int> CountParticipantsAsync(GameCode code, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            return Task.FromResult(_participants.Keys.Count(k => k.Code == code.Value));
+        }
+    }
+
+    public Task<bool> TryAddParticipantAsync(GameCode code, Participant participant, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            return Task.FromResult(_participants.TryAdd((code.Value, participant.Id), (participant.ToSnapshot(), 1)));
+        }
+    }
+
+    public async Task<bool> TryUpdateParticipantAsync(
+        GameCode code, Participant participant, long expectedVersion, CancellationToken cancellationToken)
+    {
+        if (BeforeNextParticipantUpdate is { } interfere)
+        {
+            BeforeNextParticipantUpdate = null;
+            await interfere();
+        }
+
+        lock (_participantsGate)
+        {
+            var key = (code.Value, participant.Id);
+            if (!_participants.TryGetValue(key, out var stored) || stored.Version != expectedVersion)
+            {
+                return false;
+            }
+
+            _participants[key] = (participant.ToSnapshot(), expectedVersion + 1);
+            return true;
+        }
+    }
+
+    public Task DeleteParticipantAsync(GameCode code, string participantId, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            _participants.Remove((code.Value, participantId));
+        }
+
+        foreach (var token in _tokens.Where(t => t.Key.Code == code.Value && t.Value.ParticipantId == participantId))
+        {
+            _tokens.TryRemove(token.Key, out _);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -88,8 +156,11 @@ internal sealed class InMemorySessionStore : ISessionStore
         return Task.CompletedTask;
     }
 
-    public Task<bool> TryClaimCardAsync(GameCode code, string fingerprint, CancellationToken cancellationToken) =>
-        Task.FromResult(_cards.TryAdd((code.Value, fingerprint), 0));
+    public Task<bool> TryClaimCardAsync(GameCode code, string fingerprint, CancellationToken cancellationToken)
+    {
+        CardClaims++;
+        return Task.FromResult(_cards.TryAdd((code.Value, fingerprint), 0));
+    }
 
     public Task ReleaseCardAsync(GameCode code, string fingerprint, CancellationToken cancellationToken)
     {
@@ -115,6 +186,9 @@ internal sealed class InMemorySessionStore : ISessionStore
 
     public Task<Caller?> FindTokenAsync(GameCode code, string tokenHash, CancellationToken cancellationToken) =>
         Task.FromResult(_tokens.GetValueOrDefault((code.Value, tokenHash)));
+
+    private static StoredParticipant Load((ParticipantSnapshot Snapshot, long Version) stored) =>
+        new(Participant.Restore(stored.Snapshot), stored.Version);
 
     private sealed class Releaser(SemaphoreSlim gate) : IAsyncDisposable
     {

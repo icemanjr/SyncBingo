@@ -51,6 +51,41 @@ public sealed class Participant
         return participant;
     }
 
+    /// <summary>The participant as plain data, for storage.</summary>
+    public ParticipantSnapshot ToSnapshot() => new(
+        Id,
+        Name.Display,
+        JoinedAt,
+        AutoFillOn,
+        [.. _cards.Select(card => new PlayerCardSnapshot(
+            card.Id, [.. card.Card.Cells], card.Marks, card.UndoMarks, card.UndoSequence, card.IssuedInRound))]);
+
+    /// <summary>
+    /// Rebuilds a participant saved with <see cref="ToSnapshot"/>. Stored data is trusted
+    /// to have been valid when saved, so a name that no longer validates is a corrupt record.
+    /// </summary>
+    public static Participant Restore(ParticipantSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        if (!ParticipantName.TryCreate(snapshot.Name, out var name, out _))
+        {
+            throw new InvalidOperationException($"Stored participant {snapshot.Id} has an invalid name.");
+        }
+
+        var participant = new Participant(snapshot.Id, name, snapshot.JoinedAt) { AutoFillOn = snapshot.AutoFillOn };
+        foreach (var card in snapshot.Cards)
+        {
+            participant._cards.Add(new PlayerCard(card.Id, new Card(card.Cells), card.Marks, card.IssuedInRound)
+            {
+                UndoMarks = card.UndoMarks,
+                UndoSequence = card.UndoSequence,
+            });
+        }
+
+        return participant;
+    }
+
     /// <summary>
     /// Mark a cell. With <see cref="SessionSettings.FreeMarking"/> off, only called cells (and
     /// an earned free cell) may be marked (FR-22). Marking a marked cell changes nothing.
@@ -198,12 +233,33 @@ public sealed class Participant
     /// </summary>
     public Result<CardReplacement> RedrawCard(int cardId, Session session, Func<Card> deal)
     {
-        ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(deal);
+
+        var allowed = CheckRedraw(cardId, session);
+        if (!allowed.IsSuccess)
+        {
+            return allowed.Error!;
+        }
+
+        var card = FindCard(cardId)!;
+        var old = card.Card;
+        card.Reset(deal(), CardRules.InitialMarks(session), session.UpcomingRound);
+        return Result.Success(new CardReplacement(card.Id, old, card.Card));
+    }
+
+    /// <summary>
+    /// Whether <see cref="RedrawCard"/> would be allowed, so a caller can check before
+    /// dealing (and claiming) a new card.
+    /// </summary>
+    public Result<int> CheckRedraw(int cardId, Session session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
 
         if (session.State != SessionState.BetweenRounds)
         {
-            return WrongState("redraw a card");
+            return new DomainError(DomainErrorCode.WrongState, session.State == SessionState.Starting
+                ? "Cards are locked once the round countdown starts."
+                : "You can only redraw a card between rounds.");
         }
 
         if (session.Settings.RedrawPolicy != RedrawPolicy.ParticipantsMayRedraw)
@@ -211,14 +267,7 @@ public sealed class Participant
             return Refuse("Only the host can redraw cards in this game.");
         }
 
-        if (FindCard(cardId) is not { } card)
-        {
-            return UnknownCard(cardId);
-        }
-
-        var old = card.Card;
-        card.Reset(deal(), CardRules.InitialMarks(session), session.UpcomingRound);
-        return Result.Success(new CardReplacement(card.Id, old, card.Card));
+        return FindCard(cardId) is null ? UnknownCard(cardId) : Result.Success(cardId);
     }
 
     /// <summary>

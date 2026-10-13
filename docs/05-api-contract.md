@@ -12,7 +12,9 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 
 `joinUrl` is `{origin}/join/{code}`, which is what the QR encodes. The password is never in the URL.
 
-## 2. Participant endpoints (participant or host token)
+## 2. Participant endpoints (participant token)
+
+The snapshot also accepts a host or display token. Every other endpoint here acts on the caller's own record, taken from the token: the routes carry no participant id, and a `cardId` is looked up only among the caller's own cards, so no request can reach another player's card (an unknown `cardId` is 422). A host or display token gets 403; a player the host removed gets 404.
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
@@ -85,6 +87,6 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 
 - `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied.
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
-- Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
+- Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - Rate limits: join endpoint per code + IP; marks per participant.
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

@@ -1,4 +1,5 @@
 using SyncBingo.Application.Calling;
+using SyncBingo.Application.Players;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Participants;
@@ -20,6 +21,8 @@ internal sealed class TestApp
         Round = new RoundHandler(Runner, new SeededRandom(3));
         Draws = new ScriptedDraws(this);
         Draw = new DrawHandler(Runner, Draws);
+        Players = new PlayerCommandHandler(Runner, Publisher, new SeededRandom(5));
+        Manage = new PlayerManagementHandler(Runner);
     }
 
     public InMemorySessionStore Store { get; } = new();
@@ -43,6 +46,10 @@ internal sealed class TestApp
     public RoundHandler Round { get; }
 
     public DrawHandler Draw { get; }
+
+    public PlayerCommandHandler Players { get; }
+
+    public PlayerManagementHandler Manage { get; }
 
     /// <summary>Decides which balls the draw handler picks; random once the script runs out.</summary>
     public ScriptedDraws Draws { get; }
@@ -77,7 +84,7 @@ internal sealed class TestApp
 
     public async Task<Session> SessionAsync(GameCode code) => (await Store.GetAsync(code, Ct))!;
 
-    public async Task<Participant> PlayerAsync(GameCode code, string id) => (await Store.GetParticipantAsync(code, id, Ct))!;
+    public async Task<Participant> PlayerAsync(GameCode code, string id) => (await Store.GetParticipantAsync(code, id, Ct))!.Participant;
 
     /// <summary>Picks the scripted ball numbers in order, then falls back to a seeded random.</summary>
     internal sealed class ScriptedDraws(TestApp app) : IRandomSource

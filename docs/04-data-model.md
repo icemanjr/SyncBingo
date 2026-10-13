@@ -55,9 +55,9 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 | Key | Type | Contents |
 |-----|------|----------|
 | `s:{code}:meta` | hash | state, version, passwordHash, current round number, settings (JSON), variant id |
-| `s:{code}:participants` | hash | field = participantId → participant JSON (incl. cards and marks) |
+| `s:{code}:participants` | hash | field = participantId → participant JSON (incl. cards, marks and the record's version for optimistic concurrency, 02 §6) |
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
-| `s:{code}:tokens` | hash | tokenHash → participantId |
+| `s:{code}:tokens` | hash | tokenHash → participantId (deleted when the host removes that participant) |
 | `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs (call face and card face, at least 24) and optional named groups; the *Group items* setting decides whether dealing and the board use them; images live in S3 under a session prefix that expires with it (ADR 0009) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:round:{n}` | hash/list | round summary, ordered ball calls, win records |
@@ -67,7 +67,7 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 
 **Undo (FR-25) without extra writes per draw:** the first time a player changes a card after ball *n* is called, the server saves the card's marks from just before that change as `undoMarks` with `undoSequence = n`. Undo restores `undoMarks` when `undoSequence` is the current ball, and does nothing otherwise (no change since that ball). Auto-fill happens during the draw, before any player change, so it is part of the saved state. A draw therefore never has to touch every card just to support Undo.
 
-Marks and redraws update one `participants` field; a redraw also claims the new card's fingerprint and releases the old one. A host redraw of every card at round start runs under the session lock: it clears the `cards` set, then deals and claims each new card. Draw, pause, round changes and settings take the per-session lock and bump `version`.
+Marks, Undo and the auto-fill switch update one `participants` field, checked against its version so a concurrent auto-fill is never lost (02 §6). A player's redraw runs under the session lock: it claims the new card's fingerprint, saves the card, then releases the old one. Removing a participant deletes their field and tokens and releases their name and card fingerprints. A host redraw of every card at round start runs under the session lock: it clears the `cards` set, then deals and claims each new card. Draw, pause, round changes and settings take the per-session lock and bump `version`.
 
 ## 5. Identity and secrets
 

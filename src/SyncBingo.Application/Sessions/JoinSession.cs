@@ -85,7 +85,10 @@ public sealed class JoinSessionHandler(
         }
 
         var participant = Participant.Join(participantId, name, card, session, clock.UtcNow);
-        await store.SaveParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false);
+        if (!await store.TryAddParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false))
+        {
+            throw new InvalidOperationException($"Participant id {participantId} is already in use.");
+        }
 
         var token = tokens.Issue();
         await store.SaveTokenAsync(code, token.Hash, Caller.Participant(participantId), cancellationToken).ConfigureAwait(false);

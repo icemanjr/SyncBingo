@@ -31,8 +31,8 @@ stateDiagram-v2
 | Pause / Resume | – | ✔ / – | – / ✔ | Pause cancels the auto-call schedule |
 | Draw ball ("Grab a new ball") | – | ✔ | ✔ | Explicit host action, allowed while paused (A6) |
 | Auto draw (scheduler) | – | ✔ | ✖ | Only in Auto mode |
-| Mark square | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22) |
-| Unmark square | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. The free cell is always marked |
+| Mark square | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free centre only once earned (FR-26) |
+| Unmark square | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked |
 | Undo (participant) | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |
 | Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled. Always alerts the host, valid or not (FR-37a) |
 | Change win condition | – | ✔ | ✔ | Same ball draw and marks continue |
@@ -60,7 +60,7 @@ A completed pattern is only a *potential* win. A player wins by **claiming** (pr
 
 Two masks matter for each card:
 
-- **called** = the cells whose numbers have been called this round, plus the free cell;
+- **called** = the cells whose numbers have been called this round, plus the free cell when it counts: always with an *Always marked* free space, and with an *Earned* free space only once a called ball is not on this card (FR-26);
 - **marks** = what the player marked (may include mismarks, FR-22).
 
 A card *qualifies* for the current win condition when `(called & mask) == mask` for one of its masks; with *Require marks for claims* on (FR-23) it uses `called & marks` instead. For Normal Bingo, any of the 12 line masks counts.

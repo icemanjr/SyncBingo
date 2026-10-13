@@ -53,7 +53,7 @@ Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size rese
 
 ## Confirmed assumptions (`docs/01-requirements.md` section 7)
 
-A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 superseded: the host does not play (FR-15 removed). A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked.
+A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 superseded: the host does not play (FR-15 removed). A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked by default; the host may instead make it *Earned* by the first called ball not on the player's card (FR-26).
 
 ## Out of scope (for now)
 

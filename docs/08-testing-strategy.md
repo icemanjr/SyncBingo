@@ -20,6 +20,7 @@
 - Every pattern evaluates correctly for hand-built mark sets, including all 12 Normal Bingo lines and each letter shape.
 - Auto-fill marks only the *previous* ball, only on cards containing it, and never marks a ball that was not called.
 - *Free marking* (on/off) and *Unmarking* (off / mismarks only / any) work independently: every one of the six combinations behaves as specified; *Mismarks only* never removes a mark on a called square.
+- *Earned* free space: the centre is not counted, markable (with *Free marking* off) or auto-filled until a called ball is missing from the card; a card whose numbers are all called first earns it only on its first miss; Blackout and centre lines need it earned.
 - Undo restores the card to its marks at the last call whatever the unmarking setting, keeps auto-fill marks, before the first ball returns the card as dealt, and is a no-op when nothing changed since the last ball (FsCheck: any sequence of marks, unmarks and undos between two draws ends in a state reachable by the rules).
 - Auto-fill applies only to participants who switched it on, and only while the host makes it available.
 - Win detection uses called numbers, not marks; claims qualify on called numbers, plus marks when *Require marks* is on.

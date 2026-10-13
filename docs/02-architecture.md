@@ -62,7 +62,7 @@ SyncBingo/
 ### 3.2 Layers
 
 - **Domain** — `Session`, `Round`, `Participant`, `Card`, `ICardGenerator`, `BingoVariant`, `WinPattern`, `WinCondition`, game-code generator, state machine rules. Deterministic and trivially unit-testable (random source injected).
-- **Application** — one handler per command (`CreateSession`, `JoinSession`, `MarkSquare`, `DrawBall`, `StartRound`, …). Each handler: load → authorise → apply domain rule → persist → publish events. Ports: `ISessionStore`, `IEventPublisher`, `IClock`, `IRandom`, `ITokenService`, `IPasswordHasher`.
+- **Application** — one handler per command (`CreateSession`, `JoinSession`, `MarkSquare`, `DrawBall`, `StartRound`, …). Each handler: authorise → take the session lock (shared-state commands) → load → apply domain rule → persist → keep the auto-call schedule in step → publish (private notifications such as auto-fill first, then session events). Shared-state commands share one pipeline, `SessionCommandRunner`. Ports: `ISessionStore`, `IEventPublisher`, `ICallScheduler`, `IClock`, `IRandomSource` (domain), `ITokenService`, `IPasswordHasher`.
 - **Infrastructure** — `RedisSessionStore`, `RedisCallScheduler`, hashing, TTL policy.
 - **Api** — minimal API endpoints (REST commands), `GameHub` (SignalR, server→client only), authentication handler for session tokens, rate limiting, ProblemDetails, health checks, OpenAPI.
 
@@ -111,6 +111,8 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 - Name uniqueness uses `HSETNX` on a normalised-name index, so two simultaneous joins with the same name cannot both succeed.
 - Card uniqueness (FR-39) works the same way: dealing a card `SADD`s its fingerprint to the session's `cards` set and redeals if the fingerprint was already there, so concurrent joins or redraws never end up with identical cards.
 - Auto-fill is applied by the server at draw time, inside the draw's critical section, so a fill and the ball that triggers it are consistent.
+- A draw's auto-fill writes participants while those players may be marking (their path takes no session lock). The store must not let one write silently overwrite the other: participant updates use optimistic concurrency (a per-participant version, retried on conflict) or a Lua script that changes only the mark bits.
+- Joining also takes the session lock, so the "only between rounds" check (FR-5) cannot race a round starting; the name and card claims inside it stay atomic in their own right.
 
 ## 7. Frontend
 

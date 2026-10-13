@@ -17,6 +17,18 @@ public enum DomainErrorCode
 
     /// <summary>The session has reached its participant limit (409).</summary>
     SessionFull,
+
+    /// <summary>No such session, or it has expired (404). Raised by the application layer.</summary>
+    NotFound,
+
+    /// <summary>Wrong game password (401). Raised by the application layer.</summary>
+    Unauthorized,
+
+    /// <summary>The caller may not do this, e.g. a participant using a host command (403).</summary>
+    Forbidden,
+
+    /// <summary>Someone else got there first, e.g. the name is taken (409).</summary>
+    Conflict,
 }
 
 /// <summary>An expected refusal, such as a draw while the round is over.</summary>

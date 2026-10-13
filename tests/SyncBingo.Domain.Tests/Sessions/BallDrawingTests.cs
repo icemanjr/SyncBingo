@@ -8,7 +8,7 @@ public sealed class BallDrawingTests
     [Fact]
     public void A_draw_records_the_ball_its_letter_and_its_place_in_the_round()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
 
         var called = session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).Single<BallCalled>();
 
@@ -25,7 +25,7 @@ public sealed class BallDrawingTests
     [Fact]
     public void Each_draw_reports_the_previous_ball_for_auto_fill()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         var random = new SeededRandom(2);
         var first = session.DrawBall(DrawSource.Manual, random, Now).Single<BallCalled>();
 
@@ -38,7 +38,7 @@ public sealed class BallDrawingTests
     [Fact]
     public void All_75_balls_come_out_once_each_then_the_hopper_is_empty()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         var random = new SeededRandom(4);
 
         var numbers = Enumerable.Range(0, 75)
@@ -51,34 +51,75 @@ public sealed class BallDrawingTests
     }
 
     [Fact]
-    public void The_host_can_grab_a_ball_while_paused()
+    public void Auto_mode_draws_the_first_ball_at_once()
     {
-        var session = InState(SessionState.Paused);
+        var session = InState(SessionState.Manual);
 
-        session.DrawBall(DrawSource.Manual, new SeededRandom(5), Now).IsSuccess.ShouldBeTrue(); // A6
-        session.State.ShouldBe(SessionState.Paused);
+        var events = session.StartAutoCalling(new SeededRandom(5), Now).Value;
+
+        events.Select(e => e.GetType()).ShouldBe([typeof(AutoCallingStarted), typeof(BallCalled)]);
+        ((BallCalled)events[1]).Call.Source.ShouldBe(DrawSource.Auto);
+        session.State.ShouldBe(SessionState.Auto);
+        session.Calls.Count.ShouldBe(1);
     }
 
     [Fact]
-    public void The_scheduler_never_draws_while_paused()
+    public void The_scheduler_keeps_drawing_in_auto_mode()
     {
-        var session = InState(SessionState.Paused, new SessionSettings { CallerMode = CallerMode.Auto });
+        var session = InState(SessionState.Auto);
+
+        var called = session.DrawBall(DrawSource.Auto, new SeededRandom(5), Now).Single<BallCalled>();
+
+        called.Call.Sequence.ShouldBe(2);
+        called.Call.Source.ShouldBe(DrawSource.Auto);
+    }
+
+    [Fact]
+    public void Pause_returns_to_manual_where_the_host_can_grab_balls_again()
+    {
+        var session = InState(SessionState.Auto);
+
+        session.Pause(Now).Single<AutoCallingPaused>();
+
+        session.State.ShouldBe(SessionState.Manual);
+        session.IsInRound.ShouldBeTrue();
+        session.DrawBall(DrawSource.Manual, new SeededRandom(5), Now).IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void The_host_cannot_grab_a_ball_in_auto_mode()
+    {
+        var session = InState(SessionState.Auto);
+
+        session.DrawBall(DrawSource.Manual, new SeededRandom(5), Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
+    }
+
+    [Fact]
+    public void The_scheduler_never_draws_in_manual_mode()
+    {
+        var session = InState(SessionState.Manual);
 
         session.DrawBall(DrawSource.Auto, new SeededRandom(5), Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
     }
 
     [Fact]
-    public void The_scheduler_only_draws_in_auto_mode()
+    public void Auto_mode_is_refused_when_the_hopper_is_empty()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
+        var random = new SeededRandom(9);
+        for (var i = 0; i < 75; i++)
+        {
+            session.DrawBall(DrawSource.Manual, random, Now).IsSuccess.ShouldBeTrue();
+        }
 
-        session.DrawBall(DrawSource.Auto, new SeededRandom(5), Now).Error!.Code.ShouldBe(DomainErrorCode.NotAllowed);
+        session.StartAutoCalling(random, Now).Error!.Code.ShouldBe(DomainErrorCode.HopperEmpty);
+        session.State.ShouldBe(SessionState.Manual);
     }
 
     [Fact]
     public void A_new_round_starts_the_previous_ball_over()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         var random = new SeededRandom(6);
         session.DrawBall(DrawSource.Manual, random, Now).IsSuccess.ShouldBeTrue();
         session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
@@ -96,7 +137,7 @@ public sealed class BallDrawingTests
         var counts = new int[76];
         for (var game = 0; game < 7500; game++)
         {
-            var session = InState(SessionState.Running);
+            var session = InState(SessionState.Manual);
             counts[session.DrawBall(DrawSource.Manual, random, Now).Single<BallCalled>().Call.Number]++;
         }
 

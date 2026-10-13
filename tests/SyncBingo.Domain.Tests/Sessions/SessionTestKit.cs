@@ -27,8 +27,8 @@ internal static class SessionTestKit
         session.StartRound(redrawCards: false, Now).Value.ShouldNotBeEmpty();
         switch (state)
         {
-            case SessionState.Paused:
-                session.Pause(Now).IsSuccess.ShouldBeTrue();
+            case SessionState.Auto:
+                session.StartAutoCalling(new SeededRandom(0), Now).IsSuccess.ShouldBeTrue();
                 break;
             case SessionState.Ended:
                 session.End(Now).IsSuccess.ShouldBeTrue();

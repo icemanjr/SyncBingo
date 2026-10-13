@@ -26,21 +26,21 @@ public sealed class SessionLifecycleTests
     }
 
     [Fact]
-    public void Starting_a_round_runs_it_immediately_with_an_empty_hopper_history()
+    public void A_round_starts_in_manual_mode_with_a_full_hopper()
     {
         var session = NewSession();
 
         var started = session.StartRound(redrawCards: true, Now).Single<RoundStarted>();
 
         started.ShouldBe(new RoundStarted(1, RedrawCards: true) { Seq = 1 });
-        session.State.ShouldBe(SessionState.Running); // A4
+        session.State.ShouldBe(SessionState.Manual); // A4: nothing is called until the host acts
         session.BallsRemaining.ShouldBe(75);
     }
 
     [Fact]
     public void Clear_cards_mid_round_ends_the_round_then_starts_the_next()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
 
         var events = session.StartRound(redrawCards: false, Now).Value;
@@ -55,7 +55,7 @@ public sealed class SessionLifecycleTests
     [Fact]
     public void Ending_a_round_keeps_its_calls_visible_until_the_next_round()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
 
         session.EndRound(Now).Single<RoundEnded>().Round.ShouldBe(1);
@@ -64,23 +64,11 @@ public sealed class SessionLifecycleTests
         session.Calls.Count.ShouldBe(1);
     }
 
-    [Fact]
-    public void Pause_and_resume_switch_between_running_and_paused()
-    {
-        var session = InState(SessionState.Running);
-
-        session.Pause(Now).Single<SessionPaused>();
-        session.State.ShouldBe(SessionState.Paused);
-        session.IsInRound.ShouldBeTrue();
-
-        session.Resume(Now).Single<SessionResumed>();
-        session.State.ShouldBe(SessionState.Running);
-    }
 
     [Fact]
     public void The_win_condition_can_change_mid_round_without_touching_the_calls()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
 
         session.ChangeWinCondition("blackout", Now).Single<WinConditionChanged>().WinConditionId.ShouldBe("blackout");
@@ -92,7 +80,7 @@ public sealed class SessionLifecycleTests
     [Fact]
     public void Changing_to_an_unknown_win_condition_is_refused()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
 
         session.ChangeWinCondition("zigzag", Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
         session.WinConditionId.ShouldBe("normal");
@@ -101,7 +89,7 @@ public sealed class SessionLifecycleTests
     [Fact]
     public void Ending_the_session_is_final()
     {
-        var session = InState(SessionState.Running);
+        var session = InState(SessionState.Manual);
 
         session.End(Now).Single<SessionEnded>();
 
@@ -112,7 +100,7 @@ public sealed class SessionLifecycleTests
     [Fact]
     public void Joining_mid_round_gets_a_friendly_refusal()
     {
-        var error = InState(SessionState.Running).CheckCanAdmit(currentParticipants: 3).Error!;
+        var error = InState(SessionState.Manual).CheckCanAdmit(currentParticipants: 3).Error!;
 
         error.Code.ShouldBe(DomainErrorCode.WrongState);
         error.Message.ShouldContain("You can join when it ends");
@@ -143,12 +131,12 @@ public sealed class SessionLifecycleTests
         {
             session.StartRound(false, Now).Value,
             session.DrawBall(DrawSource.Manual, random, Now).Value,
-            session.Pause(Now).Value,
+            session.StartAutoCalling(random, Now).Value,
             session.StartRound(false, Now).Value,
         }.SelectMany(batch => batch);
 
-        events.Select(e => e.Seq).ShouldBe([1, 2, 3, 4, 5]);
-        session.LastEventSeq.ShouldBe(5);
+        events.Select(e => e.Seq).ShouldBe([1, 2, 3, 4, 5, 6]);
+        session.LastEventSeq.ShouldBe(6);
     }
 
     [Fact]

@@ -7,9 +7,9 @@ stateDiagram-v2
     [*] --> BetweenRounds : host creates session
     BetweenRounds --> InRound : StartRound (clear cards, refill hopper)
     state InRound {
-        [*] --> Running
-        Running --> Paused : Pause
-        Paused --> Running : Resume
+        [*] --> Manual
+        Manual --> Auto : Auto mode (draws a ball at once)
+        Auto --> Manual : Pause (or Alert host and pause)
     }
     InRound --> BetweenRounds : EndRound
     BetweenRounds --> Ended : EndSession
@@ -18,19 +18,20 @@ stateDiagram-v2
 ```
 
 - **BetweenRounds** is also the initial lobby (zero rounds played). Cards keep the previous round's marks until the next round starts.
-- **InRound** lasts while the cards carry marks. *Clear cards* from inside a round is shorthand for `EndRound` + `StartRound`.
+- **InRound** lasts while the cards carry marks. It starts in **Manual** (the host draws with *Grab ball*); **Auto** draws on a timer until the host presses *Pause*. Players can mark in both. *Clear cards* from inside a round is shorthand for `EndRound` + `StartRound`.
 - **Ended** is reached by the host ending the session or by TTL expiry. All data is then discarded.
 
 ## 2. Commands by state
 
-| Command | BetweenRounds | Running | Paused | Notes |
+| Command | BetweenRounds | Manual | Auto | Notes |
 |---------|:---:|:---:|:---:|-------|
 | Join (password + name) | ✔ | ✖ | ✖ | FR-5 |
 | Start round / Clear cards | ✔ | ✔ (ends current) | ✔ (ends current) | Refills hopper, clears marks, optional redraw |
 | End round | – | ✔ | ✔ | Freezes cards, shows leaderboard |
-| Pause / Resume | – | ✔ / – | – / ✔ | Pause cancels the auto-call schedule |
-| Draw ball ("Grab a new ball") | – | ✔ | ✔ | Explicit host action, allowed while paused (A6) |
-| Auto draw (scheduler) | – | ✔ | ✖ | Only in Auto mode |
+| Auto mode | – | ✔ | – | Draws a ball at once, then schedules the next after the interval |
+| Pause | – | – | ✔ | Back to manual: cancels the auto-call schedule. No banner is shown |
+| Grab ball (host) | – | ✔ | ✖ | Manual mode only (FR-11) |
+| Auto draw (scheduler) | – | ✖ | ✔ | Auto mode only |
 | Mark square | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free centre only once earned (FR-26) |
 | Unmark square | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked |
 | Undo (participant) | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |

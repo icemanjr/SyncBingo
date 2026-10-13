@@ -102,7 +102,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 - Every instance runs a `BackgroundService` polling every ~500 ms. A Lua script **claims** due sessions atomically by moving their score to `now + lease` and returning them.
 - The claiming instance takes the session lock, draws, then re-schedules at `now + interval`.
 - If an instance dies mid-claim, the lease expires and another instance picks the session up. No ball is lost; at worst one draw is delayed by the lease.
-- Pause removes the session from the schedule; resume re-adds it with a fresh interval.
+- *Auto mode* draws one ball inside the command and adds the session to the schedule at `now + interval`; *Pause* (or *Alert host and pause*) removes it. Rounds start in manual mode, unscheduled.
 
 ## 6. Concurrency and consistency
 

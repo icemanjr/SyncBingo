@@ -22,8 +22,11 @@
 │ 9ve4-shp3-k7mw-a2qx  [QR]   [Open display ⧉]│
 │ Round 3 · Normal Bingo · ▶ Running [Options]│
 ├─────────────────────────────────────────────┤
-│  LAST BALL  N 37   [ Grab ball ] [ Pause ]  │
+│  [ Grab ball ] [ Pause ]                    │
 │  ── call board (FR-27) ──                   │
+│               ┌──────┐                      │
+│               │ N 37 │ last ball            │
+│               └──────┘                      │
 │    B       I       N       G       O        │
 │  1 ■ 11  16 21 26  ...                      │
 │  2 7 12  17 ■ 27                            │
@@ -58,9 +61,12 @@
 
 ### Call board (FR-27)
 
-All balls of the variant, called ones marked with a fill **and** a tick (never colour alone); the last ball is emphasised. The five letters sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
+All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The five letters sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
 
 ```
+                 ┌──────┐                              ┌──────┐
+                 │ N 37 │  last ball                   │ N 37 │
+                 └──────┘                              └──────┘
 3 columns of 5 (wide)                   2 columns, 8 + 7 (narrower)
    B          I        …   O              B       I      …   O
  1  6 11   16 21 26     61 66 71        1  9   16 24      61 69
@@ -79,11 +85,13 @@ Opened from the host console with **Open display**, in a new tab or on another d
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Round 3 · Normal Bingo [pattern]            ▶ Running       │
-│                                                              │
-│   ┌──────┐      B          I          N          G       O    │
-│   │ N 37 │    1  6 11   16 21 26   31 36 41   46 51 56  …     │
-│   └──────┘    2  7 12   17 22 27   32 ■ 42    47 52 57        │
-│   last ball   …                                              │
+│                         ┌────────┐                           │
+│                         │  N 37  │  last ball                │
+│                         └────────┘                           │
+│        B          I          N          G          O         │
+│      1  6 11   16 21 26   31 36 41   46 51 56   61 66 71     │
+│      2  7 12   17 22 27   32 ■ 42    47 52 57   62 67 72     │
+│      …                                                       │
 │                                                              │
 │   Between rounds: [QR] Join at syncbingo… code 9ve4-shp3-…   │
 └──────────────────────────────────────────────────────────────┘

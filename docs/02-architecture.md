@@ -140,6 +140,12 @@ State rules: server state lives in the store, rebuilt from the snapshot; optimis
 - Join attempts are rate-limited per code and per IP to blunt guessing.
 - Participants only ever receive their own card; host card inspection is host-only.
 - All inputs validated server-side (name length and allowed characters, cell index, state preconditions).
+- **Untrusted text is data, never code.** Names (and, later, custom content) are the only free text players send, and they are never spliced into anything that gets interpreted:
+  - *Storage:* there is no SQL database. Redis commands send every value as a separate argument, and Lua scripts receive values through `ARGV`, never by building script text. Redis **key names** are built only from validated game codes and server-generated ids, never from a name.
+  - *Browser:* React renders names as text. `dangerouslySetInnerHTML` is banned by an ESLint rule. A Content-Security-Policy header on the site (nginx locally, CloudFront in AWS) is planned for the Phase 2 hardening pass.
+  - *Logs:* structured logging records names as properties. Line breaks are collapsed to spaces during name validation, so a name cannot forge log lines.
+  - *Exports (future):* any CSV or spreadsheet export must escape values starting with `=`, `+`, `-` or `@` so a name cannot run as a formula.
+  - Name validation (`docs/04` §5) is a second layer on top of this: injection syntax such as `'); DROP TABLE x;--` is already refused by the character rules, while harmless words like "DROP TABLE" are allowed.
 
 ## 8. Observability
 

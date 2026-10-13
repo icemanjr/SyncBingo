@@ -24,6 +24,16 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // Player text must render as text, never as HTML (docs/02 §7a).
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: 'Render user content as text; dangerouslySetInnerHTML is banned.',
+        },
+      ],
+    },
   },
   // Must come last: turns off rules that would fight Prettier's formatting.
   prettier,

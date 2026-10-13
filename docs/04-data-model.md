@@ -67,7 +67,12 @@ Marks and redraws update one `participants` field; a redraw also claims the new 
 - **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
 - **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
 - **Host token:** same mechanism, flagged `isHost`.
-- Names: trimmed, 1–20 characters, normalised for comparison (case-folding, collapsed whitespace), basic profanity filter (configurable) because children are expected users.
+- **Names** (`ParticipantName`):
+  - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
+  - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.
+  - 1–20 characters as a reader counts them (grapheme clusters), plus a cap of 60 UTF-16 units against stacked accent marks.
+  - Uniqueness compares the lowercase form (`Key`); the tidied form (`Display`) is what everyone sees.
+  - A basic profanity filter (configurable), because children are expected users, follows in Phase 2.
 
 ## 6. Reserved for "Serious Bingo" (not built in the MVP)
 

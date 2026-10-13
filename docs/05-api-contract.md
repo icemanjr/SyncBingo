@@ -6,7 +6,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 
 | Method & path | Body | Success | Errors |
 |---------------|------|---------|--------|
-| `POST /sessions` | `{ password, settings? }` | `201 { code, joinUrl, hostToken, snapshot }` | 400 invalid password/settings |
+| `POST /sessions` | `{ password, settings?, winCondition? }` | `201 { code, joinUrl, hostToken, snapshot }` | 400 malformed body · 422 password not 4–64 characters, or invalid settings |
 | `GET /sessions/{code}/join-info` | – | `200 { acceptingJoins, round }` | 404 unknown code |
 | `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 409 name taken · 409 "A round is in progress. You can join between rounds." (during a countdown too) · 404 · 429 rate-limited |
 
@@ -89,4 +89,8 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - Rate limits: join endpoint per code + IP; marks per participant.
+- Authentication: a missing, unknown or revoked token, or a token for a different game, is 401; a valid token without the right role is 403 (the application layer decides roles). A game whose lock stays taken longer than 5 s answers 503 "The game is busy. Please try again."
+- Problem bodies carry `detail` (the message to show) and `code` (the `DomainErrorCode` name) for clients to branch on.
+- Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, settings `{ settings, nextRound }`.
+- Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `bingoButton`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /settings` every field is optional and only those sent change, applied under the session lock to the newest settings (those waiting for the next round, if any).
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

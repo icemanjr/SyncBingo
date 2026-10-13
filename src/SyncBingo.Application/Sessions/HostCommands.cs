@@ -26,6 +26,20 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
         GameCode code, Caller caller, SessionSettings settings, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.UpdateSettings(settings, now), cancellationToken);
 
+    /// <summary>
+    /// Change some settings (docs/05 "partial settings"). <paramref name="change"/> runs under the
+    /// lock on the newest settings, those waiting for the next round if any, so two hosts' tabs
+    /// changing different settings at once do not undo each other.
+    /// </summary>
+    public Task<Result<CommandOutcome>> ChangeSettingsAsync(
+        GameCode code, Caller caller, Func<SessionSettings, SessionSettings> change, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+
+        return runner.RunAsync(
+            code, caller, (session, now) => session.UpdateSettings(change(session.NextRoundSettings ?? session.Settings), now), cancellationToken);
+    }
+
     public Task<Result<CommandOutcome>> ShowLeaderboardAsync(GameCode code, Caller caller, bool visible, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.ShowLeaderboard(visible, now), cancellationToken);
 

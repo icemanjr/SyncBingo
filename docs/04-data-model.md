@@ -29,6 +29,8 @@ erDiagram
 | **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
 | **BingoVariant** | `id`, `ballMax` (75), `columns` (5), `rows` (5), `columnRanges`, `freeCell`, `patterns[]` |
 
+**Settings defaults** (`SessionSettings.Default`): Manual caller, 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show recent calls on, auto-fill available off, Bingo button on, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*. *Free space* and *Redraw policy* are round-scoped: changed mid-round, they are held as `nextRoundSettings` and apply when the next round starts.
+
 A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (multiple purchased cards) needs no model change.
 
 ## 2. Card generation

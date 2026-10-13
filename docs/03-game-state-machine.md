@@ -35,7 +35,7 @@ stateDiagram-v2
 | Unmark square | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked |
 | Undo (participant) | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |
 | Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled. Always alerts the host, valid or not (FR-37a) |
-| Change win condition | – | ✔ | ✔ | Same ball draw and marks continue |
+| Change win condition | ✔ | ✔ | ✔ | Between rounds: picks the pattern for the next round. Mid-round: the same balls and marks continue |
 | Change settings | ✔ | ✔ | ✔ | Some apply from the next round (e.g. redraw policy) |
 | Redraw card (participant) | ✔ if allowed | ✖ | ✖ | Policy FR-20 |
 | Redraw cards (host) | ✔ | – | – | At round start |

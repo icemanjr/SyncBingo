@@ -1,3 +1,4 @@
+using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
@@ -48,8 +49,8 @@ public sealed class DrawHandler(SessionCommandRunner runner, IRandomSource rando
                             return started.Error!;
                         }
 
-                        _ = await RoundHandler.ResetParticipantsAsync(runner.Store, session, redraw: null, ct).ConfigureAwait(false);
-                        return await FollowUpAsync(session, started.Value, now, ct).ConfigureAwait(false);
+                        var reset = await RoundHandler.ResetParticipantsAsync(runner.Store, session, redraw: null, ct).ConfigureAwait(false);
+                        return reset.IsSuccess ? await FollowUpAsync(session, started.Value, now, ct).ConfigureAwait(false) : reset.Error!;
                     case SessionState.Auto:
                         var drawn = session.DrawBall(DrawSource.Auto, random, now);
                         return drawn.IsSuccess ? await FollowUpAsync(session, drawn.Value, now, ct).ConfigureAwait(false) : drawn.Error!;
@@ -88,18 +89,28 @@ public sealed class DrawHandler(SessionCommandRunner runner, IRandomSource rando
         var notifications = new List<(Recipient, Notification)>();
         if (called.PreviousNumber is { } previous)
         {
-            foreach (var participant in participants)
+            foreach (var stored in participants)
             {
-                var filled = participant.ApplyAutoFill(previous, session);
-                if (filled.Count > 0)
+                // Saved against the loaded version, so a mark the player made meanwhile is kept, not overwritten.
+                var filled = await ParticipantUpdates.UpdateAsync(
+                        store,
+                        session.Code,
+                        stored,
+                        participant => Result.Success(participant.ApplyAutoFill(previous, session)),
+                        cancellationToken,
+                        changed: cells => cells.Count > 0)
+                    .ConfigureAwait(false);
+
+                // A player who could not be saved (removed, or still busy after every retry) just misses this fill.
+                if (filled.IsSuccess && filled.Value.Count > 0)
                 {
-                    await store.SaveParticipantAsync(session.Code, participant, cancellationToken).ConfigureAwait(false);
-                    notifications.Add((new Recipient.Participant(participant.Id), new AutoFillApplied(filled)));
+                    notifications.Add((new Recipient.Participant(stored.Participant.Id), new AutoFillApplied(filled.Value)));
                 }
             }
         }
 
-        var detected = session.DetectWins(participants, now);
+        // Detection reads cards and called numbers, not marks, so the loaded participants will do.
+        var detected = session.DetectWins(participants.Select(stored => stored.Participant), now);
         IReadOnlyList<SessionEvent> all = detected.IsSuccess ? [.. events, .. detected.Value] : events;
         return Result.Success(new CommandOutcome(all, notifications));
     }

@@ -5,7 +5,7 @@
 | Level | Tooling | Focus |
 |-------|---------|-------|
 | **Domain unit** | xUnit, Shouldly, FsCheck | Card generation, pattern evaluation, state machine, auto-fill rule, name normalisation, game-code generator |
-| **Application** | xUnit + fakes for ports | Command handlers: authorisation, state preconditions, event emission |
+| **Application** | xUnit + fakes for ports | Command handlers: authorisation (who may run each command, and on whose cards), state preconditions, event emission, lost-update races (the fake store refuses stale saves) |
 | **Integration (API)** | `WebApplicationFactory` + Testcontainers (Redis) | REST endpoints, auth, rate limits, Redis layout, scheduler claiming, concurrent joins |
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |
 | **Frontend unit** | Vitest + Testing Library | Card component, AdSlot layout, hooks, store reducers |
@@ -36,6 +36,8 @@
 - Rounds start in manual mode; Auto mode draws at once and then on the timer; Pause stops auto-calls; Grab ball works only in manual mode.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.
 - Participants never receive other participants' cards; host-only events never reach participants.
+- Authorisation: a participant token gets 403 on every host endpoint; host and display tokens get 403 on player commands; a player can only reach their own cards; a removed player's token stops working.
+- Participant writes: a mark and a draw's auto-fill that overlap both survive (no lost update), against real Redis.
 - TV pairing: a code works once and expires after 10 minutes; only a host can approve it; the TV receives a read-only display token and can call nothing but the snapshot; pairing creation and approval are rate-limited.
 
 **End-to-end (Playwright)**

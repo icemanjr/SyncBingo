@@ -26,4 +26,13 @@ public sealed record Caller(CallerRole Role, string? ParticipantId = null)
     /// <summary>Host commands may come from the host, or from the system acting for the host (the auto-call scheduler).</summary>
     internal DomainError? RequireHost() =>
         Role is CallerRole.Host or CallerRole.System ? null : new DomainError(DomainErrorCode.Forbidden, "Only the host can do that.");
+
+    /// <summary>
+    /// Player commands come only from a participant and act on that participant's own cards:
+    /// whose cards they are comes from the token, never from the request. The host does not play.
+    /// </summary>
+    internal DomainError? RequireParticipant() =>
+        Role == CallerRole.Participant && ParticipantId is not null
+            ? null
+            : new DomainError(DomainErrorCode.Forbidden, "Only players can do that.");
 }

@@ -57,6 +57,16 @@ public sealed class RedrawAndRoundTests
     }
 
     [Fact]
+    public void Redrawing_during_the_countdown_says_the_cards_are_locked()
+    {
+        var kit = new PlayerTestKit(SessionSettings.Default with { RedrawPolicy = RedrawPolicy.ParticipantsMayRedraw });
+        kit.Session.ClearCards(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.StartCountdown(startInAuto: false, Now).IsSuccess.ShouldBeTrue();
+
+        kit.Player.CheckRedraw(1, kit.Session).Error!.Message.ShouldBe("Cards are locked once the round countdown starts.");
+    }
+
+    [Fact]
     public void A_new_round_clears_marks_under_the_new_rounds_settings()
     {
         var kit = new PlayerTestKit();

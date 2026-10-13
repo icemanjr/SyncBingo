@@ -32,7 +32,8 @@ stateDiagram-v2
 | Draw ball ("Grab a new ball") | – | ✔ | ✔ | Explicit host action, allowed while paused (A6) |
 | Auto draw (scheduler) | – | ✔ | ✖ | Only in Auto mode |
 | Mark square | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22) |
-| Unmark square | ✖ | ✔ | ✔ | Only if *Allow unmarking* is on (FR-24). The free cell is always marked |
+| Unmark square | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. The free cell is always marked |
+| Undo (participant) | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |
 | Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled. Always alerts the host, valid or not (FR-37a) |
 | Change win condition | – | ✔ | ✔ | Same ball draw and marks continue |
 | Change settings | ✔ | ✔ | ✔ | Some apply from the next round (e.g. redraw policy) |

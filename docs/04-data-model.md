@@ -20,10 +20,10 @@ erDiagram
 | Entity | Key fields |
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
-| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, autoFillAvailable, freeMarking, allowUnmarking, requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
 | **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
 | **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `qualified` (did the card qualify at that moment), `status` (pending/awarded/dismissed) |
-| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
+| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask, centre bit always set), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
 | **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
@@ -61,6 +61,8 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 | `s:{code}:stats` | hash | wins per participant, rounds played |
 | `schedule` | sorted set | session code → next auto-call due time (see 02 §5) |
 | (pub/sub) | channels | SignalR backplane |
+
+**Undo (FR-25) without extra writes per draw:** the first time a player changes a card after ball *n* is called, the server saves the card's marks from just before that change as `undoMarks` with `undoSequence = n`. Undo restores `undoMarks` when `undoSequence` is the current ball, and does nothing otherwise (no change since that ball). Auto-fill happens during the draw, before any player change, so it is part of the saved state. A draw therefore never has to touch every card just to support Undo.
 
 Marks and redraws update one `participants` field; a redraw also claims the new card's fingerprint and releases the old one. A host redraw of every card at round start runs under the session lock: it clears the `cards` set, then deals and claims each new card. Draw, pause, round changes and settings take the per-session lock and bump `version`.
 

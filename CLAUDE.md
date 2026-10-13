@@ -39,7 +39,7 @@ docker-compose.yml
 
 ## Key architectural rules (see `docs/adr/`)
 
-1. **Server-authoritative** state. Clients send intents; the server validates them and judges every claim against the balls actually called. Two independent host settings, both on by default: *Free marking* (players may mark uncalled numbers, "mismarks") and *Allow unmarking*.
+1. **Server-authoritative** state. Clients send intents; the server validates them and judges every claim against the balls actually called. Independent host settings: *Free marking* (players may mark uncalled numbers, "mismarks"; default on) and *Unmarking* (any / mismarks only / off; default any). *Undo* back to the card's state at the last call is always available.
 2. **REST for commands, SignalR for events only**, WebSockets only, Redis backplane. Events carry a sequence number; the snapshot endpoint is the source of truth.
 3. **Rules are data.** Cards hold a 25-bit mark mask; win patterns are lists of bitmasks; a win is `(marks & mask) == mask`. Variants (ball range, card size, patterns) are configuration.
 4. **Redis with TTL**, behind `ISessionStore`. Shared-state mutations take a short per-session lock; marks update only the participant's own hash field.

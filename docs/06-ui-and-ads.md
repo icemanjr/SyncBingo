@@ -9,7 +9,7 @@
 | Host console | `/host/:code` | QR + game code, participant list, settings, draw/pause/round controls, win alerts, leaderboard |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
-| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), own auto-fill switch (if the host made it available), win highlight |
+| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
 
 ### Host console (sketch)

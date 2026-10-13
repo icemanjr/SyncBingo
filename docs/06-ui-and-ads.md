@@ -115,6 +115,22 @@ Opened from the host console with **Open display**, in a new tab or on another d
 
 Never shown: settings, claims, alerts, the participant list, inspect and award controls, or any ads.
 
+**Connecting a TV or projector directly** (ADR 0010). The screen's own browser opens `/tv`, which shows:
+
+```
+┌────────────────────────────────────────────┐
+│              SyncBingo display             │
+│                                            │
+│         Enter this code on the host:       │
+│                 K7M-2QX                    │
+│                                            │
+│        [QR]   or scan with the host phone  │
+│              Code expires in 9:41          │
+└────────────────────────────────────────────┘
+```
+
+The host opens **Options → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; Options also lists connected displays, each with **Disconnect**. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
+
 ## 2. Ad slots
 
 **Rules**

@@ -42,6 +42,10 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `POST /sessions/{code}/end` | – | End the session; data discarded. |
 | `POST /sessions/{code}/display-links` | – | `201 { displayUrl }`: a read-only display link (FR-28), token in the URL fragment. |
 | `DELETE /sessions/{code}/display-links` | – | Revoke every display link; open display views disconnect. |
+| `POST /sessions/{code}/display-pairings` | `{ pairingCode }` | **Connect a TV** (ADR 0010): approve the code shown on a TV. `204`; the TV receives its display token. `404` unknown or expired code. Rate-limited per host. |
+| `GET /sessions/{code}/displays` · `DELETE …/displays/{id}` | – | List connected displays (paired TVs and display links); disconnect one. |
+
+**TV pairing (anonymous, ADR 0010):** `POST /tv/pairings` → `201 { pairingId, pairingCode, expiresAt }` (rate-limited per IP). The TV then connects to `/hubs/pairing?pairingId=…`, which can only deliver `Paired { sessionCode, displayToken }` (or `PairingExpired`) for that pairing, and then closes.
 
 Future (Serious Bingo): `POST /sessions/{code}/cards/generate` → `{ claimId, claimUrl }`; `POST /claims/{claimId}/redeem`.
 

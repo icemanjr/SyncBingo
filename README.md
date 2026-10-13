@@ -135,6 +135,7 @@ The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
 | [0007](docs/adr/0007-fargate-and-cdk-csharp.md) | ECS Fargate hosting, AWS CDK in C# |
 | [0008](docs/adr/0008-host-credited-wins.md) | Host credits wins |
 | [0009](docs/adr/0009-callable-items-and-faces.md) | Callable items with call and card faces (proposed) |
+| [0010](docs/adr/0010-display-pairing-with-short-codes.md) | Pairing display screens with a short code |
 
 ## Roadmap
 

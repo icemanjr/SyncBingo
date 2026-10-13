@@ -56,7 +56,7 @@ public sealed record SessionSettings
     public bool HighlightMatches { get; init; }
 
     /// <summary>FR-14.</summary>
-    public bool ShowRecentCalls { get; init; } = true;
+    public bool ShowCallBoard { get; init; } = true;
 
     /// <summary>FR-16: lets each participant switch auto-fill on for their own card.</summary>
     public bool AutoFillAvailable { get; init; }

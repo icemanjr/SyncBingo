@@ -21,7 +21,7 @@ public sealed class SessionSettingsTests
     public void Between_rounds_every_setting_applies_at_once()
     {
         var session = NewSession();
-        var changed = SessionSettings.Default with { FreeSpace = FreeSpace.Earned, ShowRecentCalls = false };
+        var changed = SessionSettings.Default with { FreeSpace = FreeSpace.Earned, ShowCallBoard = false };
 
         var settingsChanged = session.UpdateSettings(changed, Now).Single<SettingsChanged>();
 
@@ -38,12 +38,12 @@ public sealed class SessionSettingsTests
         {
             FreeSpace = FreeSpace.Earned,
             RedrawPolicy = RedrawPolicy.ParticipantsMayRedraw,
-            ShowRecentCalls = false,
+            ShowCallBoard = false,
         };
 
         session.UpdateSettings(changed, Now).IsSuccess.ShouldBeTrue();
 
-        session.Settings.ShowRecentCalls.ShouldBeFalse(); // applies now
+        session.Settings.ShowCallBoard.ShouldBeFalse(); // applies now
         session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked); // waits
         session.Settings.RedrawPolicy.ShouldBe(RedrawPolicy.HostControls); // waits
         session.NextRoundSettings.ShouldBe(changed);

@@ -26,7 +26,7 @@ public sealed class SessionCommandTableTests
         ["Draw ball (host)"] = s => s.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess,
         ["Auto draw (scheduler)"] = s => s.DrawBall(DrawSource.Auto, new SeededRandom(1), Now).IsSuccess,
         ["Change win condition"] = s => s.ChangeWinCondition("blackout", Now).IsSuccess,
-        ["Change settings"] = s => s.UpdateSettings(AutoCaller with { ShowRecentCalls = false }, Now).IsSuccess,
+        ["Change settings"] = s => s.UpdateSettings(AutoCaller with { ShowCallBoard = false }, Now).IsSuccess,
         ["Join"] = s => s.CheckCanAdmit(currentParticipants: 0).IsSuccess,
         ["End session"] = s => s.End(Now).IsSuccess,
     };

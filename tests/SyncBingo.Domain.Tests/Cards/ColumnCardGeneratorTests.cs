@@ -7,17 +7,18 @@ namespace SyncBingo.Domain.Tests.Cards;
 /// Statistical checks over many cards. A fixed seed keeps them repeatable, and the
 /// tolerances are wide enough that a correct generator passes for any seed.
 /// </summary>
-public sealed class CardGeneratorTests
+public sealed class ColumnCardGeneratorTests
 {
     private const int Deals = 3000;
     private static readonly BingoVariant Variant = StandardVariants.Classic75;
+    private static readonly ColumnCardGenerator Generator = new(Variant);
 
     [Fact]
     public void Columns_are_shuffled_not_sorted()
     {
         var random = new SeededRandom(42);
         var columns = Enumerable.Range(0, Deals)
-            .Select(_ => CardGenerator.Generate(Variant, random))
+            .Select(_ => Generator.Generate(random))
             .SelectMany(card => Enumerable.Range(0, 5).Select(column => NumbersInColumn(card, column)))
             .ToList();
 
@@ -34,7 +35,7 @@ public sealed class CardGeneratorTests
         var appearances = new int[Variant.BallMax + 1];
         for (var deal = 0; deal < Deals; deal++)
         {
-            foreach (var number in CardGenerator.Generate(Variant, random).Cells)
+            foreach (var number in Generator.Generate(random).Cells)
             {
                 appearances[number]++;
             }
@@ -58,7 +59,7 @@ public sealed class CardGeneratorTests
         var seen = new HashSet<(int Number, int Row)>();
         for (var deal = 0; deal < Deals; deal++)
         {
-            var card = CardGenerator.Generate(Variant, random);
+            var card = Generator.Generate(random);
             for (var cell = 0; cell < 25; cell++)
             {
                 seen.Add((card.Cells[cell], cell / 5));

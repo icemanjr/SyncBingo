@@ -32,7 +32,7 @@
 │  2 7 12  17 ■ 27                            │
 │  ...                                        │
 ├─────────────────────────────────────────────┤
-│ 🔔 Sam: BINGO ✓ qualifies                   │
+│ 🔔 Sam: BINGO ✓ 2 lines · 1 awardable      │
 │        [Inspect] [Award] [Dismiss] [Remove] │
 │ Players (14) ▸   [ Clear cards ] [Leaderbd] │
 ├─────────────────────────────────────────────┤

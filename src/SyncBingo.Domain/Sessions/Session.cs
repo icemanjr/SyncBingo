@@ -299,8 +299,24 @@ public sealed class Session
         var alreadyAwarded = _wins
             .Where(w => w.Round == RoundNumber && w.ParticipantId == participant.Id && w.CardId == cardId && w.WinConditionId == WinConditionId)
             .Sum(w => w.Wins);
+        var awardable = Settings.MultipleWins switch
+        {
+            MultipleWins.EveryDeclaredWin => Math.Max(0, matches.Value - alreadyAwarded),
+            MultipleWins.OncePerRound when HasWonThisRound(participant.Id, cardId) => 0,
+            _ => alreadyAwarded == 0 ? Math.Min(matches.Value, 1) : 0,
+        };
         var claim = new Claim(
-            _claims.Count + 1, RoundNumber, participant.Id, participant.Name.Display, cardId, WinConditionId, now, matches.Value, alreadyAwarded, ClaimStatus.Pending);
+            _claims.Count + 1,
+            RoundNumber,
+            participant.Id,
+            participant.Name.Display,
+            cardId,
+            WinConditionId,
+            now,
+            matches.Value,
+            alreadyAwarded,
+            awardable,
+            ClaimStatus.Pending);
         _claims.Add(claim);
         return Commit(now, new WinClaimed(claim));
     }

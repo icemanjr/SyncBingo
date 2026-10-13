@@ -91,9 +91,47 @@ public sealed class MultipleWinsTests
 
         var second = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim; // "...and the top row!"
 
-        (second.Matches, second.AlreadyAwarded).ShouldBe((2, 1), "the host sees 2 lines, 1 already paid");
+        (second.Matches, second.AlreadyAwarded, second.Awardable).ShouldBe((2, 1, 1), "the host sees 2 lines, 1 already paid, 1 to award");
         kit.Session.AwardWin(kit.Player, 1, Now, claimId: second.Id).IsSuccess.ShouldBeTrue();
         kit.Session.Leaderboard().Single().Wins.ShouldBe(2);
+    }
+
+    [Fact]
+    public void A_press_after_every_line_is_paid_has_no_awardable_matches()
+    {
+        var kit = DoubleBingo(MultipleWins.EveryDeclaredWin);
+        var doubleBingo = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+        doubleBingo.Awardable.ShouldBe(2);
+        kit.Session.AwardWin(kit.Player, 1, Now, wins: 2, claimId: doubleBingo.Id).IsSuccess.ShouldBeTrue();
+        kit.Call(6);
+        kit.Call(7);
+
+        var again = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+
+        (again.Qualified, again.Matches, again.AlreadyAwarded, again.Awardable).ShouldBe((true, 2, 2, 0));
+    }
+
+    [Theory]
+    [InlineData(MultipleWins.OncePerPattern)]
+    [InlineData(MultipleWins.OncePerRound)]
+    public void In_the_once_modes_a_card_that_won_has_nothing_more_to_award(MultipleWins mode)
+    {
+        var kit = DoubleBingo(mode);
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(1, "two lines, but one win");
+        kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
+
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Once_per_round_still_has_nothing_to_award_after_the_pattern_changes()
+    {
+        var kit = DoubleBingo(MultipleWins.OncePerRound);
+        kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeWinCondition("corners", Now).IsSuccess.ShouldBeTrue();
+        kit.Call(65);
+
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(0);
     }
 
     [Fact]

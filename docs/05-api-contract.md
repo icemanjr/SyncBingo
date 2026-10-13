@@ -69,7 +69,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantRemoved` | host (removed: also that participant) | `{ id, name }` |
 | `ClaimDismissed` | host | `{ claimId }` |
 | `WinDetected` | host | `{ participantId, name, cardId, condition, matches }` |
-| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, matches, alreadyAwarded }` |
+| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, matches, alreadyAwarded, awardable }` |
 | `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition, wins }` |
 | `LeaderboardUpdated` | host; all when shown | `{ entries[] }` |
 | `LeaderboardVisibilityChanged` | all | `{ visible }` |

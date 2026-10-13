@@ -13,6 +13,8 @@ public enum ClaimStatus
 /// qualified, 2 = a "double Bingo" on Normal) and <see cref="AlreadyAwarded"/> how many
 /// wins this card already got for this pattern this round, so the host can check a
 /// declaration, including a second line the player only noticed later.
+/// <see cref="Awardable"/> is how many more wins the card could be awarded under the
+/// <see cref="MultipleWins"/> setting; 0 shows the host "no awardable matches".
 /// </summary>
 public sealed record Claim(
     int Id,
@@ -24,6 +26,7 @@ public sealed record Claim(
     DateTimeOffset ClaimedAt,
     int Matches,
     int AlreadyAwarded,
+    int Awardable,
     ClaimStatus Status)
 {
     public bool Qualified => Matches > 0;

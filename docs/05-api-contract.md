@@ -17,8 +17,10 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | Method & path | Body | Notes |
 |---------------|------|-------|
 | `GET /sessions/{code}/snapshot` | – | Full state for the caller (own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Used on load, reconnect and gap detection. |
-| `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects uncalled numbers (422). Returns updated marks. |
-| `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `200 { valid }`; invalid claims are not reported to the host. |
+| `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects (422) marking an uncalled number when *Free marking* is off, and an unmark that *Unmarking* does not allow (off, or a called square under *Mismarks only*). Returns updated marks. |
+| `POST /sessions/{code}/cards/{cardId}/undo` | – | Undo (FR-25): resets the card to its marks when the last ball was called. Always allowed during a round. Returns updated marks. |
+| `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `202 { claimedAt }`: the claim always goes to the host (FR-37a); the player is not told whether it qualifies. |
+| `PUT /sessions/{code}/me/auto-fill` | `{ on }` | Switch auto-fill for the caller's own card; 409 unless the host made it available. |
 | `POST /sessions/{code}/cards/redraw` | `{ cardId }` | Only when policy allows and state is BetweenRounds. |
 
 ## 3. Host endpoints (host token)
@@ -32,6 +34,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `POST /sessions/{code}/balls` | – | "Grab a new ball". Returns the ball and `sequence`. |
 | `PUT /sessions/{code}/win-condition` | `{ condition }` | `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`. |
 | `POST /sessions/{code}/wins` | `{ participantId, cardId? }` | Award win for the current win condition (idempotent). |
+| `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
 | `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim. |
 | `DELETE /sessions/{code}/participants/{id}` | – | Kick. |
 | `GET /sessions/{code}/leaderboard` | – | Wins per participant + round summaries. |
@@ -58,7 +61,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `Paused` / `Resumed` | all | – |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |
 | `WinDetected` | host | `{ participantId, name, cardId, condition }` |
-| `WinClaimed` | host | `{ participantId, name, claimedAt }` |
+| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, qualified }` |
 | `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition }` |
 | `LeaderboardUpdated` | host; all when shown | `{ entries[] }` |
 | `CardReplaced` | that participant | `{ card }` |
@@ -67,6 +70,6 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 ## 5. Conventions
 
 - `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied.
-- Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number); state violations: 409.
+- Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Rate limits: join endpoint per code + IP; marks per participant.
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

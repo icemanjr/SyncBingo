@@ -20,9 +20,10 @@ erDiagram
 | Entity | Key fields |
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
-| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, hostParticipates, autoFill, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
-| **Participant** | `id`, `name`, `nameKey` (normalised), `isHost`, `tokenHash`, `joinedAt`, `connected`, `cards[]` |
-| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
+| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; changes apply next round), requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
+| **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `qualified` (did the card qualify at that moment), `status` (pending/awarded/dismissed) |
+| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask; the centre bit starts set with an *Always marked* free space and unset with an *Earned* one), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
 | **WinRecord** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `awardedAt`, `source` (detected/claimed/manual) |
@@ -61,6 +62,8 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 | `schedule` | sorted set | session code → next auto-call due time (see 02 §5) |
 | (pub/sub) | channels | SignalR backplane |
 
+**Undo (FR-25) without extra writes per draw:** the first time a player changes a card after ball *n* is called, the server saves the card's marks from just before that change as `undoMarks` with `undoSequence = n`. Undo restores `undoMarks` when `undoSequence` is the current ball, and does nothing otherwise (no change since that ball). Auto-fill happens during the draw, before any player change, so it is part of the saved state. A draw therefore never has to touch every card just to support Undo.
+
 Marks and redraws update one `participants` field; a redraw also claims the new card's fingerprint and releases the old one. A host redraw of every card at round start runs under the session lock: it clears the `cards` set, then deals and claims each new card. Draw, pause, round changes and settings take the per-session lock and bump `version`.
 
 ## 5. Identity and secrets
@@ -68,7 +71,7 @@ Marks and redraws update one `participants` field; a redraw also claims the new 
 - **Game code:** 16 characters from `23456789abcdefghjkmnpqrstuvwxyz` (31 symbols, ≈ 79 bits), generated with a CSPRNG, displayed as `xxxx-xxxx-xxxx-xxxx`. Input is accepted case-insensitively with or without hyphens.
 - **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
 - **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
-- **Host token:** same mechanism, flagged `isHost`.
+- **Host token:** same mechanism, stored separately from participants: the host runs the game and is not a participant (FR-15 removed).
 - **Names** (`ParticipantName`):
   - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
   - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.

@@ -16,10 +16,10 @@ There are no accounts, no downloads and no personal data. A session lives only a
 
 - **Easy to join.** Players scan a QR code or type the game code, enter the host's game password, pick a name and they're in. Players can join between rounds.
 - **Live, synchronised calls.** When a ball is drawn, it reaches every phone at once. The host chooses automatic calling on a timer, or calls each ball aloud.
-- **Digital cards.** Standard 75-ball cards that fit a small phone screen without scrolling. Players mark their own squares, and only numbers that have actually been called can be marked.
+- **Digital cards.** Standard 75-ball cards that fit a small phone screen without scrolling. Players mark their own squares; careless marking can cost you, unless the host switches on strict marking for young children.
 - **Many ways to win.** Normal Bingo (row, column or diagonal), Four Corners, the letters **B I N G O**, and Blackout. The host can switch mid-round, say from Normal to Blackout, without clearing the cards.
 - **The host is in charge.** Pause for a prize, start a new round, inspect a card, award a win, show the leaderboard.
-- **Kid mode or serious mode.** Settings such as auto-fill for missed numbers, highlighting matching squares, a Bingo button, win celebrations and automatic win detection make it forgiving for small children; turn them off for adults who want to pay attention.
+- **Kid mode or serious mode.** Settings such as strict marking, auto-fill for missed numbers (each player opts in), highlighting matching squares, a Bingo button, win celebrations and automatic win detection make it forgiving for small children; turn them off for adults who want to pay attention.
 - **Drop-out proof.** A phone that goes to sleep reconnects with the same name, card and marks.
 
 ## Technical highlights

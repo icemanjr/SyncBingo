@@ -39,12 +39,12 @@ docker-compose.yml
 
 ## Key architectural rules (see `docs/adr/`)
 
-1. **Server-authoritative** state. Clients send intents; the server validates (e.g. a square can only be marked if its number was called).
+1. **Server-authoritative** state. Clients send intents; the server validates them and judges every claim against the balls actually called. Marking uncalled numbers ("mismarks") and unmarking are allowed unless the host switches *Free marking* off.
 2. **REST for commands, SignalR for events only**, WebSockets only, Redis backplane. Events carry a sequence number; the snapshot endpoint is the source of truth.
 3. **Rules are data.** Cards hold a 25-bit mark mask; win patterns are lists of bitmasks; a win is `(marks & mask) == mask`. Variants (ball range, card size, patterns) are configuration.
 4. **Redis with TTL**, behind `ISessionStore`. Shared-state mutations take a short per-session lock; marks update only the participant's own hash field.
 5. **Auto-call scheduling** uses a Redis sorted set with an atomic Lua claim and lease, so exactly one instance draws per tick.
-6. **Host credits wins.** Detection and the Bingo button only raise alerts; the host's *Award win* action feeds the leaderboard.
+6. **Host credits wins.** A win needs a claim (Bingo button or a shout) and the host's *Award win*. Detection only alerts the host and uses called numbers, not marks; every Bingo press reaches the host, valid or not. Auto-fill is opt-in per participant when the host makes it available. The host does not play; a host who wants to play joins from another device.
 7. Secrets and tokens are stored hashed; join attempts are rate-limited; a participant only ever receives their own card.
 
 ## Ads and UI constraints
@@ -53,7 +53,7 @@ Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size rese
 
 ## Confirmed assumptions (`docs/01-requirements.md` section 7)
 
-A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 host-participant appears on the leaderboard. A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked.
+A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts Running. A5 superseded: the host does not play (FR-15 removed). A6 manual "Grab a new ball" allowed while paused. A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked.
 
 ## Out of scope (for now)
 

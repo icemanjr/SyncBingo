@@ -9,7 +9,7 @@
 | Host console | `/host/:code` | QR + game code, participant list, settings, draw/pause/round controls, win alerts, leaderboard |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
-| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), win highlight |
+| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), own auto-fill switch (if the host made it available), win highlight |
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
 
 ### Host console (sketch)
@@ -92,4 +92,4 @@
 
 ## 4. States to design
 
-Connecting/reconnecting banner · wrong password · name taken · round in progress · paused overlay (does not cover the card) · win highlight · empty hopper · host disconnected · session ended/expired.
+Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · paused overlay (does not cover the card) · win highlight · empty hopper · host disconnected · session ended/expired.

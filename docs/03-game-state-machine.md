@@ -31,13 +31,15 @@ stateDiagram-v2
 | Pause / Resume | – | ✔ / – | – / ✔ | Pause cancels the auto-call schedule |
 | Draw ball ("Grab a new ball") | – | ✔ | ✔ | Explicit host action, allowed while paused (A6) |
 | Auto draw (scheduler) | – | ✔ | ✖ | Only in Auto mode |
-| Mark / unmark square | ✖ | ✔ | ✔ | Only for called numbers |
-| Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled |
+| Mark / unmark square | ✖ | ✔ | ✔ | *Free marking* on: any square, unmark allowed. Off: called numbers only, no unmarking (FR-22). The free cell is always marked |
+| Claim Bingo | ✖ | ✔ | ✔ | Only if Bingo button enabled. Always alerts the host, valid or not (FR-37a) |
 | Change win condition | – | ✔ | ✔ | Same ball draw and marks continue |
 | Change settings | ✔ | ✔ | ✔ | Some apply from the next round (e.g. redraw policy) |
 | Redraw card (participant) | ✔ if allowed | ✖ | ✖ | Policy FR-20 |
 | Redraw cards (host) | ✔ | – | – | At round start |
 | Award win | – | ✔ | ✔ | Credits a participant; feeds leaderboard |
+| Dismiss claim | – | ✔ | ✔ | Host clears a claim without awarding it |
+| Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |
 | Kick participant | ✔ | ✔ | ✔ | |
 | View leaderboard | ✔ | ✔ | ✔ | Host decides if shown to all |
 
@@ -46,32 +48,44 @@ stateDiagram-v2
 1. Hopper = variant's ball set (1–75) minus balls already called this round.
 2. Draw uses an injected random source (CSPRNG in production, seeded in tests).
 3. Each draw increments `sequence` and records `{ball, letter, calledAt}`.
-4. If **auto-fill** is on, every participant card containing the *previous* ball that is not yet marked gets it marked, **before** the new ball is announced. A missed number therefore remains fillable by the child for one full call interval.
-5. If **win detection** is on, the win condition is evaluated against all cards after fills (see §4).
+4. **Auto-fill:** for each participant who switched auto-fill on (only possible while the host makes it available), every card containing the *previous* ball that is not yet marked gets it marked, **before** the new ball is announced. A missed number therefore stays fillable by the player for one full call interval, and the last ball of a round is never auto-filled.
+5. If **win detection** is on, every card is checked against the current win condition using the **called** numbers (see §4). Marks play no part, so detection only runs here, inside the draw's critical section, and never on the marking path.
 6. When the hopper is empty the host is told; no further draws until a new round.
 
 ## 4. Win handling
 
-Marks are kept per card as a 25-bit mask; a pattern is a 25-bit mask; a card satisfies a pattern when `(marks & pattern) == pattern`. For Normal Bingo, any of the 12 line masks satisfies.
+A completed pattern is only a *potential* win. A player wins by **claiming** (pressing BINGO, or shouting it when the button is off) and the host **awarding** the win (ADR 0008).
+
+Two masks matter for each card:
+
+- **called** = the cells whose numbers have been called this round, plus the free cell;
+- **marks** = what the player marked (may include mismarks, FR-22).
+
+A card *qualifies* for the current win condition when `(called & mask) == mask` for one of its masks; with *Require marks for claims* on (FR-23) it uses `called & marks` instead. For Normal Bingo, any of the 12 line masks counts.
 
 ```mermaid
 flowchart TD
-  M["Mark, auto-fill or draw"] --> D{"Win detection enabled?"}
-  D -- "No" --> C
-  D -- "Alert" --> W["Raise WinDetected to host<br/>(name, card, win condition)"]
-  D -- "Alert + pause" --> W2["Pause + raise WinDetected"]
-  C["Bingo button pressed?"] --> V{"Server validates card<br/>against current win condition"}
-  V -- "Valid" --> K["Raise WinClaimed to host<br/>(name, timestamp)"]
-  V -- "Invalid" --> X["Reject; tell player 'not yet'"]
-  W --> A["Host confirms: Award win"]
-  W2 --> A
-  K --> A
-  A --> L["Record in round + leaderboard;<br/>show win highlight if enabled"]
+  DR["Ball drawn"] --> D{"Win detection?"}
+  D -- "Off" --> N["Nothing raised"]
+  D -- "Alert" --> W["WinDetected to host<br/>(name, card, condition)"]
+  D -- "Alert + pause" --> W2["Pause + WinDetected to host"]
+  B["Player presses BINGO"] --> Q["Server checks: does the card qualify?"]
+  Q --> K["WinClaimed to host, always<br/>(name, time, qualified yes/no)"]
+  Q --> P["Player sees 'Bingo sent to host'"]
+  S["Player shouts (button off)"] --> I["Host inspects card"]
+  W --> H{"Host decides"}
+  W2 --> H
+  K --> H
+  I --> H
+  H -- "Award" --> L["Record in round + leaderboard;<br/>win highlight if enabled"]
+  H -- "Dismiss" --> X["Claim cleared"]
+  H -- "Remove player" --> R["Kick (FR-7) for repeated false Bingos"]
 ```
 
 Rules:
 
-- A card can be flagged **at most once per win condition per round** (no repeat alerts).
+- Detection runs only when a ball is drawn, against called numbers, so marks (or mismarks) can never trigger or suppress an alert, and *Alert + pause* happens inside the draw's critical section.
+- A card raises **at most one detection alert per win condition per round**. Claims are not limited: every press reaches the host, who can remove a player who abuses the button.
 - Claim order is recorded with a server timestamp so the host can see who was first.
 - The host can **award a win** to one or several participants, including when detection and the Bingo button are both off (serious mode: a player shouts, the host verifies via *inspect card*, then awards).
 - A participant may win more than once per round, once for each win condition the host plays.

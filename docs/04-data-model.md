@@ -20,8 +20,9 @@ erDiagram
 | Entity | Key fields |
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state`, `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber` |
-| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, hostParticipates, autoFill, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
-| **Participant** | `id`, `name`, `nameKey` (normalised), `isHost`, `tokenHash`, `joinedAt`, `connected`, `cards[]` |
+| **Settings** | caller mode + interval, showBallToPlayers, highlightMatches, showRecentCalls, autoFillAvailable, freeMarking, requireMarksForClaims, bingoButton, winHighlight, winDetection, redrawPolicy, currentWinCondition |
+| **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
+| **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `qualified` (did the card qualify at that moment), `status` (pending/awarded/dismissed) |
 | **Card** | `id`, `cells[25]` (numbers, centre = 0 for free), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask, centre bit always set), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
@@ -68,7 +69,7 @@ Marks and redraws update one `participants` field; a redraw also claims the new 
 - **Game code:** 16 characters from `23456789abcdefghjkmnpqrstuvwxyz` (31 symbols, ≈ 79 bits), generated with a CSPRNG, displayed as `xxxx-xxxx-xxxx-xxxx`. Input is accepted case-insensitively with or without hyphens.
 - **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
 - **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
-- **Host token:** same mechanism, flagged `isHost`.
+- **Host token:** same mechanism, stored separately from participants: the host runs the game and is not a participant (FR-15 removed).
 - **Names** (`ParticipantName`):
   - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
   - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.

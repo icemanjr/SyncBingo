@@ -82,7 +82,7 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 "board": {
   "cellShape": "square",
   "groups": [
-    { "label": "B", "items": [ { "id": 1, "face": "1" }, …, { "id": 15, "face": "15" } ] },
+    { "label": "B", "items": [ { "id": 1, "callFace": "1", "cardFace": "1" }, …, { "id": 15, "callFace": "15", "cardFace": "15" } ] },
     { "label": "I", "items": [ … ] }
   ]
 }
@@ -90,7 +90,7 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 
 - Standard Bingo: five labelled groups, one per card column.
 - A custom game with no columns (e.g. 40 items): one group with no label.
-- Content sets (ADR 0009): `face` is the call face ("2 + 5", a word, later an image), and `cellShape` is `wide` for text so words fit.
+- Content sets (ADR 0009): each item has a `callFace` (what is called: "2 + 5", a definition, later an image) and a `cardFace` (what is marked: "7", the word, the name). The board's cells show the side the host chose under **Call board shows** (FR-29). It always starts on the ball side, whatever the content, and only changes when the host switches it; while the large last-ball slot always shows the call face. `cellShape` follows the side shown: `square` for numbers, larger square cells for pictures, `wide` for words and definitions, so the layout rule gives each kind of content room.
 
 **Layout rule.** For each candidate number of rows *r* (1 to the largest group's size): every group needs ⌈items ÷ *r*⌉ sub-columns; total columns = the sum, plus a small gap between groups; cell size = min(width ÷ columns, height ÷ *r*), adjusted for `cellShape`. Use the *r* with the largest cell. For standard Bingo this gives *r* = 5 (3 columns of 5 per letter, 15 × 5) on a 16:9 projector and *r* = 8 (8 + 7, 10 × 8) on 4:3 or upright screens; a single group of 40 on a projector comes out at about 4 rows of 10. The board is read-only, so on phones the cells may shrink below the 48 px tap-target size (nothing on it is tapped).
 

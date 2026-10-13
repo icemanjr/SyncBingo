@@ -75,6 +75,31 @@ public sealed class ParticipantNameTests
     }
 
     [Fact]
+    public void Injection_looking_words_are_just_text()
+    {
+        // Harmless: names are never spliced into queries, commands or markup (docs/02 §7a).
+        Create("DROP TABLE").Display.ShouldBe("DROP TABLE");
+    }
+
+    [Theory]
+    [InlineData("Robert'); DROP TABLE Students;--")]
+    [InlineData("\"; FLUSHALL")]
+    [InlineData("<img src=x onerror=alert(1)>")]
+    [InlineData("{{constructor}}")]
+    [InlineData("=HYPERLINK(\"x\")")]
+    public void Injection_syntax_is_refused_by_the_character_rules(string typed)
+    {
+        ParticipantName.TryCreate(typed, out _, out var problem).ShouldBeFalse();
+        problem.ShouldBe(NameProblem.InvalidCharacters);
+    }
+
+    [Fact]
+    public void Line_breaks_cannot_forge_extra_log_lines()
+    {
+        Create("Sam\nWARN Sam won\r\n").Display.ShouldBe("Sam WARN Sam won");
+    }
+
+    [Fact]
     public void Refuses_stacked_accent_marks_that_would_draw_huge()
     {
         var zalgo = "S" + new string('̶', 100) + "am";

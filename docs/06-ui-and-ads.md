@@ -61,7 +61,7 @@
 
 ### Call board (FR-27)
 
-All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The five letters sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
+All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The board knows nothing about B-I-N-G-O. It draws whatever **groups of items** the server sends (see *Board data* below). For standard Bingo those are the five letters, which sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
 
 ```
                  ┌──────┐                              ┌──────┐
@@ -76,7 +76,23 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
  5 10 15   20 25 30     65 70 75        8      23         68
 ```
 
-**Layout rule:** pick the arrangement that gives the larger cell in the space available: cell size = min(width ÷ columns, height ÷ rows). That is 15 columns × 5 rows for 3-per-letter and 10 × 8 for 2-per-letter, so a 16:9 projector gets 3 columns and a 4:3 or upright screen gets 2. The board is read-only, so on phones the cells may shrink below the 48 px tap-target size (nothing on it is tapped). For variants without B-I-N-G-O columns, the same rule picks a grid for the items (ADR 0009).
+**Board data.** The snapshot carries the board as ordered groups; the client derives everything else (item count, column count, whether columns are locked) from them:
+
+```json
+"board": {
+  "cellShape": "square",
+  "groups": [
+    { "label": "B", "items": [ { "id": 1, "face": "1" }, …, { "id": 15, "face": "15" } ] },
+    { "label": "I", "items": [ … ] }
+  ]
+}
+```
+
+- Standard Bingo: five labelled groups, one per card column.
+- A custom game with no columns (e.g. 40 items): one group with no label.
+- Content sets (ADR 0009): `face` is the call face ("2 + 5", a word, later an image), and `cellShape` is `wide` for text so words fit.
+
+**Layout rule.** For each candidate number of rows *r* (1 to the largest group's size): every group needs ⌈items ÷ *r*⌉ sub-columns; total columns = the sum, plus a small gap between groups; cell size = min(width ÷ columns, height ÷ *r*), adjusted for `cellShape`. Use the *r* with the largest cell. For standard Bingo this gives *r* = 5 (3 columns of 5 per letter, 15 × 5) on a 16:9 projector and *r* = 8 (8 + 7, 10 × 8) on 4:3 or upright screens; a single group of 40 on a projector comes out at about 4 rows of 10. The board is read-only, so on phones the cells may shrink below the 48 px tap-target size (nothing on it is tapped).
 
 ### Display view (FR-28)
 

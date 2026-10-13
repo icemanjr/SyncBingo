@@ -61,7 +61,7 @@ SyncBingo/
 
 ### 3.2 Layers
 
-- **Domain** — `Session`, `Round`, `Participant`, `Card`, `BingoVariant`, `WinPattern`, `WinCondition`, game-code generator, state machine rules. Deterministic and trivially unit-testable (random source injected).
+- **Domain** — `Session`, `Round`, `Participant`, `Card`, `ICardGenerator`, `BingoVariant`, `WinPattern`, `WinCondition`, game-code generator, state machine rules. Deterministic and trivially unit-testable (random source injected).
 - **Application** — one handler per command (`CreateSession`, `JoinSession`, `MarkSquare`, `DrawBall`, `StartRound`, …). Each handler: load → authorise → apply domain rule → persist → publish events. Ports: `ISessionStore`, `IEventPublisher`, `IClock`, `IRandom`, `ITokenService`, `IPasswordHasher`.
 - **Infrastructure** — `RedisSessionStore`, `RedisCallScheduler`, hashing, TTL policy.
 - **Api** — minimal API endpoints (REST commands), `GameHub` (SignalR, server→client only), authentication handler for session tokens, rate limiting, ProblemDetails, health checks, OpenAPI.

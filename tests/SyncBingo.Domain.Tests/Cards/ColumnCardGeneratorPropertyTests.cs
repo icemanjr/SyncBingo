@@ -8,14 +8,15 @@ namespace SyncBingo.Domain.Tests.Cards;
 /// Properties every dealt card must have. FsCheck supplies hundreds of random seeds
 /// per run and shrinks any failure to the simplest seed that reproduces it.
 /// </summary>
-public sealed class CardGeneratorPropertyTests
+public sealed class ColumnCardGeneratorPropertyTests
 {
     private static readonly BingoVariant Variant = StandardVariants.Classic75;
+    private static readonly ColumnCardGenerator Generator = new(Variant);
 
     [Property(MaxTest = 500)]
     public void Every_column_holds_distinct_numbers_from_its_own_range(int seed)
     {
-        var card = CardGenerator.Generate(Variant, new SeededRandom(seed));
+        var card = Generator.Generate(new SeededRandom(seed));
 
         for (var column = 0; column < 5; column++)
         {
@@ -30,7 +31,7 @@ public sealed class CardGeneratorPropertyTests
     [Property(MaxTest = 500)]
     public void Only_the_centre_is_free(int seed)
     {
-        var card = CardGenerator.Generate(Variant, new SeededRandom(seed));
+        var card = Generator.Generate(new SeededRandom(seed));
 
         card.Cells.Length.ShouldBe(25);
         card.Cells[Cells.FreeCentre].ShouldBe(Card.FreeCellNumber);
@@ -40,7 +41,7 @@ public sealed class CardGeneratorPropertyTests
     [Property(MaxTest = 500)]
     public void No_number_appears_twice_on_a_card(int seed)
     {
-        var card = CardGenerator.Generate(Variant, new SeededRandom(seed));
+        var card = Generator.Generate(new SeededRandom(seed));
 
         card.Cells.Where(number => number != Card.FreeCellNumber).ShouldBeUnique();
     }
@@ -48,8 +49,8 @@ public sealed class CardGeneratorPropertyTests
     [Property(MaxTest = 100)]
     public void The_same_seed_deals_the_same_card(int seed)
     {
-        var first = CardGenerator.Generate(Variant, new SeededRandom(seed));
-        var second = CardGenerator.Generate(Variant, new SeededRandom(seed));
+        var first = Generator.Generate(new SeededRandom(seed));
+        var second = Generator.Generate(new SeededRandom(seed));
 
         second.ShouldBe(first);
     }

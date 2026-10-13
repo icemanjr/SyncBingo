@@ -10,3 +10,4 @@
 | [0006](0006-game-code-format.md) | Game code format | Accepted |
 | [0007](0007-fargate-and-cdk-csharp.md) | ECS Fargate hosting, AWS CDK in C# | Accepted |
 | [0008](0008-host-credited-wins.md) | Host credits wins | Accepted |
+| [0009](0009-callable-items-and-faces.md) | Callable items with call and card faces | Proposed |

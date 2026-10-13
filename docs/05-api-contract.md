@@ -16,7 +16,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `GET /sessions/{code}/snapshot` | – | Full state for the caller (own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Used on load, reconnect and gap detection. |
+| `GET /sessions/{code}/snapshot` | – | Full state for the caller (the call board as groups of items, docs/06; own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Used on load, reconnect and gap detection. |
 | `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects (422) marking an uncalled number when *Free marking* is off, and an unmark that *Unmarking* does not allow (off, or a called square under *Mismarks only*). Returns updated marks. |
 | `POST /sessions/{code}/cards/{cardId}/undo` | – | Undo (FR-25): resets the card to its marks when the last ball was called. Always allowed during a round. Returns updated marks. |
 | `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `202 { claimedAt }`: the claim always goes to the host (FR-37a); the player is not told whether it qualifies. |
@@ -40,12 +40,18 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | `GET /sessions/{code}/leaderboard` | – | Wins per participant + round summaries. |
 | `POST /sessions/{code}/leaderboard/show` | `{ visible }` | Show or hide the leaderboard on participants' screens. |
 | `POST /sessions/{code}/end` | – | End the session; data discarded. |
+| `POST /sessions/{code}/display-links` | – | `201 { displayUrl }`: a read-only display link (FR-28), token in the URL fragment. |
+| `DELETE /sessions/{code}/display-links` | – | Revoke every display link; open display views disconnect. |
+| `POST /sessions/{code}/display-pairings` | `{ pairingCode }` | **Connect a TV** (ADR 0010): approve the code shown on a TV. `204`; the TV receives its display token. `404` unknown or expired code. Rate-limited per host. |
+| `GET /sessions/{code}/displays` · `DELETE …/displays/{id}` | – | List connected displays (paired TVs and display links); disconnect one. |
+
+**TV pairing (anonymous, ADR 0010):** `POST /tv/pairings` → `201 { pairingId, pairingCode, expiresAt }` (rate-limited per IP). The TV then connects to `/hubs/pairing?pairingId=…`, which can only deliver `Paired { sessionCode, displayToken }` (or `PairingExpired`) for that pairing, and then closes.
 
 Future (Serious Bingo): `POST /sessions/{code}/cards/generate` → `{ claimId, claimUrl }`; `POST /claims/{claimId}/redeem`.
 
 ## 4. SignalR hub
 
-Endpoint: `/hubs/game?access_token={token}`. WebSockets only. On connect the server adds the caller to `s:{code}` (and `s:{code}:host` for the host).
+Endpoint: `/hubs/game?access_token={token}`. WebSockets only. On connect the server adds the caller to the group for its role: `s:{code}:players`, `s:{code}:host` or `s:{code}:display`. In the table below, "all" means all three groups. A display token may call only the snapshot endpoint, which returns public state (board, last ball, win condition, round, state; the leaderboard when shown).
 
 Every event includes `seq` (session event counter). Events are hints; the snapshot endpoint is authoritative.
 
@@ -56,7 +62,7 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `WinConditionChanged` | all | `{ condition }` |
 | `RoundStarted` | all | `{ round, cards[] for self }` (own cards only) |
 | `RoundEnded` | all | `{ round, winners[] }` |
-| `BallCalled` | host always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
+| `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
 | `Paused` / `Resumed` | all | – |
 | `ParticipantJoined` / `ParticipantLeft` / `ParticipantKicked` | host (kicked: that participant) | `{ id, name }` |

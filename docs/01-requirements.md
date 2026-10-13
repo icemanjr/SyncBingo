@@ -34,7 +34,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-11 | **Grab a new ball** | Host button that draws immediately in either mode, including while paused. |
 | FR-12 | **Show ball to participants** | On/off. When on, the latest ball appears in the corner of each participant's screen. |
 | FR-13 | **Highlight matching square** | On/off. When on, a called number is highlighted on cards that contain it. |
-| FR-14 | **Show recent calls** | On/off. Board of called numbers visible to participants. |
+| FR-14 | **Show call board** | On/off. Participants can open the call board (FR-27) on their own screen. |
 | FR-15 | ~~Host also participates~~ | **Removed** (2026-10-12): a card plus the game controls would clutter the host console. A host who wants to play joins from another device or tab as a regular participant. |
 | FR-16 | **Auto-fill available** | On/off. When on, each participant may switch auto-fill on **for their own card**; it is never applied to everyone. For a participant who has it on, a missed number is filled in once the *next* number is called, so they get one full call interval to mark it themselves. The last ball of a round is therefore never auto-filled. |
 | FR-17 | **Bingo button** | On/off. Lets a participant claim a win (FR-37a). When off, players shout "Bingo!" and the host checks the card (FR-38). |
@@ -47,6 +47,13 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-24 | **Unmarking** | *Any* (default) / *Mismarks only* / *Off*, independent of *Free marking*. *Any:* participants may unmark any square they marked. *Mismarks only:* they may unmark squares whose number has **not** been called, so a mismark can be fixed but a correct mark cannot be removed. *Off:* marks are final (except through Undo, FR-25). The free cell follows *Free space* (FR-26). |
 | FR-25 | **Undo** (always available) | During a round, a participant can press **Undo** to reset their card to how it was when the **last ball was called** (before the first ball: as dealt, with only the free cell marked). It reverts every mark and unmark made since that ball, whatever the *Unmarking* setting, so an accidental tap can always be fixed until the next ball is called. Auto-fill happens as part of a draw, so it is not undone. Pressing Undo again changes nothing. |
 | FR-26 | **Free space** | *Always marked* (default) / *Earned*. Changeable between rounds only. *Always marked:* the free centre starts marked, counts toward every pattern that includes it, and can never be unmarked (A8). *Earned* (a common house rule): the free centre starts **unmarked** and is earned, for each player separately, by the first called ball that is **not** on their card; it then stays earned for the round. Until it is earned it does not count toward any pattern (so no line through the centre and no Blackout). Once earned it behaves like a called square: the player marks it, auto-fill (if on) fills it one call later, and *Unmarking* and *Undo* apply as normal. |
+
+### 3.2a Call board and display view
+
+| ID | Requirement |
+|----|-------------|
+| FR-27 | The **call board** shows every ball of the variant, with called balls marked (by shape or icon as well as colour). The **last ball** is shown large, **top centre above the letters** (e.g. "N 37"), so people at the back who misheard a call can check it, and its cell is emphasised on the board. It is the host console's **default view**; rules and settings sit behind an **Options** button. The board is driven entirely by data from the server, as **groups of items** (for standard Bingo the five letters B-I-N-G-O, 15 balls each; for a custom game without columns, a single unlabelled group), so it never assumes 75 balls or five columns. Groups sit side by side and the layout picks the number of rows that gives the largest cells on the screen in use; for standard Bingo that means 3 columns of 5 or 2 columns of 8 + 7 per letter (docs/06). |
+| FR-28 | The host can open a **display view**, read-only and without ads, in a separate tab or on another device (projector, TV), using a display link. It shows the call board, the last ball, the win pattern, the round, win celebrations, the leaderboard when the host shows it, and the join QR between rounds; never settings, claims, alerts or controls. Opening it does not disconnect the host console; the host can revoke display links. A **smart TV or projector** can connect on its own, without a cable to the host's device, by **pairing**: its browser opens a short address that shows a short code, and the host enters that code (or scans the TV's QR) under **Connect a TV** (ADR 0010). |
 
 ### 3.3 Running a game
 
@@ -76,7 +83,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 
 | ID | Requirement |
 |----|-------------|
-| FR-50 | Every page reserves fixed-size **banner slots**: top and bottom on mobile; left and right on desktop. |
+| FR-50 | Every page reserves fixed-size **banner slots**: top and bottom on mobile; left and right on desktop. **Exception:** the display view (FR-28) shows no ads, because it is shown to the whole room. |
 | FR-51 | No pop-ups, interstitials, overlays or anything that can cover the play area. |
 | FR-52 | Ad rendering sits behind a provider abstraction; the portfolio build shows placeholders. |
 

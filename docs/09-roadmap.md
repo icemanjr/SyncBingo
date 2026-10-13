@@ -13,6 +13,7 @@
 - [ ] Win detection modes; host awards wins; win highlight
 - [ ] Rounds: end, clear cards, redraw policy; joins between rounds only
 - [ ] Leaderboard and session stats; host inspect card; kick
+- [ ] Call board as the host's default view (Options button for rules), shareable with participants; pop-out read-only display view for projectors (no ads); smart TV / projector pairing with a short code (ADR 0010)
 - [ ] Ad layout with placeholder slots; greyed-out Serious Bingo tile
 
 ## Phase 2 — Polish and hardening

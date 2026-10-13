@@ -74,6 +74,8 @@ Marks and redraws update one `participants` field; a redraw also claims the new 
 - **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
 - **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
 - **Host token:** same mechanism, stored separately from participants: the host runs the game and is not a participant (FR-15 removed).
+- **Pairing** (ADR 0010): `pairing:{code}` (string, 10-minute TTL, deleted when used) holds the waiting TV's pairing id until a host approves it; the code is 6 characters from the game-code alphabet.
+- **Display token:** same mechanism, role `display`: **read-only**, sees only public game state (FR-28), and the host can revoke it. Stored as hashes in `s:{code}:display-tokens`. The display link carries it in the URL **fragment** (`/display/{code}#t=…`), which browsers never send to the server, so it does not appear in server or CDN logs; the page moves it to `sessionStorage` and clears it from the address bar.
 - **Names** (`ParticipantName`):
   - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
   - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.

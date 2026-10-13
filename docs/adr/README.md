@@ -11,3 +11,4 @@
 | [0007](0007-fargate-and-cdk-csharp.md) | ECS Fargate hosting, AWS CDK in C# | Accepted |
 | [0008](0008-host-credited-wins.md) | Host credits wins | Accepted |
 | [0009](0009-callable-items-and-faces.md) | Callable items with call and card faces | Proposed |
+| [0010](0010-display-pairing-with-short-codes.md) | Pairing display screens with a short code | Accepted |

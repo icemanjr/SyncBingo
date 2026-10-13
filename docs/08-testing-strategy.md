@@ -34,6 +34,7 @@
 - Pause freezes auto-calls; resume continues; manual draw works while paused.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.
 - Participants never receive other participants' cards; host-only events never reach participants.
+- TV pairing: a code works once and expires after 10 minutes; only a host can approve it; the TV receives a read-only display token and can call nothing but the snapshot; pairing creation and approval are rate-limited.
 
 **End-to-end (Playwright)**
 1. Host creates a game, a participant joins via the join URL, and another via manual code entry.

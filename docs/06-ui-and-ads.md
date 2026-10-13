@@ -6,7 +6,8 @@
 |--------|-------|---------|
 | Landing | `/` | **Host a game**, **Join a game**, greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
-| Host console | `/host/:code` | QR + game code, participant list, settings, draw/pause/round controls, win alerts, leaderboard |
+| Host console | `/host/:code` | **Call board by default** (FR-27), with QR + game code, last ball, draw/pause/round controls, claims and alerts, participant list, leaderboard. Rules and settings sit behind an **Options** button. **Open display** pops out the display view |
+| Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
 | Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
@@ -18,16 +19,22 @@
 ┌─────────────────────────────────────────────┐
 │ [Ad: top banner]                            │
 ├─────────────────────────────────────────────┤
-│ Game code  9ve4-shp3-k7mw-a2qx     [QR]     │
-│ Round 3 · Normal Bingo · ▶ Running          │
+│ 9ve4-shp3-k7mw-a2qx  [QR]   [Open display ⧉]│
+│ Round 3 · Normal Bingo · ▶ Auto    [Options]│
 ├─────────────────────────────────────────────┤
-│  LAST BALL                  [ Grab ball ]   │
-│   N 37        recent: 12 55 8 61 30         │
-│  [ Pause ] [ Win condition ▾ ] [ End round ]│
+│  Auto: [ Pause ]  Manual: [Grab][Auto mode] │
+│  ── call board (FR-27) ──                   │
+│               ┌──────┐                      │
+│               │ N 37 │ last ball            │
+│               └──────┘                      │
+│    B       I       N       G       O        │
+│  1 ■ 11  16 21 26  ...                      │
+│  2 7 12  17 ■ 27                            │
+│  ...                                        │
 ├─────────────────────────────────────────────┤
-│ 🔔 Sam has a winning card  [Inspect][Award] │
-│ Players (14): Ava, Ben, Sam, ...  [Kick]    │
-│ [ Clear cards ]   [ Leaderboard ]  [Settings]│
+│ 🔔 Sam: BINGO ✓ qualifies                   │
+│        [Inspect] [Award] [Dismiss] [Remove] │
+│ Players (14) ▸   [ Clear cards ] [Leaderbd] │
 ├─────────────────────────────────────────────┤
 │ [Ad: bottom banner]                         │
 └─────────────────────────────────────────────┘
@@ -52,11 +59,83 @@
 └───────────────────────┘
 ```
 
+### Call board (FR-27)
+
+All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The board knows nothing about B-I-N-G-O. It draws whatever **groups of items** the server sends (see *Board data* below). For standard Bingo those are the five letters, which sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
+
+```
+                 ┌──────┐                              ┌──────┐
+                 │ N 37 │  last ball                   │ N 37 │
+                 └──────┘                              └──────┘
+3 columns of 5 (wide)                   2 columns, 8 + 7 (narrower)
+   B          I        …   O              B       I      …   O
+ 1  6 11   16 21 26     61 66 71        1  9   16 24      61 69
+ 2  7 12   17 22 27     62 67 72        2 10   17 25      62 70
+ 3  8 13   18 23 28     63 68 73        3 11   18 26      63 71
+ 4  9 14   19 24 29     64 69 74        …      …          …
+ 5 10 15   20 25 30     65 70 75        8      23         68
+```
+
+**Board data.** The snapshot carries the board as ordered groups; the client derives everything else (item count, column count, whether columns are locked) from them:
+
+```json
+"board": {
+  "cellShape": "square",
+  "groups": [
+    { "label": "B", "items": [ { "id": 1, "face": "1" }, …, { "id": 15, "face": "15" } ] },
+    { "label": "I", "items": [ … ] }
+  ]
+}
+```
+
+- Standard Bingo: five labelled groups, one per card column.
+- A custom game with no columns (e.g. 40 items): one group with no label.
+- Content sets (ADR 0009): `face` is the call face ("2 + 5", a word, later an image), and `cellShape` is `wide` for text so words fit.
+
+**Layout rule.** For each candidate number of rows *r* (1 to the largest group's size): every group needs ⌈items ÷ *r*⌉ sub-columns; total columns = the sum, plus a small gap between groups; cell size = min(width ÷ columns, height ÷ *r*), adjusted for `cellShape`. Use the *r* with the largest cell. For standard Bingo this gives *r* = 5 (3 columns of 5 per letter, 15 × 5) on a 16:9 projector and *r* = 8 (8 + 7, 10 × 8) on 4:3 or upright screens; a single group of 40 on a projector comes out at about 4 rows of 10. The board is read-only, so on phones the cells may shrink below the 48 px tap-target size (nothing on it is tapped).
+
+### Display view (FR-28)
+
+Opened from the host console with **Open display**, in a new tab or on another device via its link or QR. It has its own read-only **display token** and its own connection, so popping it out never disconnects the host console. It shows only what the room should see:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Round 3 · Normal Bingo [pattern]                            │
+│                         ┌────────┐                           │
+│                         │  N 37  │  last ball                │
+│                         └────────┘                           │
+│        B          I          N          G          O         │
+│      1  6 11   16 21 26   31 36 41   46 51 56   61 66 71     │
+│      2  7 12   17 22 27   32 ■ 42    47 52 57   62 67 72     │
+│      …                                                       │
+│                                                              │
+│   Between rounds: [QR] Join at syncbingo… code 9ve4-shp3-…   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Never shown: settings, claims, alerts, the participant list, inspect and award controls, or any ads.
+
+**Connecting a TV or projector directly** (ADR 0010). The screen's own browser opens `/tv`, which shows:
+
+```
+┌────────────────────────────────────────────┐
+│              SyncBingo display             │
+│                                            │
+│         Enter this code on the host:       │
+│                 K7M-2QX                    │
+│                                            │
+│        [QR]   or scan with the host phone  │
+│              Code expires in 9:41          │
+└────────────────────────────────────────────┘
+```
+
+The host opens **Options → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; Options also lists connected displays, each with **Disconnect**. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
+
 ## 2. Ad slots
 
 **Rules**
 
-- Banners only. No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
+- Banners only, and none on the display view (FR-28). No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
 - Slots are **fixed-size containers reserved at layout time**, so an ad loading late (or not at all) never shifts the card or buttons.
 - Mobile (< 1024 px): one banner at the top and one at the bottom (e.g. 320×50 or 320×100).
 - Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centred.
@@ -93,4 +172,4 @@
 
 ## 4. States to design
 
-Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · paused overlay (does not cover the card) · win highlight · empty hopper · host disconnected · session ended/expired.
+Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · win highlight · empty hopper · host disconnected · session ended/expired.

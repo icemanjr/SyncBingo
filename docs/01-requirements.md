@@ -22,7 +22,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-2 | A host creates a session by choosing a **game password**. The system generates a random **game code** (16 characters, shown as four hyphenated groups of four) and a **QR code** that opens the join page with the code pre-filled. |
 | FR-3 | Participants join by scanning the QR code **or** typing the game code. Both paths require the game password. The password is never embedded in the QR code. |
 | FR-4 | After the password check, the participant enters a **name**. Names are unique within the session, compared case-insensitively. A duplicate name is rejected and the participant must choose another. |
-| FR-5 | Participants can join **only between rounds**. A join attempt during a round shows a friendly "round in progress" message. |
+| FR-5 | Participants can join **only between rounds**. A join attempt during a round's countdown or the round itself is refused with **"A round is in progress. You can join between rounds."** |
 | FR-6 | On join the server issues a **session token**; the client stores it and uses it to rejoin transparently after a sleep, refresh or connection drop. |
 | FR-7 | The host can **remove (kick)** a participant. |
 
@@ -66,13 +66,15 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | FR-31 | The game **never stops automatically** just because someone may have won, unless the host enabled *Alert host and pause*. |
 | FR-32 | The host can **change the win condition mid-round** (e.g. Normal → Blackout) and continue calling with the same balls and marks. |
 | FR-33 | After a win the host can: continue for more winners, change the win condition, or **Clear cards** to start a new round. |
-| FR-34 | **Clear cards** ends the round, clears all marks, returns all balls to the hopper, and optionally redraws every card. This starts a new round. |
-| FR-35 | The host can **end a round early**. Between rounds, joining and (per FR-20) card redraw are available. |
+| FR-34 | **Clear cards** ends the round (if one is running), clears all marks, returns all balls to the hopper, optionally redraws every card, and returns to the lobby. It does not start the next round: late arrivals can join, then the host presses *Start Round N* (FR-45). |
+| FR-35 | The host can **end a round early** (*End round*): calling stops and the cards and calls stay on screen. Between rounds, joining and (per FR-20) card redraw are available. |
 | FR-36 | Participants mark squares themselves, following *Free marking* (FR-22) , *Unmarking* (FR-24) and *Undo* (FR-25). The server stores exactly what each participant marked, and always judges wins against the balls actually called. |
 | FR-37 | Ties: the first to claim may be recorded as the winner, but the host decides who is credited (see assumption A1). |
 | FR-37a | **Every Bingo press reaches the host**, valid or not, like a shout the caller must hear. The host sees the name, the time, and whether the card currently qualifies (FR-23). The player only sees that their Bingo was sent to the host. The host can award the win, dismiss the claim, or remove (FR-7) a player who keeps calling false Bingos. |
 | FR-38 | The host can **inspect a participant's card** to verify a claimed win. |
 | FR-39 | **No two cards in play are identical.** Within a session, no two cards held at the same time have the same number in every cell. This covers cards dealt on join, host redraws at round start, participant redraws and (future) extra cards. A card that is replaced, or whose holder is removed, stops counting. |
+| FR-45 | **Start Round N** begins a fixed **10-second countdown**, shown on every screen (host, participants, display) in the last-ball slot, labelled "Round starts in". Joining and redraws close the moment it starts; the host can **Cancel** at any time during it. At zero the round starts. A **Manual / Auto** toggle beside the button (Manual by default) decides how it starts: Auto draws the first ball at zero and keeps calling. There is no countdown-length setting and no "start now" button. |
+| FR-46 | **Show round numbers** (on by default). Rounds are the term users see. On: "Start Round 3", "Round 3". Off: "Start New Round", "This round". |
 
 ### 3.4 Statistics
 
@@ -120,7 +122,7 @@ Confirmed by the owner on 2026-10-12.
 | A1 | **Wins are credited by the host.** Detection and claims raise alerts; the host confirms who is credited, which feeds the leaderboard. |
 | A2 | The game code alphabet omits look-alike characters (0/o, 1/i/l) for easier typing; length stays 16 (4×4). |
 | A3 | A join attempt during a round is refused with a message (no waiting room in the MVP). |
-| A4 | ~~Starting a round begins in *Running*.~~ *Amended 2026-10-12:* every round starts in **manual** mode; nothing is called until the host presses Grab ball or Auto mode (FR-10). |
+| A4 | ~~Starting a round begins in *Running*.~~ *Amended 2026-10-12:* every round starts in **manual** mode; nothing is called until the host presses Grab ball or Auto mode (FR-10). *Amended 2026-10-13:* rounds start after a 10-second countdown (FR-45), in manual mode unless the host set the toggle to Auto. |
 | A5 | ~~A host who is also a participant appears on the leaderboard.~~ Superseded by the removal of FR-15: a host who plays joins as a regular participant and appears on the leaderboard like anyone else. |
 | A6 | "Grab a new ball" while paused is an explicit host action and is allowed. *Amended 2026-10-12:* pausing returns to manual mode, where Grab ball is the normal way to draw; Grab ball is not offered in auto mode. |
 | A7 | Default max participants per session is 100; default session idle expiry is 4 hours, with a hard cap of 12 hours on total session lifetime. |

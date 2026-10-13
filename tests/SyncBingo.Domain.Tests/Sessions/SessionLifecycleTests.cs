@@ -26,30 +26,32 @@ public sealed class SessionLifecycleTests
     }
 
     [Fact]
-    public void A_round_starts_in_manual_mode_with_a_full_hopper()
+    public void A_round_starts_in_manual_mode_with_a_full_hopper_when_the_countdown_ends()
     {
-        var session = NewSession();
+        var session = InState(SessionState.Starting);
 
-        var started = session.StartRound(redrawCards: true, Now).Single<RoundStarted>();
+        var started = session.StartRound(new SeededRandom(1), Now + Session.CountdownLength).Single<RoundStarted>();
 
-        started.ShouldBe(new RoundStarted(1, RedrawCards: true) { Seq = 1 });
+        started.Round.ShouldBe(1);
         session.State.ShouldBe(SessionState.Manual); // A4: nothing is called until the host acts
         session.BallsRemaining.ShouldBe(75);
+        session.CountdownEndsAt.ShouldBeNull();
     }
 
     [Fact]
-    public void Clear_cards_mid_round_ends_the_round_then_starts_the_next()
+    public void Clear_cards_mid_round_ends_the_round_and_returns_to_the_lobby()
     {
         var session = InState(SessionState.Manual);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
 
-        var events = session.StartRound(redrawCards: false, Now).Value;
+        var events = session.ClearCards(redrawCards: false, Now).Value;
 
-        events.Select(e => e.GetType()).ShouldBe([typeof(RoundEnded), typeof(RoundStarted)]);
+        events.Select(e => e.GetType()).ShouldBe([typeof(RoundEnded), typeof(CardsCleared)]);
         ((RoundEnded)events[0]).Round.ShouldBe(1);
-        ((RoundStarted)events[1]).Round.ShouldBe(2);
+        session.State.ShouldBe(SessionState.BetweenRounds, "late arrivals can join before the next round");
         session.Calls.ShouldBeEmpty();
         session.BallsRemaining.ShouldBe(75);
+        session.CheckCanAdmit(0).IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
@@ -94,16 +96,19 @@ public sealed class SessionLifecycleTests
         session.End(Now).Single<SessionEnded>();
 
         session.State.ShouldBe(SessionState.Ended);
-        session.StartRound(redrawCards: false, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
+        session.StartCountdown(startInAuto: false, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
     }
 
-    [Fact]
-    public void Joining_mid_round_gets_a_friendly_refusal()
+    [Theory]
+    [InlineData(SessionState.Starting)]
+    [InlineData(SessionState.Manual)]
+    [InlineData(SessionState.Auto)]
+    public void Joining_during_a_countdown_or_a_round_gets_a_friendly_refusal(SessionState state)
     {
-        var error = InState(SessionState.Manual).CheckCanAdmit(currentParticipants: 3).Error!;
+        var error = InState(state).CheckCanAdmit(currentParticipants: 3).Error!;
 
         error.Code.ShouldBe(DomainErrorCode.WrongState);
-        error.Message.ShouldContain("You can join when it ends");
+        error.Message.ShouldBe("A round is in progress. You can join between rounds.");
     }
 
     [Theory]
@@ -129,14 +134,14 @@ public sealed class SessionLifecycleTests
 
         var events = new[]
         {
-            session.StartRound(false, Now).Value,
+            session.NextRound(Now), // countdown started, round started
             session.DrawBall(DrawSource.Manual, random, Now).Value,
-            session.StartAutoCalling(random, Now).Value,
-            session.StartRound(false, Now).Value,
+            session.StartAutoCalling(random, Now).Value, // auto started, ball
+            session.NextRound(Now), // round ended, cards cleared, countdown started, round started
         }.SelectMany(batch => batch);
 
-        events.Select(e => e.Seq).ShouldBe([1, 2, 3, 4, 5, 6]);
-        session.LastEventSeq.ShouldBe(6);
+        events.Select(e => e.Seq).ShouldBe([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        session.LastEventSeq.ShouldBe(9);
     }
 
     [Fact]
@@ -145,7 +150,7 @@ public sealed class SessionLifecycleTests
         var session = NewSession();
         var later = Now.AddMinutes(5);
 
-        session.StartRound(false, later).IsSuccess.ShouldBeTrue();
+        session.StartCountdown(startInAuto: false, later).IsSuccess.ShouldBeTrue();
 
         session.LastActivityAt.ShouldBe(later);
         session.Version.ShouldBe(1);

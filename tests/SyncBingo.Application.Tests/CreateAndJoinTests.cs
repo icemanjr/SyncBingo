@@ -120,7 +120,7 @@ public sealed class CreateAndJoinTests
     public async Task Joining_mid_round_is_refused_and_reserves_nothing()
     {
         var code = await _app.NewGameAsync();
-        (await _app.StartRound.HandleAsync(code, Caller.Host, redrawCards: false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        await _app.StartRoundAsync(code);
 
         var result = await _app.Join.HandleAsync(new JoinSession(code.ToString(), TestApp.Password, "Late"), TestApp.Ct);
 

@@ -47,7 +47,7 @@ public sealed class Participant
         ArgumentNullException.ThrowIfNull(session);
 
         var participant = new Participant(id, name, now);
-        participant._cards.Add(new PlayerCard(1, card, CardRules.InitialMarks(session), session.RoundNumber));
+        participant._cards.Add(new PlayerCard(1, card, CardRules.InitialMarks(session), session.UpcomingRound));
         return participant;
     }
 
@@ -217,14 +217,15 @@ public sealed class Participant
         }
 
         var old = card.Card;
-        card.Reset(deal(), CardRules.InitialMarks(session), session.RoundNumber);
+        card.Reset(deal(), CardRules.InitialMarks(session), session.UpcomingRound);
         return Result.Success(new CardReplacement(card.Id, old, card.Card));
     }
 
     /// <summary>
     /// Clear the cards for a new round (FR-34): marks back to the initial state under the
     /// new round's settings, Undo cleared, and optionally a new card from <paramref name="deal"/>
-    /// (host redraw). Call after <see cref="Session.StartRound"/>. Returns the replacements.
+    /// (host redraw). Call after <see cref="Session.ClearCards"/> and again after <see cref="Session.StartRound"/>,
+    /// so the marks follow the settings the round actually starts with. Returns the replacements.
     /// </summary>
     public IReadOnlyList<CardReplacement> ResetForNewRound(Session session, Func<Card>? deal)
     {
@@ -235,7 +236,7 @@ public sealed class Participant
         {
             var old = card.Card;
             var next = deal?.Invoke() ?? old;
-            card.Reset(next, CardRules.InitialMarks(session), deal is null ? card.IssuedInRound : session.RoundNumber);
+            card.Reset(next, CardRules.InitialMarks(session), deal is null ? card.IssuedInRound : session.UpcomingRound);
             if (deal is not null)
             {
                 replaced.Add(new CardReplacement(card.Id, old, next));

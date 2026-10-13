@@ -32,6 +32,7 @@
 - Two simultaneous joins with the same name → exactly one succeeds.
 - Concurrent joins and redraws never leave two identical cards in play; a redrawn or kicked player's card is released.
 - Token recovery: disconnect, reconnect, same card and marks.
+- *Start Round N* counts down 10 s, closes joining and redraws, can be cancelled, and starts the round at zero (in auto mode with its first ball if toggled); *Clear cards* returns to the lobby.
 - Rounds start in manual mode; Auto mode draws at once and then on the timer; Pause stops auto-calls; Grab ball works only in manual mode.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.
 - Participants never receive other participants' cards; host-only events never reach participants.

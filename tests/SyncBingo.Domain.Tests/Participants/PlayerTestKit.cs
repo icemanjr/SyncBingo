@@ -33,7 +33,7 @@ internal sealed class PlayerTestKit
     {
         Session = NewSession(settings);
         Player = Participant.Join("p1", Name("Sam"), KnownCard, Session, Now);
-        Session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        Session.NextRound(Now);
         Player.ResetForNewRound(Session, deal: null);
     }
 

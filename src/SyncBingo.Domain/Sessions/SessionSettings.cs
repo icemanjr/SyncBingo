@@ -88,6 +88,9 @@ public sealed record SessionSettings
     /// <summary>FR-26. Changes apply from the next round.</summary>
     public FreeSpace FreeSpace { get; init; } = FreeSpace.AlwaysMarked;
 
+    /// <summary>FR-46: label rounds "Round 3" / "Start Round 3"; off: "This round" / "Start New Round".</summary>
+    public bool ShowRoundNumbers { get; init; } = true;
+
     /// <summary>FR-43. Changes apply from the next round.</summary>
     public MultipleWins MultipleWins { get; init; } = MultipleWins.OncePerPattern;
 

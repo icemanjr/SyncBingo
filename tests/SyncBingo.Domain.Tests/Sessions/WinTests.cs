@@ -204,7 +204,7 @@ public sealed class WinTests
         var kit = new PlayerTestKit();
         var ava = Participant.Join("p2", Name("Ava"), OtherCard, kit.Session, Now);
         kit.Session.AwardWin(ava, null, Now).IsSuccess.ShouldBeTrue();
-        kit.Session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.NextRound(Now);
         kit.Session.AwardWin(ava, null, Now).IsSuccess.ShouldBeTrue();
         kit.Session.AwardWin(kit.Player, null, Now).IsSuccess.ShouldBeTrue();
 

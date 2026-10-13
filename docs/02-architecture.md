@@ -98,11 +98,12 @@ sequenceDiagram
 
 Auto mode needs exactly one instance to draw per tick, without a leader.
 
-- Redis sorted set `bingo:schedule` — member = session code, score = next due time (ms).
+- Redis sorted set `bingo:schedule` — member = session code, score = next due time (ms). The one entry per session is whatever is due next: the end of a round countdown (FR-45), or the next auto-call ball. The tick does whichever applies to the session's state.
 - Every instance runs a `BackgroundService` polling every ~500 ms. A Lua script **claims** due sessions atomically by moving their score to `now + lease` and returning them.
 - The claiming instance takes the session lock, draws, then re-schedules at `now + interval`.
 - If an instance dies mid-claim, the lease expires and another instance picks the session up. No ball is lost; at worst one draw is delayed by the lease.
-- *Auto mode* draws one ball inside the command and adds the session to the schedule at `now + interval`; *Pause* (or *Alert host and pause*) removes it. Rounds start in manual mode, unscheduled.
+- *Start Round N* schedules the session at the countdown's end; *Cancel* removes it. At zero the tick starts the round; a manual round leaves the schedule, an auto round re-schedules after its first ball.
+- *Auto mode* draws one ball inside the command and adds the session to the schedule at `now + interval`; *Pause*, *Alert host and pause* and *Clear cards* remove it.
 
 ## 6. Concurrency and consistency
 

@@ -13,13 +13,17 @@ namespace SyncBingo.Domain.Tests.Sessions;
 public sealed class SessionCommandTableTests
 {
     private const SessionState Lobby = SessionState.BetweenRounds;
+    private const SessionState Starting = SessionState.Starting;
     private const SessionState Manual = SessionState.Manual;
     private const SessionState Auto = SessionState.Auto;
     private const SessionState Ended = SessionState.Ended;
 
     private static readonly Dictionary<string, Func<Session, bool>> Commands = new()
     {
-        ["Start round / Clear cards"] = s => s.StartRound(redrawCards: true, Now).IsSuccess,
+        ["Start Round N (countdown)"] = s => s.StartCountdown(startInAuto: false, Now).IsSuccess,
+        ["Cancel countdown"] = s => s.CancelCountdown(Now).IsSuccess,
+        ["Start round (at zero)"] = s => s.StartRound(new SeededRandom(1), Now + Session.CountdownLength).IsSuccess,
+        ["Clear cards"] = s => s.ClearCards(redrawCards: true, Now).IsSuccess,
         ["End round"] = s => s.EndRound(Now).IsSuccess,
         ["Auto mode"] = s => s.StartAutoCalling(new SeededRandom(1), Now).IsSuccess,
         ["Pause"] = s => s.Pause(Now).IsSuccess,
@@ -35,60 +39,50 @@ public sealed class SessionCommandTableTests
         ["End session"] = s => s.End(Now).IsSuccess,
     };
 
-    public static TheoryData<string, SessionState, bool> Table => new()
+    /// <summary>Allowed states per command; every other state must refuse it.</summary>
+    private static readonly Dictionary<string, SessionState[]> AllowedIn = new()
     {
-        { "Start round / Clear cards", Lobby, true }, { "Start round / Clear cards", Manual, true },
-        { "Start round / Clear cards", Auto, true }, { "Start round / Clear cards", Ended, false },
-
-        { "End round", Lobby, false }, { "End round", Manual, true },
-        { "End round", Auto, true }, { "End round", Ended, false },
-
-        { "Auto mode", Lobby, false }, { "Auto mode", Manual, true },
-        { "Auto mode", Auto, false }, { "Auto mode", Ended, false },
-
-        { "Pause", Lobby, false }, { "Pause", Manual, false },
-        { "Pause", Auto, true }, { "Pause", Ended, false },
-
-        { "Grab ball (host)", Lobby, false }, { "Grab ball (host)", Manual, true },
-        { "Grab ball (host)", Auto, false }, { "Grab ball (host)", Ended, false },
-
-        { "Auto draw (scheduler)", Lobby, false }, { "Auto draw (scheduler)", Manual, false },
-        { "Auto draw (scheduler)", Auto, true }, { "Auto draw (scheduler)", Ended, false },
-
-        { "Change win condition", Lobby, true }, { "Change win condition", Manual, true },
-        { "Change win condition", Auto, true }, { "Change win condition", Ended, false },
-
-        { "Change settings", Lobby, true }, { "Change settings", Manual, true },
-        { "Change settings", Auto, true }, { "Change settings", Ended, false },
-
-        { "Join", Lobby, true }, { "Join", Manual, false },
-        { "Join", Auto, false }, { "Join", Ended, false },
-
-        { "Claim Bingo", Lobby, false }, { "Claim Bingo", Manual, true },
-        { "Claim Bingo", Auto, true }, { "Claim Bingo", Ended, false },
-
-        { "Award win", Lobby, false }, { "Award win", Manual, true },
-        { "Award win", Auto, true }, { "Award win", Ended, false },
-
-        { "Show leaderboard", Lobby, true }, { "Show leaderboard", Manual, true },
-        { "Show leaderboard", Auto, true }, { "Show leaderboard", Ended, false },
-
-        { "Remove participant", Lobby, true }, { "Remove participant", Manual, true },
-        { "Remove participant", Auto, true }, { "Remove participant", Ended, false },
-
-        { "End session", Lobby, true }, { "End session", Manual, true },
-        { "End session", Auto, true }, { "End session", Ended, false },
+        ["Start Round N (countdown)"] = [Lobby],
+        ["Cancel countdown"] = [Starting],
+        ["Start round (at zero)"] = [Starting],
+        ["Clear cards"] = [Lobby, Manual, Auto],
+        ["End round"] = [Manual, Auto],
+        ["Auto mode"] = [Manual],
+        ["Pause"] = [Auto],
+        ["Grab ball (host)"] = [Manual],
+        ["Auto draw (scheduler)"] = [Auto],
+        ["Change win condition"] = [Lobby, Starting, Manual, Auto],
+        ["Change settings"] = [Lobby, Starting, Manual, Auto],
+        ["Join"] = [Lobby],
+        ["Claim Bingo"] = [Manual, Auto],
+        ["Award win"] = [Manual, Auto],
+        ["Show leaderboard"] = [Lobby, Starting, Manual, Auto],
+        ["Remove participant"] = [Lobby, Starting, Manual, Auto],
+        ["End session"] = [Lobby, Starting, Manual, Auto],
     };
 
-    private static Participant Player(Session session) =>
-        Participant.Join("p1", PlayerTestKit.Name("Sam"), PlayerTestKit.KnownCard, session, Now);
+    public static TheoryData<string, SessionState, bool> Table
+    {
+        get
+        {
+            var table = new TheoryData<string, SessionState, bool>();
+            foreach (var (command, allowed) in AllowedIn)
+            {
+                foreach (var state in Enum.GetValues<SessionState>())
+                {
+                    table.Add(command, state, allowed.Contains(state));
+                }
+            }
+
+            return table;
+        }
+    }
 
     [Fact]
-    public void The_table_covers_every_command_in_every_state()
+    public void The_table_covers_every_command()
     {
-        var covered = Table.Select(row => (row.Data.Item1, row.Data.Item2)).ToHashSet();
-
-        covered.Count.ShouldBe(Commands.Count * Enum.GetValues<SessionState>().Length);
+        AllowedIn.Keys.ShouldBe(Commands.Keys, ignoreOrder: true);
+        AllowedIn.Values.ShouldAllBe(states => !states.Contains(Ended));
     }
 
     [Theory]
@@ -107,4 +101,7 @@ public sealed class SessionCommandTableTests
             session.Version.ShouldBe(versionBefore, "a refused command must not change the session");
         }
     }
+
+    private static Participant Player(Session session) =>
+        Participant.Join("p1", PlayerTestKit.Name("Sam"), PlayerTestKit.KnownCard, session, Now);
 }

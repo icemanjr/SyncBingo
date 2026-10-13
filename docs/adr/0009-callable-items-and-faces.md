@@ -13,6 +13,16 @@ Standard Bingo calls a number and players mark the same number. Hosts such as te
   - A future free-form generator: any item in any cell, for content without columns.
   - Uniqueness (`GenerateUnique`) works with any generator.
 
+## Sets are files the host keeps; changing sets between rounds
+Decided by the owner (2026-10-13):
+- **At most one custom set is stored per session**: the one in use. Nothing is kept beyond the session, in line with ADR 0003, so there is no library of sets to manage in ephemeral storage.
+- **A set is a single file the host keeps.** After building a set (balls and squares) the host downloads it as one file and re-uploads it whenever it is wanted. A teacher prepares *Times tables 1–3*, *Times tables 4–6* and *Week 5 vocabulary* ahead of time and uploads whichever is next.
+- **The set can change between rounds** (in the lobby, never during a countdown or a round), by uploading another file. It replaces the stored set, and:
+  - every card is redealt, because cards hold item ids from the old set; all old fingerprints are released (FR-39);
+  - if the current win condition does not exist in the new set (e.g. a different card size), it falls back to Normal and the host is told;
+  - the call board rebuilds from the new set's groups;
+  - the leaderboard keeps counting across the whole session, and each round's summary records which set it used.
+
 ## Responsibility for content
 Decided by the owner (2026-10-12):
 - **SyncBingo is responsible for** the ads it shows and any **built-in content sets** it ships (pre-created card sets). Those are reviewed as suitable for children.
@@ -25,4 +35,5 @@ Decided by the owner (2026-10-12):
 - **Open questions** for when this is built:
   - Card faces should be unique within a content set (if "2 + 5" and "10 − 3" both answer "7", a card could show two identical "7" cells). Lean: require unique card faces.
   - Uploaded images need storage (S3) and size and type limits. Moderation is the host's responsibility (see above). A disclaimer does not remove legal duties for clearly illegal material or copyright takedown requests, so uploads should stay private to the host, expire with the session where possible, and there should be a contact for reports. Get legal review before launch.
-  - Reuse across sessions without accounts: there is no account to attach a saved set to. Options are a set the host downloads and re-uploads (no server storage), or a set kept on the server behind a secret link. Lean: download and re-upload, which fits "nothing persists" (ADR 0003).
+  - ~~Reuse across sessions without accounts.~~ Decided: sets are files the host downloads and re-uploads (see above).
+  - The set file format: a versioned archive (e.g. `set.json` with `format`, name, items with call and card faces, optional groups and cell shape, plus an `images/` folder), validated on upload (format version, item count, unique card faces, image types and sizes, total size).

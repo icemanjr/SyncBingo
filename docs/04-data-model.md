@@ -62,7 +62,7 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 | `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs (call face and card face, at least 24) and optional named groups; the *Group items* setting decides whether dealing and the board use them; images live in S3 under a session prefix that expires with it (ADR 0009) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:lock` | string | the per-session lock: `SET NX` with a random owner value and a 10 s lease; released only by its owner (compare-and-delete); a command waits up to 5 s for it |
-| `schedule` | sorted set | session code → next auto-call due time (see 02 §5) |
+| `schedule` | sorted set | session code → when its next tick is due (countdown end or next ball), or the end of the lease while an instance has claimed it (see 02 §5). One key for the whole app, outside any session's hash tag |
 | (pub/sub) | channels | SignalR backplane |
 
 The whole session is one JSON value rather than a key per round: it is read and written whole under the lock anyway, and stays small because only the current round's calls are kept.
@@ -76,8 +76,8 @@ Marks, Undo and the auto-fill switch update one `participants` field, checked ag
 ## 5. Identity and secrets
 
 - **Game code:** 16 characters from `23456789abcdefghjkmnpqrstuvwxyz` (31 symbols, ≈ 79 bits), generated with a CSPRNG, displayed as `xxxx-xxxx-xxxx-xxxx`. Input is accepted case-insensitively with or without hyphens.
-- **Game password:** chosen by the host; stored as a salted PBKDF2/Argon2 hash.
-- **Session token:** 256-bit random value returned once at join; only its SHA-256 is stored. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
+- **Game password:** chosen by the host; stored as a salted PBKDF2-HMAC-SHA256 hash, `pbkdf2-sha256$iterations$salt$hash`, checked in constant time. The cost is **100,000 iterations**, below OWASP's 600,000 for account passwords on purpose: this is a short-lived shared game password rather than an account password, every join verifies it, and a room of 100 people joining at once must not stall the API. Join attempts are rate-limited too. The iteration count is stored with each hash, so it can be raised later without breaking running games.
+- **Session token:** 256-bit random value (43 characters of URL-safe base64) returned once at join; only its SHA-256 is stored. A fast hash is enough because the token is already unguessable. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
 - **Host token:** same mechanism, stored separately from participants: the host runs the game and is not a participant (FR-15 removed).
 - **Pairing** (ADR 0010): `pairing:{code}` (string, 10-minute TTL, deleted when used) holds the waiting TV's pairing id until a host approves it; the code is 6 characters from the game-code alphabet.
 - **Display token:** same mechanism, role `display`: **read-only**, sees only public game state (FR-28), and the host can revoke it. Stored as hashes in `s:{code}:display-tokens`. The display link carries it in the URL **fragment** (`/display/{code}#t=…`), which browsers never send to the server, so it does not appear in server or CDN logs; the page moves it to `sessionStorage` and clears it from the address bar.

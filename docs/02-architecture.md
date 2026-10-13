@@ -99,9 +99,11 @@ sequenceDiagram
 Auto mode needs exactly one instance to draw per tick, without a leader.
 
 - Redis sorted set `bingo:schedule` — member = session code, score = next due time (ms). The one entry per session is whatever is due next: the end of a round countdown (FR-45), or the next auto-call ball. The tick does whichever applies to the session's state.
-- Every instance runs a `BackgroundService` polling every ~500 ms. A Lua script **claims** due sessions atomically by moving their score to `now + lease` and returning them.
+- Every instance runs a `BackgroundService` polling every 500 ms. A Lua script **claims** up to 50 due sessions atomically by moving their score to `now + lease` (5 s) and returning them; the instance ticks up to 8 of them at once.
 - The claiming instance takes the session lock, draws, then re-schedules at `now + interval`.
-- If an instance dies mid-claim, the lease expires and another instance picks the session up. No ball is lost; at worst one draw is delayed by the lease.
+- If an instance dies mid-claim, the lease expires and another instance picks the session up. No ball is lost; at worst one draw is delayed by the lease. A tick that throws (Redis down, lock timeout) is left the same way, so it is retried.
+- A tick the rules refuse (the hopper is empty, the session is gone) takes the session off the schedule, but only if its score is still that claim's lease: if the host re-scheduled it meanwhile (*Auto mode* right after), the new entry stays.
+- Logs name a session by the first group of its code only: enough to correlate, not enough to join.
 - *Start Round N* schedules the session at the countdown's end; *Cancel* removes it. At zero the tick starts the round; a manual round leaves the schedule, an auto round re-schedules after its first ball.
 - *Auto mode* draws one ball inside the command and adds the session to the schedule at `now + interval`; *Pause*, *Alert host and pause* and *Clear cards* remove it.
 
@@ -139,7 +141,7 @@ State rules: server state lives in the store, rebuilt from the snapshot; optimis
 
 ## 7a. Security notes
 
-- Game password and session tokens are hashed at rest (PBKDF2 or Argon2 for the password; SHA-256 of a 256-bit random token for session tokens).
+- Game password and session tokens are hashed at rest (PBKDF2-HMAC-SHA256 for the password, 04 §5; SHA-256 of a 256-bit random token for session tokens).
 - Join attempts are rate-limited per code and per IP to blunt guessing.
 - Participants only ever receive their own card; host card inspection is host-only.
 - All inputs validated server-side (name length and allowed characters, cell index, state preconditions).

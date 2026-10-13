@@ -63,20 +63,20 @@ public sealed class RedrawAndRoundTests
         kit.Call(1);
         kit.Mark(0);
         kit.Session.UpdateSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
-        kit.Session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.NextRound(Now);
 
         kit.Player.ResetForNewRound(kit.Session, deal: null).ShouldBeEmpty();
 
         kit.Marks.ShouldBe(0u, "an earned free space starts unmarked");
         kit.Card.Card.ShouldBe(KnownCard);
-        kit.Card.IssuedInRound.ShouldBe(0);
+        kit.Card.IssuedInRound.ShouldBe(1, "dealt in the lobby for round 1");
     }
 
     [Fact]
-    public void A_host_redraw_at_round_start_replaces_every_card()
+    public void Clear_cards_with_redraw_replaces_every_card_for_the_next_round()
     {
         var kit = new PlayerTestKit();
-        kit.Session.StartRound(redrawCards: true, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ClearCards(redrawCards: true, Now).IsSuccess.ShouldBeTrue();
 
         var replaced = kit.Player.ResetForNewRound(kit.Session, () => OtherCard);
 

@@ -31,7 +31,7 @@ docker-compose.yml
 
 ## Core concepts (full glossary in `docs/README.md`)
 
-- **Session** = the whole game, all rounds. **Round** = while cards carry marks; a new round begins when balls return to the hopper ("Clear cards"). Multiple winners and win-condition changes (e.g. Normal -> Blackout) happen *within* a round.
+- **Session** = the whole game, all rounds. **Round** = while cards carry marks. *Clear cards* ends a round and returns to the lobby; *Start Round N* runs a 10 s countdown (joining closes) and then starts the next round, in manual mode unless the host toggled Auto. Multiple winners and win-condition changes (e.g. Normal -> Blackout) happen *within* a round.
 - Standard 75-ball Bingo; win conditions: Normal (row/column/diagonal), Four Corners, letter shapes B/I/N/G/O, Blackout.
 - Joining is allowed **only between rounds**. Names are unique per session (case-insensitive). No persistent accounts.
 - Game code: 16 chars, shown as four hyphenated groups of four; the QR carries the code, never the password.
@@ -53,7 +53,7 @@ Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size rese
 
 ## Confirmed assumptions (`docs/01-requirements.md` section 7)
 
-A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts in manual mode (amended). A5 superseded: the host does not play (FR-15 removed). A6 Grab ball only in manual mode; Pause = back to manual (amended). A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked by default; the host may instead make it *Earned* by the first called ball not on the player's card (FR-26).
+A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 mid-round join attempts are refused (no waiting room). A4 a round starts after a 10 s countdown, in manual mode unless toggled to auto (amended). A5 superseded: the host does not play (FR-15 removed). A6 Grab ball only in manual mode; Pause = back to manual (amended). A7 defaults: 100 participants, 4 h idle expiry, 12 h hard lifetime cap. A8 free centre cell always marked by default; the host may instead make it *Earned* by the first called ball not on the player's card (FR-26).
 
 ## Out of scope (for now)
 

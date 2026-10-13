@@ -24,7 +24,13 @@ internal static class SessionTestKit
             return session;
         }
 
-        session.StartRound(redrawCards: false, Now).Value.ShouldNotBeEmpty();
+        if (state == SessionState.Starting)
+        {
+            session.StartCountdown(startInAuto: false, Now).IsSuccess.ShouldBeTrue();
+            return session;
+        }
+
+        session.NextRound(Now).ShouldNotBeEmpty();
         switch (state)
         {
             case SessionState.Auto:
@@ -37,6 +43,23 @@ internal static class SessionTestKit
 
         session.State.ShouldBe(state);
         return session;
+    }
+
+    /// <summary>
+    /// Clear cards (if a round is running), "Start Round N", and the start at zero: what a
+    /// host does to move on to the next round. Returns every event, in order.
+    /// </summary>
+    public static IReadOnlyList<SessionEvent> NextRound(this Session session, DateTimeOffset now, bool startInAuto = false)
+    {
+        var events = new List<SessionEvent>();
+        if (session.IsInRound)
+        {
+            events.AddRange(session.ClearCards(redrawCards: false, now).Value);
+        }
+
+        events.AddRange(session.StartCountdown(startInAuto, now).Value);
+        events.AddRange(session.StartRound(new SeededRandom(0), now + Session.CountdownLength).Value);
+        return events;
     }
 
     public static T Single<T>(this Result<IReadOnlyList<SessionEvent>> result)

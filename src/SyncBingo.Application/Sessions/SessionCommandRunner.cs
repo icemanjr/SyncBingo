@@ -46,7 +46,7 @@ public sealed class SessionCommandRunner(ISessionStore store, IEventPublisher pu
             return Errors.SessionNotFound();
         }
 
-        var wasAuto = session.State == SessionState.Auto;
+        var wasScheduled = IsScheduled(session.State);
         var now = clock.UtcNow;
         var result = await apply(session, now, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess || (result.Value.Events.Count == 0 && result.Value.Notifications.Count == 0))
@@ -55,7 +55,7 @@ public sealed class SessionCommandRunner(ISessionStore store, IEventPublisher pu
         }
 
         await store.SaveAsync(session, cancellationToken).ConfigureAwait(false);
-        await SyncScheduleAsync(session, wasAuto, result.Value.Events, now, cancellationToken).ConfigureAwait(false);
+        await SyncScheduleAsync(session, wasScheduled, result.Value.Events, now, cancellationToken).ConfigureAwait(false);
 
         foreach (var (recipient, notification) in result.Value.Notifications)
         {
@@ -84,19 +84,26 @@ public sealed class SessionCommandRunner(ISessionStore store, IEventPublisher pu
             cancellationToken);
 
     /// <summary>
-    /// In auto mode the next ball is due one interval after the latest draw; leaving auto
-    /// mode (Pause, Alert and pause, a new round, ending) cancels the schedule.
+    /// The schedule holds the next thing due for a session: the end of a round countdown
+    /// (FR-45), or in auto mode the next ball, one interval after the latest draw. Leaving
+    /// both (a cancel, Pause, Alert and pause, Clear cards, ending) cancels it.
     /// </summary>
     private async Task SyncScheduleAsync(
-        Session session, bool wasAuto, IReadOnlyList<SessionEvent> events, DateTimeOffset now, CancellationToken cancellationToken)
+        Session session, bool wasScheduled, IReadOnlyList<SessionEvent> events, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        if (session.State == SessionState.Auto && events.OfType<BallCalled>().Any())
+        if (session.State == SessionState.Starting && session.CountdownEndsAt is { } endsAt)
+        {
+            await scheduler.ScheduleAsync(session.Code, endsAt, cancellationToken).ConfigureAwait(false);
+        }
+        else if (session.State == SessionState.Auto && events.OfType<BallCalled>().Any())
         {
             await scheduler.ScheduleAsync(session.Code, now + session.Settings.AutoCallInterval, cancellationToken).ConfigureAwait(false);
         }
-        else if (wasAuto && session.State != SessionState.Auto)
+        else if (wasScheduled && !IsScheduled(session.State))
         {
             await scheduler.CancelAsync(session.Code, cancellationToken).ConfigureAwait(false);
         }
     }
+
+    private static bool IsScheduled(SessionState state) => state is SessionState.Starting or SessionState.Auto;
 }

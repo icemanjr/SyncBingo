@@ -59,6 +59,29 @@
 └───────────────────────┘
 ```
 
+### Lobby and round countdown (FR-45, FR-46)
+
+Between rounds the host console's main control is the round button, with the start-mode toggle beside it:
+
+```
+┌─────────────────────────────────────────────┐
+│ Players (14) ▸                [Options]     │
+│      [ Start Round 4 ]   Manual ◉ ○ Auto    │
+└─────────────────────────────────────────────┘
+```
+
+With *Show round numbers* off the button reads **Start New Round**. Pressing it starts a 10-second countdown on every screen, shown where the last ball normally sits:
+
+```
+┌──────────┐
+│ Round    │
+│ starts in│
+│    7     │
+└──────────┘      host only: [ Cancel ]
+```
+
+Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown, the join page shows "A round is in progress. You can join between rounds." At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
+
 ### Claim alerts on the host console
 
 Every Bingo press appears as an alert with the player's name, the time, the lines completed and the wins still **awardable** (FR-37a, FR-43). Its buttons follow *Multiple wins*:
@@ -184,4 +207,4 @@ The host opens **Options → Connect a TV** and types the code (or scans the QR 
 
 ## 4. States to design
 
-Connecting/reconnecting banner · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · win highlight · empty hopper · host disconnected · session ended/expired.
+Connecting/reconnecting banner · round countdown in the last-ball slot · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · win highlight · empty hopper · host disconnected · session ended/expired.

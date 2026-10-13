@@ -48,7 +48,7 @@ public sealed class SessionSettingsTests
         session.Settings.RedrawPolicy.ShouldBe(RedrawPolicy.HostControls); // waits
         session.NextRoundSettings.ShouldBe(changed);
 
-        session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        session.NextRound(Now);
 
         session.Settings.ShouldBe(changed);
         session.NextRoundSettings.ShouldBeNull();

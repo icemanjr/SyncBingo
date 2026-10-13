@@ -8,7 +8,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 |---------------|------|---------|--------|
 | `POST /sessions` | `{ password, settings? }` | `201 { code, joinUrl, hostToken, snapshot }` | 400 invalid password/settings |
 | `GET /sessions/{code}/join-info` | – | `200 { acceptingJoins, round }` | 404 unknown code |
-| `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 409 name taken · 409 round in progress · 404 · 429 rate-limited |
+| `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 409 name taken · 409 "A round is in progress. You can join between rounds." (during a countdown too) · 404 · 429 rate-limited |
 
 `joinUrl` is `{origin}/join/{code}`, which is what the QR encodes. The password is never in the URL.
 
@@ -28,8 +28,10 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | Method & path | Body | Notes |
 |---------------|------|-------|
 | `PUT /sessions/{code}/settings` | partial settings | Validates per state (§ 03). |
-| `POST /sessions/{code}/rounds` | `{ redrawCards: bool }` | Start next round / Clear cards. |
-| `POST /sessions/{code}/rounds/current/end` | – | End round early. |
+| `POST /sessions/{code}/rounds/countdown` | `{ startInAuto: bool }` | *Start Round N*: begins the 10 s countdown (FR-45); 409 unless in the lobby. |
+| `DELETE /sessions/{code}/rounds/countdown` | – | Cancel the countdown; back to the lobby. |
+| `POST /sessions/{code}/cards/clear` | `{ redrawCards: bool }` | *Clear cards*: ends any running round, clears marks and calls, optional redraw, back to the lobby (FR-34); 409 during a countdown. |
+| `POST /sessions/{code}/rounds/current/end` | – | End round early; cards and calls stay visible. |
 | `POST /sessions/{code}/auto` | – | Auto mode: draws a ball at once and starts the timer (409 unless in manual mode). |
 | `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |
 | `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
@@ -61,7 +63,10 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `SessionStateChanged` | all | `{ state, round, version }` |
 | `SettingsChanged` | all | settings visible to participants |
 | `WinConditionChanged` | all | `{ condition }` |
-| `RoundStarted` | all | `{ round, cards[] for self }` (own cards only) |
+| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto }`: clients count down locally to `endsAt` in the last-ball slot |
+| `RoundCountdownCancelled` | all | `{ round }` |
+| `RoundStarted` | all | `{ round }` |
+| `CardsCleared` | all | `{ redraw }` (players with new cards also get `CardReplaced`) |
 | `RoundEnded` | all | `{ round, winners[] }` |
 | `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
 | `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |

@@ -16,7 +16,7 @@ public sealed class HostAndDrawTests
         var code = await _app.NewGameAsync();
         var caller = new Caller(role, role == CallerRole.Participant ? "p1" : null);
 
-        (await _app.StartRound.HandleAsync(code, caller, false, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
+        (await _app.Round.StartCountdownAsync(code, caller, false, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
         (await _app.Draw.GrabBallAsync(code, caller, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
         (await _app.Host.EndSessionAsync(code, caller, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
         _app.Publisher.Sent.ShouldBeEmpty();
@@ -60,7 +60,7 @@ public sealed class HostAndDrawTests
         var ids = new[] { await _app.JoinAsync(code, "Ava"), await _app.JoinAsync(code, "Ben") };
         var before = _app.Store.CardsInPlay(code).ToHashSet();
 
-        (await _app.StartRound.HandleAsync(code, Caller.Host, redrawCards: true, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Round.ClearCardsAsync(code, Caller.Host, redrawCards: true, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         var after = _app.Store.CardsInPlay(code);
         after.Count.ShouldBe(2);
@@ -74,13 +74,13 @@ public sealed class HostAndDrawTests
     }
 
     [Fact]
-    public async Task Starting_a_round_without_redraw_keeps_cards_and_clears_marks()
+    public async Task Starting_a_round_keeps_cards_and_clears_marks()
     {
         var code = await _app.NewGameAsync();
         var id = await _app.JoinAsync(code, "Ava");
         var card = (await _app.PlayerAsync(code, id)).Cards[0].Card;
 
-        (await _app.StartRound.HandleAsync(code, Caller.Host, redrawCards: false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        await _app.StartRoundAsync(code);
 
         (await _app.PlayerAsync(code, id)).Cards[0].Card.ShouldBe(card);
         _app.Publisher.Notifications.ShouldNotContain(n => n.Notification is CardReplaced);
@@ -143,7 +143,8 @@ public sealed class HostAndDrawTests
 
         (await _app.Draw.StartAutoModeAsync(code, Caller.Host, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        _app.Publisher.Events.Select(e => e.GetType()).ShouldBe([typeof(RoundStarted), typeof(AutoCallingStarted), typeof(BallCalled)]);
+        _app.Publisher.Events.Select(e => e.GetType()).ShouldBe(
+            [typeof(RoundCountdownStarted), typeof(RoundStarted), typeof(AutoCallingStarted), typeof(BallCalled)]);
         _app.Scheduler.Due[code.Value].ShouldBe(_app.Clock.UtcNow.AddSeconds(8));
     }
 
@@ -154,7 +155,7 @@ public sealed class HostAndDrawTests
         (await _app.Draw.StartAutoModeAsync(code, Caller.Host, TestApp.Ct)).IsSuccess.ShouldBeTrue();
         _app.Clock.UtcNow = _app.Clock.UtcNow.AddSeconds(10);
 
-        (await _app.Draw.AutoDrawAsync(code, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Draw.TickAsync(code, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         (await _app.SessionAsync(code)).Calls.Count.ShouldBe(2);
         _app.Scheduler.Due[code.Value].ShouldBe(_app.Clock.UtcNow.AddSeconds(10));
@@ -170,7 +171,7 @@ public sealed class HostAndDrawTests
         _app.Scheduler.Due.ShouldNotContainKey(code.Value);
         var published = _app.Publisher.Sent.Count;
 
-        (await _app.Draw.AutoDrawAsync(code, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Draw.TickAsync(code, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         (await _app.SessionAsync(code)).Calls.Count.ShouldBe(1);
         _app.Publisher.Sent.Count.ShouldBe(published);
@@ -215,6 +216,5 @@ public sealed class HostAndDrawTests
         return code;
     }
 
-    private async Task StartRoundAsync(GameCode code) =>
-        (await _app.StartRound.HandleAsync(code, Caller.Host, redrawCards: false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+    private Task StartRoundAsync(GameCode code) => _app.StartRoundAsync(code);
 }

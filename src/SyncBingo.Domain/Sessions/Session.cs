@@ -41,6 +41,15 @@ public sealed class Session
 
     public bool IsInRound => State is SessionState.Manual or SessionState.Auto;
 
+    /// <summary>Length of the countdown after "Start Round N" (FR-45). Fixed: there is no setting.</summary>
+    public static readonly TimeSpan CountdownLength = TimeSpan.FromSeconds(10);
+
+    /// <summary>When the running countdown reaches zero; <c>null</c> when no countdown runs.</summary>
+    public DateTimeOffset? CountdownEndsAt { get; private set; }
+
+    /// <summary>Whether the round being counted down starts in auto mode.</summary>
+    public bool StartInAuto { get; private set; }
+
     /// <summary>Settings in force now.</summary>
     public SessionSettings Settings { get; private set; }
 
@@ -55,6 +64,9 @@ public sealed class Session
 
     /// <summary>Rounds started so far; 0 in the lobby before the first round.</summary>
     public int RoundNumber { get; private set; }
+
+    /// <summary>The round being played, or between rounds the one that comes next: the round a card dealt now is for.</summary>
+    public int UpcomingRound => IsInRound ? RoundNumber : RoundNumber + 1;
 
     /// <summary>Balls called in the current (or, between rounds, the last) round, in order.</summary>
     public IReadOnlyList<BallCall> Calls => _calls;
@@ -113,22 +125,54 @@ public sealed class Session
     public bool HasBeenCalled(int number) => _calledNumbers.Contains(number);
 
     /// <summary>
-    /// Start the next round, or "Clear cards" mid-round (ends the current one first).
-    /// Every round starts in <see cref="SessionState.Manual"/>: nothing is called until the
-    /// host grabs a ball or switches to auto mode.
+    /// "Start Round N" (FR-45): begin a <see cref="CountdownLength"/> countdown. Joining and
+    /// redraws close now; at zero the scheduler calls <see cref="StartRound"/>. With
+    /// <paramref name="startInAuto"/> the round starts in auto mode and draws its first ball
+    /// at zero; otherwise it starts in manual mode (the default).
     /// </summary>
-    public Result<IReadOnlyList<SessionEvent>> StartRound(bool redrawCards, DateTimeOffset now)
+    public Result<IReadOnlyList<SessionEvent>> StartCountdown(bool startInAuto, DateTimeOffset now)
     {
-        if (State == SessionState.Ended)
+        if (State != SessionState.BetweenRounds)
         {
             return WrongState("start a round");
         }
 
-        var events = new List<SessionEvent>();
-        if (IsInRound)
+        State = SessionState.Starting;
+        CountdownEndsAt = now + CountdownLength;
+        StartInAuto = startInAuto;
+        return Commit(now, new RoundCountdownStarted(RoundNumber + 1, CountdownEndsAt.Value, startInAuto));
+    }
+
+    /// <summary>The host stops the countdown; back to the lobby, and joining reopens.</summary>
+    public Result<IReadOnlyList<SessionEvent>> CancelCountdown(DateTimeOffset now)
+    {
+        if (State != SessionState.Starting)
         {
-            events.Add(new RoundEnded(RoundNumber));
-            CloseRound(now);
+            return WrongState("cancel the countdown");
+        }
+
+        State = SessionState.BetweenRounds;
+        CountdownEndsAt = null;
+        return Commit(now, new RoundCountdownCancelled(RoundNumber + 1));
+    }
+
+    /// <summary>
+    /// The countdown reached zero: the round starts with a full hopper, under any settings
+    /// that were waiting for it, in manual mode, or in auto mode with its first ball drawn.
+    /// Callers reset every participant's marks for the new round afterwards.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> StartRound(IRandomSource random, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(random);
+
+        if (State != SessionState.Starting)
+        {
+            return WrongState("start the round");
+        }
+
+        if (now < CountdownEndsAt)
+        {
+            return Failure(DomainErrorCode.NotAllowed, "The countdown is still running.");
         }
 
         if (NextRoundSettings is { } next)
@@ -137,13 +181,46 @@ public sealed class Session
             NextRoundSettings = null;
         }
 
-        _calls.Clear();
-        _calledNumbers.Clear();
-        _alerted.Clear();
+        ClearCalls();
         RoundNumber++;
+        CountdownEndsAt = null;
         _rounds.Add(new RoundSummary(RoundNumber, now, null, [WinConditionId], []));
         State = SessionState.Manual;
-        events.Add(new RoundStarted(RoundNumber, redrawCards));
+
+        var events = new List<SessionEvent> { new RoundStarted(RoundNumber) };
+        if (StartInAuto)
+        {
+            State = SessionState.Auto;
+            events.Add(new AutoCallingStarted());
+            events.Add(CallNextBall(DrawSource.Auto, random, now));
+        }
+
+        return Commit(now, events);
+    }
+
+    /// <summary>
+    /// "Clear cards" (FR-34): end the round if one is running, clear the called balls (the
+    /// hopper is full again) and go back to the lobby, where late arrivals can join before
+    /// the host starts the next round. Callers clear every participant's marks, and replace
+    /// every card when <paramref name="redrawCards"/> is set.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> ClearCards(bool redrawCards, DateTimeOffset now)
+    {
+        if (State is SessionState.Starting or SessionState.Ended)
+        {
+            return WrongState("clear the cards");
+        }
+
+        var events = new List<SessionEvent>();
+        if (IsInRound)
+        {
+            CloseRound(now);
+            events.Add(new RoundEnded(RoundNumber));
+        }
+
+        ClearCalls();
+        State = SessionState.BetweenRounds;
+        events.Add(new CardsCleared(redrawCards));
         return Commit(now, events);
     }
 
@@ -542,7 +619,7 @@ public sealed class Session
         {
             return State == SessionState.Ended
                 ? WrongState("join")
-                : Failure(DomainErrorCode.WrongState, "A round is in progress. You can join when it ends.");
+                : Failure(DomainErrorCode.WrongState, "A round is in progress. You can join between rounds.");
         }
 
         return currentParticipants >= MaxParticipants
@@ -570,6 +647,13 @@ public sealed class Session
 
     private bool HasWonThisRound(string participantId, int cardId) =>
         _wins.Any(w => w.Round == RoundNumber && w.ParticipantId == participantId && w.CardId == cardId);
+
+    private void ClearCalls()
+    {
+        _calls.Clear();
+        _calledNumbers.Clear();
+        _alerted.Clear();
+    }
 
     private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
 
@@ -622,6 +706,7 @@ public sealed class Session
     private static string Describe(SessionState state) => state switch
     {
         SessionState.BetweenRounds => "between rounds",
+        SessionState.Starting => "counting down to the next round",
         SessionState.Manual => "in manual mode",
         SessionState.Auto => "in auto mode",
         SessionState.Ended => "ended",

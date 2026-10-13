@@ -12,7 +12,10 @@ public sealed class SessionPropertyTests
 {
     private static readonly Func<Session, IRandomSource, Result<IReadOnlyList<SessionEvent>>>[] Commands =
     [
-        (s, _) => s.StartRound(redrawCards: false, Now),
+        (s, _) => s.StartCountdown(startInAuto: false, Now),
+        (s, r) => s.StartRound(r, Now + Session.CountdownLength),
+        (s, _) => s.CancelCountdown(Now),
+        (s, _) => s.ClearCards(redrawCards: false, Now),
         (s, _) => s.EndRound(Now),
         (s, r) => s.StartAutoCalling(r, Now),
         (s, _) => s.Pause(Now),

@@ -122,7 +122,7 @@ public sealed class BallDrawingTests
         var session = InState(SessionState.Manual);
         var random = new SeededRandom(6);
         session.DrawBall(DrawSource.Manual, random, Now).IsSuccess.ShouldBeTrue();
-        session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        session.NextRound(Now);
 
         var first = session.DrawBall(DrawSource.Manual, random, Now).Single<BallCalled>();
 

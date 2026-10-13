@@ -17,7 +17,7 @@ internal sealed class TestApp
         Create = new CreateSessionHandler(Store, new FakePasswordHasher(), Tokens, new SeededRandom(1), Clock);
         Join = new JoinSessionHandler(Store, new FakePasswordHasher(), Tokens, Publisher, new SeededRandom(2), Clock);
         Host = new HostCommandHandler(Runner);
-        StartRound = new StartRoundHandler(Runner, new SeededRandom(3));
+        Round = new RoundHandler(Runner, new SeededRandom(3));
         Draws = new ScriptedDraws(this);
         Draw = new DrawHandler(Runner, Draws);
     }
@@ -40,7 +40,7 @@ internal sealed class TestApp
 
     public HostCommandHandler Host { get; }
 
-    public StartRoundHandler StartRound { get; }
+    public RoundHandler Round { get; }
 
     public DrawHandler Draw { get; }
 
@@ -64,6 +64,15 @@ internal sealed class TestApp
         var joined = await Join.HandleAsync(new JoinSession(code.ToString(), Password, name), Ct);
         joined.IsSuccess.ShouldBeTrue(joined.ToString());
         return joined.Value.ParticipantId;
+    }
+
+    /// <summary>"Start Round N", then ten seconds later the scheduler's tick starts it.</summary>
+    public async Task StartRoundAsync(GameCode code, bool startInAuto = false)
+    {
+        (await Round.StartCountdownAsync(code, Caller.Host, startInAuto, Ct)).IsSuccess.ShouldBeTrue();
+        Clock.UtcNow += Session.CountdownLength;
+        (await Draw.TickAsync(code, Ct)).IsSuccess.ShouldBeTrue();
+        (await SessionAsync(code)).IsInRound.ShouldBeTrue();
     }
 
     public async Task<Session> SessionAsync(GameCode code) => (await Store.GetAsync(code, Ct))!;

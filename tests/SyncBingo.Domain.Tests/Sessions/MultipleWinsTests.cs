@@ -46,7 +46,7 @@ public sealed class MultipleWinsTests
         kit.Call(65); // with 1, 61 and 5 called, Four Corners is complete
         kit.Session.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("a card that has won is not checked again");
 
-        kit.Session.StartRound(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.NextRound(Now);
         kit.Player.ResetForNewRound(kit.Session, deal: null);
         kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue("a new round opens the card again");
     }

@@ -1,4 +1,5 @@
 using SyncBingo.Domain.Sessions;
+using SyncBingo.Domain.Tests.Sessions;
 using static SyncBingo.Domain.Tests.Participants.PlayerTestKit;
 
 namespace SyncBingo.Domain.Tests.Participants;
@@ -79,7 +80,7 @@ public sealed class UndoTests
     {
         var kit = new PlayerTestKit();
         kit.Mark(3); // snapshot for "before the first ball" of round 1
-        kit.Session.StartRound(redrawCards: false, Sessions.SessionTestKit.Now).IsSuccess.ShouldBeTrue();
+        kit.Session.NextRound(Sessions.SessionTestKit.Now);
         kit.Player.ResetForNewRound(kit.Session, deal: null);
 
         kit.Undo().Value.ShouldBe(Bits(Free));

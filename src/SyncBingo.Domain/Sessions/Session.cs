@@ -124,6 +124,71 @@ public sealed class Session
 
     public bool HasBeenCalled(int number) => _calledNumbers.Contains(number);
 
+    /// <summary>The session as plain data, for storage.</summary>
+    public SessionSnapshot ToSnapshot() => new(
+        Code.Value,
+        Variant.Id,
+        State,
+        CountdownEndsAt,
+        StartInAuto,
+        Settings,
+        NextRoundSettings,
+        WinConditionId,
+        RoundNumber,
+        [.. _calls],
+        LastEventSeq,
+        Version,
+        CreatedAt,
+        LastActivityAt,
+        [.. _claims],
+        [.. _wins],
+        [.. _rounds],
+        LeaderboardVisible,
+        [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))]);
+
+    /// <summary>
+    /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
+    /// variant or game code is a corrupt record, not a user error, so it throws.
+    /// </summary>
+    public static Session Restore(SessionSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        if (!GameCode.TryParse(snapshot.Code, out var code))
+        {
+            throw new InvalidOperationException($"Stored session has an invalid code '{snapshot.Code}'.");
+        }
+
+        if (!StandardVariants.TryGet(snapshot.VariantId, out var variant))
+        {
+            throw new InvalidOperationException($"Stored session {snapshot.Code} uses unknown variant '{snapshot.VariantId}'.");
+        }
+
+        var session = new Session(code, variant, snapshot.Settings, snapshot.WinConditionId, snapshot.CreatedAt)
+        {
+            State = snapshot.State,
+            CountdownEndsAt = snapshot.CountdownEndsAt,
+            StartInAuto = snapshot.StartInAuto,
+            NextRoundSettings = snapshot.NextRoundSettings,
+            RoundNumber = snapshot.RoundNumber,
+            LastEventSeq = snapshot.LastEventSeq,
+            Version = snapshot.Version,
+            LastActivityAt = snapshot.LastActivityAt,
+            LeaderboardVisible = snapshot.LeaderboardVisible,
+        };
+        session._calls.AddRange(snapshot.Calls);
+        session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
+        session._claims.AddRange(snapshot.Claims);
+        session._wins.AddRange(snapshot.Wins);
+        session._rounds.AddRange(snapshot.Rounds);
+        foreach (var alert in snapshot.Alerts)
+        {
+            session._alerted[(alert.ParticipantId, alert.CardId, alert.WinConditionId)] = alert.Lines;
+        }
+
+        return session;
+    }
+
     /// <summary>
     /// "Start Round N" (FR-45): begin a <see cref="CountdownLength"/> countdown. Joining and
     /// redraws close now; at zero the scheduler calls <see cref="StartRound"/>. With

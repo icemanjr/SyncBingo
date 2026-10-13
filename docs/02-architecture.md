@@ -107,7 +107,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 
 ## 6. Concurrency and consistency
 
-- Mutations that change shared session state (draw, pause, start/end round, settings, win condition) run under a **short per-session Redis lock** and bump a session `version`.
+- Mutations that change shared session state (draw, pause, start/end round, settings, win condition) run under a **short per-session Redis lock** and bump a session `version`. The lock is `SET NX` with a random owner value and a 10 s lease (a crashed holder's lock frees itself), released by a compare-and-delete script so a holder whose lease ran out can never release its successor's lock. A command waits up to 5 s for the lock, then fails (the API will answer 503).
 - Participant-only mutations (marks, Undo, the auto-fill switch) take no lock and touch just that participant's hash field, so 100 players tapping do not contend with the host. A player's redraw is rare and takes the session lock, so it cannot race the round countdown or a host redraw of every card.
 - Name uniqueness uses `HSETNX` on a normalised-name index, so two simultaneous joins with the same name cannot both succeed.
 - Card uniqueness (FR-39) works the same way: dealing a card `SADD`s its fingerprint to the session's `cards` set and redeals if the fingerprint was already there, so concurrent joins or redraws never end up with identical cards.

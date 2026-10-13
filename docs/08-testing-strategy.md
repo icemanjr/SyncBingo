@@ -38,6 +38,7 @@
 - Participants never receive other participants' cards; host-only events never reach participants.
 - Authorisation: a participant token gets 403 on every host endpoint; host and display tokens get 403 on player commands; a player can only reach their own cards; a removed player's token stops working.
 - Participant writes: a mark and a draw's auto-fill that overlap both survive (no lost update), against real Redis.
+- Redis store: sessions and participants round-trip; of many concurrent name reservations, card claims or saves from one participant version exactly one wins; every key carries the idle expiry; a session past 12 hours reads as gone; the lock admits one holder at a time, times out, frees itself after a crash and is never released by a former holder; removing a player revokes only their token.
 - TV pairing: a code works once and expires after 10 minutes; only a host can approve it; the TV receives a read-only display token and can call nothing but the snapshot; pairing creation and approval are rate-limited.
 
 **End-to-end (Playwright)**

@@ -58,7 +58,7 @@ All keys are prefixed `bingo:` and carry the same TTL (idle expiry, refreshed on
 | `s:{code}:participants` | hash | field = participantId → participant JSON (incl. cards and marks) |
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
 | `s:{code}:tokens` | hash | tokenHash → participantId |
-| `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: items with call and card faces, groups, cell shape; images live in S3 under a session prefix that expires with it (ADR 0009) |
+| `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs (call face and card face, at least 24); images live in S3 under a session prefix that expires with it (ADR 0009) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:round:{n}` | hash/list | round summary, ordered ball calls, win records |
 | `s:{code}:stats` | hash | wins per participant, rounds played |

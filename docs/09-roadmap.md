@@ -29,7 +29,7 @@
 ## Phase 4 — Future expansion
 - [ ] **Serious Bingo:** host-generated card claims (single-use QR), host-added cards, multiple cards per participant, cards expire at round end (no payments in-app; legal review first)
 - [ ] Custom variants (other ball ranges, card sizes), custom patterns
-- [ ] **Custom content** (ADR 0009): call faces and card faces, e.g. "2 + 5" called and "7" marked, definitions and words, shapes, word lists, uploaded images; free-form card generator; upload page with a host-responsibility notice and acknowledgement; custom sets private to the host; one stored set per session, downloadable as a single file and re-uploaded to reuse; switch sets between rounds (FR-44), redealing every card
+- [ ] **Custom content** (ADR 0009): call faces and card faces, e.g. "2 + 5" called and "7" marked, definitions and words, shapes, word lists, uploaded images; free-form card generator; upload page with a host-responsibility notice and acknowledgement; custom sets private to the host; one stored set per session, downloadable as a single file and re-uploaded to reuse; switch sets between rounds (FR-44), redealing every card; sets are pairs only (min 24), independent of card size, free space and patterns; card-size options and a "no free space" option as their own settings
 - [ ] Waiting room for late arrivals, spoken ball calls, themes, real ad provider integration
 - [ ] Optional end-of-session summary export
 

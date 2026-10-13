@@ -15,12 +15,14 @@ Standard Bingo calls a number and players mark the same number. Hosts such as te
 
 ## Sets are files the host keeps; changing sets between rounds
 Decided by the owner (2026-10-13):
+- **A set is only a dictionary of pairs**: each ball (call face) with its square (card face). Card size, the free space and the win patterns are session settings, **independent of the set**, so changing the set never makes a pattern unusable.
+- **A set needs at least 24 pairs**, enough for a 5 × 5 card with a free space. With exactly 24, the free space must be used; a card without a free space (a future card option, alongside card sizes) needs at least 25. A set too small for the current card is refused on upload with what to change (a smaller card, or the free space on); the set is never altered to fit.
 - **At most one custom set is stored per session**: the one in use. Nothing is kept beyond the session, in line with ADR 0003, so there is no library of sets to manage in ephemeral storage.
 - **A set is a single file the host keeps.** After building a set (balls and squares) the host downloads it as one file and re-uploads it whenever it is wanted. A teacher prepares *Times tables 1–3*, *Times tables 4–6* and *Week 5 vocabulary* ahead of time and uploads whichever is next.
 - **The set can change between rounds** (in the lobby, never during a countdown or a round), by uploading another file. It replaces the stored set, and:
   - every card is redealt, because cards hold item ids from the old set; all old fingerprints are released (FR-39);
-  - if the current win condition does not exist in the new set (e.g. a different card size), it falls back to Normal and the host is told;
-  - the call board rebuilds from the new set's groups;
+  - the card size, free space and win condition stay as they are;
+  - the call board rebuilds from the new set's pairs;
   - the leaderboard keeps counting across the whole session, and each round's summary records which set it used.
 
 ## Responsibility for content
@@ -36,4 +38,4 @@ Decided by the owner (2026-10-12):
   - Card faces should be unique within a content set (if "2 + 5" and "10 − 3" both answer "7", a card could show two identical "7" cells). Lean: require unique card faces.
   - Uploaded images need storage (S3) and size and type limits. Moderation is the host's responsibility (see above). A disclaimer does not remove legal duties for clearly illegal material or copyright takedown requests, so uploads should stay private to the host, expire with the session where possible, and there should be a contact for reports. Get legal review before launch.
   - ~~Reuse across sessions without accounts.~~ Decided: sets are files the host downloads and re-uploads (see above).
-  - The set file format: a versioned archive (e.g. `set.json` with `format`, name, items with call and card faces, optional groups and cell shape, plus an `images/` folder), validated on upload (format version, item count, unique card faces, image types and sizes, total size).
+  - The set file format: a versioned archive (`set.json` with `format`, a name and the pairs, each with a call face and a card face, plus an `images/` folder), validated on upload (format version, at least 24 pairs and enough for the current card, unique card faces, image types and sizes, total size). How the board groups items and the shape of its cells are not part of the set: grouping is a card-dealing option, and cell shape follows the content (text or image).

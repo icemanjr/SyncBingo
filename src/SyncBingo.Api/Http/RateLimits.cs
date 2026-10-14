@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,13 +15,16 @@ public sealed class RateLimitOptions
     public int CreatesPerHour { get; set; } = 30;
 
     /// <summary>
-    /// Wrong game passwords per game and IP address within <see cref="WrongPasswordWindow"/>, after which
-    /// joining that game from that address waits for the window to end. Only <i>wrong</i> passwords count:
-    /// a class of 30 behind one school IP must be able to join at once.
+    /// Wrong game passwords per game and IP address allowed within <see cref="WrongPasswordWindow"/>.
+    /// Only <i>wrong</i> passwords count, and the limit is high, because a whole event (up to 100 people)
+    /// can share one WiFi address and children mistype. Going past it means a bot or something broken,
+    /// so joining that game from that address is then locked for <see cref="WrongPasswordLockout"/>.
     /// </summary>
-    public int WrongPasswords { get; set; } = 20;
+    public int WrongPasswords { get; set; } = 60;
 
-    public TimeSpan WrongPasswordWindow { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan WrongPasswordWindow { get; set; } = TimeSpan.FromMinutes(1);
+
+    public TimeSpan WrongPasswordLockout { get; set; } = TimeSpan.FromMinutes(10);
 
     /// <summary>Marks a player may send in a burst; the bucket refills at <see cref="MarksPerSecond"/>.</summary>
     public int MarkBurst { get; set; } = 10;
@@ -76,9 +80,14 @@ internal static class RateLimits
             .ConfigureAwait(false);
     }
 
-    /// <summary>Counts wrong game passwords per game and address; while the count is used up, joins from there wait.</summary>
-    public sealed class WrongPasswords(RateLimitOptions limits) : IDisposable
+    /// <summary>
+    /// Counts wrong game passwords per game and address in a short window; using up the window's
+    /// allowance locks joining from there for the (longer) lockout. Kept in memory, per instance.
+    /// </summary>
+    public sealed class WrongPasswords(RateLimitOptions limits, TimeProvider time) : IDisposable
     {
+        private readonly ConcurrentDictionary<string, DateTimeOffset> _lockedUntil = new();
+
         private readonly PartitionedRateLimiter<string> _failures = PartitionedRateLimiter.Create<string, string>(key =>
             RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
             {
@@ -89,11 +98,31 @@ internal static class RateLimits
         public static string Key(string code, HttpContext http) =>
             $"{(Domain.Sessions.GameCode.TryParse(code, out var parsed) ? parsed.Value : code)}|{ClientAddress(http)}";
 
-        public bool IsLockedOut(string key) => _failures.GetStatistics(key)?.CurrentAvailablePermits == 0;
+        /// <summary>How long joining from here stays locked, or <c>null</c> when it is open.</summary>
+        public TimeSpan? LockedFor(string key)
+        {
+            if (!_lockedUntil.TryGetValue(key, out var until))
+            {
+                return null;
+            }
+
+            var left = until - time.GetUtcNow();
+            if (left > TimeSpan.Zero)
+            {
+                return left;
+            }
+
+            _lockedUntil.TryRemove(key, out _);
+            return null;
+        }
 
         public void Record(string key)
         {
             using var lease = _failures.AttemptAcquire(key);
+            if (!lease.IsAcquired || _failures.GetStatistics(key)?.CurrentAvailablePermits == 0)
+            {
+                _lockedUntil[key] = time.GetUtcNow() + limits.WrongPasswordLockout;
+            }
         }
 
         public void Dispose() => _failures.Dispose();

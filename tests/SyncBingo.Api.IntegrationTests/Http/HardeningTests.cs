@@ -27,7 +27,39 @@ public sealed class HardeningTests(RedisFixture redis)
         using var locked = await Join(client, code, "secret", "Ava");
         locked.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests, "the right password waits too, or guessing would go on");
         (await locked.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("code").GetString().ShouldBe("TooManyRequests");
+        locked.Headers.RetryAfter!.Delta!.Value.ShouldBeInRange(TimeSpan.FromMinutes(9), TimeSpan.FromMinutes(10), "the 10-minute lockout");
         (await Join(client, otherCode, "secret", "Ava")).StatusCode.ShouldBe(HttpStatusCode.OK, "other games are unaffected");
+    }
+
+    [Fact]
+    public async Task The_lockout_ends_after_ten_minutes()
+    {
+        await using var factory = new ApiFactory(redis, new Dictionary<string, string> { ["RateLimits:WrongPasswords"] = "3" });
+        using var client = factory.CreateClient();
+        var (code, _) = await NewGameAsync(client);
+        for (var i = 0; i < 3; i++)
+        {
+            (await Join(client, code, "wrong", $"Guess{i}")).Dispose();
+        }
+
+        factory.Time.Shift += TimeSpan.FromMinutes(10);
+
+        (await Join(client, code, "secret", "Ava")).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task A_busy_event_with_plenty_of_typos_can_still_join()
+    {
+        await using var factory = new ApiFactory(redis); // the default limits
+        using var client = factory.CreateClient();
+        var (code, _) = await NewGameAsync(client);
+
+        for (var i = 0; i < 50; i++)
+        {
+            (await Join(client, code, "secrte", $"Typo{i}")).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        }
+
+        (await Join(client, code, "secret", "Ava")).StatusCode.ShouldBe(HttpStatusCode.OK, "50 typos from one WiFi in a minute is still a busy event, not a bot");
     }
 
     [Fact]

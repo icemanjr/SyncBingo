@@ -28,7 +28,7 @@
 - Game codes are 16 characters, from the allowed alphabet, with no collisions in a large sample.
 
 **Integration**
-- Join: wrong password (401), duplicate name (409, case-insensitive), join mid-round (409), too many wrong passwords (429) while 30 correct joins from one address all succeed; game creation and marking limits (429); an award repeated with one `Idempotency-Key` counts once.
+- Join: wrong password (401), duplicate name (409, case-insensitive), join mid-round (409), too many wrong passwords (429, locked 10 minutes) while 30 correct joins, or 50 typos then a correct join, from one address all succeed; game creation and marking limits (429); an award repeated with one `Idempotency-Key` counts once.
 - Two simultaneous joins with the same name → exactly one succeeds.
 - Concurrent joins and redraws never leave two identical cards in play; a redrawn or kicked player's card is released.
 - Token recovery: disconnect, reconnect, same card and marks.

@@ -37,9 +37,9 @@ internal static class PublicEndpoints
         {
             // Only wrong passwords are limited, so a whole class behind one school address can join at once.
             var attempts = RateLimits.WrongPasswords.Key(code, http);
-            if (wrong.IsLockedOut(attempts))
+            if (wrong.LockedFor(attempts) is { } wait)
             {
-                await RateLimits.TooManyAsync(http, retryAfter: null);
+                await RateLimits.TooManyAsync(http, wait);
                 return Results.Empty;
             }
 

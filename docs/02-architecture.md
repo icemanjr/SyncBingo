@@ -70,7 +70,7 @@ SyncBingo/
 
 ### 3.3 Cross-cutting
 
-Structured logging (Serilog → CloudWatch), correlation IDs, ASP.NET Core rate limiter (join attempts keyed by code + IP), health endpoints (`/healthz`, `/readyz` incl. Redis), OpenAPI document published from CI.
+Structured logging (Serilog → CloudWatch), correlation IDs, ASP.NET Core rate limiter (wrong game passwords per code + IP, game creation per IP, marks per player; docs/05 §5), health endpoints (`/healthz`, `/readyz` incl. Redis), OpenAPI document published from CI.
 
 ## 4. Real-time design
 
@@ -144,7 +144,7 @@ State rules: server state lives in the store, rebuilt from the snapshot; optimis
 ## 7a. Security notes
 
 - Game password and session tokens are hashed at rest (PBKDF2-HMAC-SHA256 for the password, 04 §5; SHA-256 of a 256-bit random token for session tokens).
-- Join attempts are rate-limited per code and per IP to blunt guessing.
+- Wrong game passwords are limited per code and IP to blunt guessing; correct joins are never slowed, so a class behind one school address can join at once.
 - Participants only ever receive their own card; host card inspection is host-only.
 - All inputs validated server-side (name length and allowed characters, cell index, state preconditions).
 - **Untrusted text is data, never code.** Names (and, later, custom content) are the only free text players send, and they are never spliced into anything that gets interpreted:

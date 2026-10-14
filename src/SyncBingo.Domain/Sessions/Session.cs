@@ -15,11 +15,19 @@ public sealed class Session
     /// <summary>Default participant cap (assumption A7).</summary>
     public const int MaxParticipants = 100;
 
+    /// <summary>How many award <c>Idempotency-Key</c>s are remembered; far more than a host awards in one sitting.</summary>
+    public const int RememberedRequestKeys = 100;
+
+    public const int MaxRequestKeyLength = 100;
+
     private readonly List<BallCall> _calls = [];
     private readonly HashSet<int> _calledNumbers = [];
     private readonly List<Claim> _claims = [];
     private readonly List<WinRecord> _wins = [];
     private readonly List<RoundSummary> _rounds = [];
+
+    /// <summary>Recent award <c>Idempotency-Key</c>s, oldest first; a repeat within these changes nothing.</summary>
+    private readonly List<string> _awardKeys = [];
     /// <summary>Lines already alerted per card and win condition this round, so alerts never repeat.</summary>
     private readonly Dictionary<(string ParticipantId, int CardId, string WinConditionId), int> _alerted = [];
 
@@ -148,7 +156,8 @@ public sealed class Session
         LeaderboardVisible,
         [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))],
         NextBallFrom,
-        StreamSeqs);
+        StreamSeqs,
+        [.. _awardKeys]);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
@@ -186,6 +195,7 @@ public sealed class Session
         session._claims.AddRange(snapshot.Claims);
         session._wins.AddRange(snapshot.Wins);
         session._rounds.AddRange(snapshot.Rounds);
+        session._awardKeys.AddRange(snapshot.AwardKeys ?? []);
         foreach (var alert in snapshot.Alerts)
         {
             session._alerted[(alert.ParticipantId, alert.CardId, alert.WinConditionId)] = alert.Lines;
@@ -573,17 +583,28 @@ public sealed class Session
     /// <item><b>Every declared win</b>: each award adds <paramref name="wins"/>, e.g. 2 for a "double Bingo".</item>
     /// </list>
     /// Repeating an award that is already recorded changes nothing: the same card and condition
-    /// in the "once" modes, or the same <paramref name="claimId"/> in any mode. The host may
-    /// award without any alert, e.g. after checking a shouted Bingo (FR-38).
+    /// in the "once" modes, the same <paramref name="claimId"/>, or the same <paramref name="requestKey"/>
+    /// (an <c>Idempotency-Key</c>, so a double-clicked award for a shouted Bingo counts once) in any mode.
+    /// The host may award without any alert, e.g. after checking a shouted Bingo (FR-38).
     /// </summary>
     public Result<IReadOnlyList<SessionEvent>> AwardWin(
-        Participant participant, int? cardId, DateTimeOffset now, int wins = 1, int? claimId = null)
+        Participant participant, int? cardId, DateTimeOffset now, int wins = 1, int? claimId = null, string? requestKey = null)
     {
         ArgumentNullException.ThrowIfNull(participant);
 
         if (!IsInRound)
         {
             return WrongState("award a win");
+        }
+
+        if (requestKey is not null && (requestKey.Length is 0 or > MaxRequestKeyLength))
+        {
+            return Failure(DomainErrorCode.Invalid, $"An Idempotency-Key must be 1–{MaxRequestKeyLength} characters.");
+        }
+
+        if (requestKey is not null && _awardKeys.Contains(requestKey))
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
         }
 
         var card = cardId ?? (participant.Cards.Count == 1 ? participant.Cards[0].Id : (int?)null);
@@ -640,6 +661,15 @@ public sealed class Session
             if (IsOpenClaim(_claims[i], participant.Id, awardedCard))
             {
                 _claims[i] = _claims[i] with { Status = ClaimStatus.Awarded };
+            }
+        }
+
+        if (requestKey is not null)
+        {
+            _awardKeys.Add(requestKey);
+            if (_awardKeys.Count > RememberedRequestKeys)
+            {
+                _awardKeys.RemoveAt(0);
             }
         }
 

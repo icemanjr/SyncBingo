@@ -16,16 +16,16 @@ internal static class PlayerEndpoints
         game.MapPost("/marks", (string code, MarkRequest request, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await players.MarkAsync(game, caller, request.CardId, request.Cell, request.Marked, ct))
-                    .ToHttp(marks => TypedResults.Ok(new MarksBody(marks)))));
+                    .ToHttp(marks => TypedResults.Ok(new MarksBody(marks))))).RequireRateLimiting(RateLimits.Player);
 
         game.MapPost("/cards/{cardId:int}/undo", (string code, int cardId, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await players.UndoAsync(game, caller, cardId, ct)).ToHttp(marks => TypedResults.Ok(new MarksBody(marks)))));
+                (await players.UndoAsync(game, caller, cardId, ct)).ToHttp(marks => TypedResults.Ok(new MarksBody(marks))))).RequireRateLimiting(RateLimits.Player);
 
         game.MapPost("/claims", (string code, CardRequest request, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await players.ClaimBingoAsync(game, caller, request.CardId, ct)).ToHttp(outcome =>
-                    TypedResults.Accepted((string?)null, new ClaimAccepted(outcome.Events.OfType<WinClaimed>().Single().Claim.ClaimedAt)))));
+                    TypedResults.Accepted((string?)null, new ClaimAccepted(outcome.Events.OfType<WinClaimed>().Single().Claim.ClaimedAt))))).RequireRateLimiting(RateLimits.Player);
 
         game.MapPut("/me/auto-fill", (string code, AutoFillBody request, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>

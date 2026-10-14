@@ -5,7 +5,7 @@ using SyncBingo.Domain.Sessions;
 namespace SyncBingo.Application.Players;
 
 /// <summary>An award from the host (ADR 0008, FR-43); see <see cref="Session.AwardWin"/>.</summary>
-public sealed record AwardWin(string ParticipantId, int? CardId = null, int Wins = 1, int? ClaimId = null);
+public sealed record AwardWin(string ParticipantId, int? CardId = null, int Wins = 1, int? ClaimId = null, string? IdempotencyKey = null);
 
 /// <summary>
 /// The host's commands about players: crediting wins, dismissing claims and removing a
@@ -28,7 +28,7 @@ public sealed class PlayerManagementHandler(SessionCommandRunner runner)
                     return Errors.PlayerNotFound();
                 }
 
-                var awarded = session.AwardWin(stored.Participant, command.CardId, now, command.Wins, command.ClaimId);
+                var awarded = session.AwardWin(stored.Participant, command.CardId, now, command.Wins, command.ClaimId, command.IdempotencyKey);
                 return awarded.IsSuccess ? Result.Success(CommandOutcome.Of(awarded.Value)) : awarded.Error!;
             },
             cancellationToken);

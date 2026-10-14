@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using SyncBingo.Api.Http;
 using SyncBingo.Application.Calling;
 using SyncBingo.Application.Players;
@@ -43,9 +44,16 @@ internal static class HostEndpoints
         game.MapPost("/balls", (string code, ClaimsPrincipal user, DrawHandler draws, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await draws.GrabBallAsync(game, caller, ct)).ToHttp(Ball)));
 
-        game.MapPost("/wins", (string code, AwardRequest request, ClaimsPrincipal user, PlayerManagementHandler manage, CancellationToken ct) =>
+        game.MapPost("/wins", (
+            string code,
+            AwardRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+            ClaimsPrincipal user,
+            PlayerManagementHandler manage,
+            CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await manage.AwardWinAsync(game, caller, new AwardWin(request.ParticipantId, request.CardId, request.Wins ?? 1, request.ClaimId), ct))
+                (await manage.AwardWinAsync(
+                    game, caller, new AwardWin(request.ParticipantId, request.CardId, request.Wins ?? 1, request.ClaimId, idempotencyKey), ct))
                     .NoContent()));
 
         game.MapPost("/claims/{claimId:int}/dismiss", (string code, int claimId, ClaimsPrincipal user, PlayerManagementHandler manage, CancellationToken ct) =>

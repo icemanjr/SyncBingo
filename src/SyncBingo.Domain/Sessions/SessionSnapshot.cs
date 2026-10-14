@@ -25,7 +25,8 @@ public sealed record SessionSnapshot(
     bool LeaderboardVisible,
     IReadOnlyList<WinAlert> Alerts,
     DateTimeOffset? NextBallFrom = null,
-    StreamSeqs StreamSeqs = default);
+    StreamSeqs StreamSeqs = default,
+    IReadOnlyList<string>? AwardKeys = null);
 
 /// <summary>Lines already alerted for a card and win condition this round, so detection never repeats an alert.</summary>
 public sealed record WinAlert(string ParticipantId, int CardId, string WinConditionId, int Lines);

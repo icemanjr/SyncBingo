@@ -11,6 +11,10 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseRateLimiter();
+
+// The API description (OpenAPI 3.1), from which the web app's typed client is generated.
+app.MapOpenApi();
 
 // Liveness: the process is up. Readiness: Redis answers too.
 app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });

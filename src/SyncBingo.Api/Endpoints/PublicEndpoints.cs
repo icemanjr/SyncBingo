@@ -27,16 +27,30 @@ internal static class PublicEndpoints
                 $"/api/sessions/{game.Code.Value}",
                 new GameCreated(
                     game.Code.ToString(), new Uri(web.Value.PublicOrigin, $"/join/{game.Code.Value}"), game.HostToken, SnapshotBody.From(snapshot))));
-        });
+        }).RequireRateLimiting(RateLimits.Create);
 
         api.MapGet("/sessions/{code}/join-info", async (string code, JoinInfoQuery query, CancellationToken ct) =>
             (await query.GetAsync(code, ct)).ToHttp(info => TypedResults.Ok(info)));
 
-        api.MapPost("/sessions/{code}/join", async (string code, JoinRequest request, JoinSessionHandler join, GameQueries queries, CancellationToken ct) =>
+        api.MapPost("/sessions/{code}/join", async (
+            string code, JoinRequest request, JoinSessionHandler join, GameQueries queries, RateLimits.WrongPasswords wrong, HttpContext http, CancellationToken ct) =>
         {
+            // Only wrong passwords are limited, so a whole class behind one school address can join at once.
+            var attempts = RateLimits.WrongPasswords.Key(code, http);
+            if (wrong.IsLockedOut(attempts))
+            {
+                await RateLimits.TooManyAsync(http, retryAfter: null);
+                return Results.Empty;
+            }
+
             var joined = await join.HandleAsync(new JoinSession(code, request.Password, request.Name), ct);
             if (joined.Error is { } error)
             {
+                if (error.Code == Domain.DomainErrorCode.Unauthorized)
+                {
+                    wrong.Record(attempts);
+                }
+
                 return Problems.From(error);
             }
 

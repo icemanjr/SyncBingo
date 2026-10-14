@@ -8,7 +8,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 |---------------|------|---------|--------|
 | `POST /sessions` | `{ password, settings?, winCondition? }` | `201 { code, joinUrl, hostToken, snapshot }` | 400 malformed body · 422 password not 4–64 characters, or invalid settings |
 | `GET /sessions/{code}/join-info` | – | `200 { acceptingJoins, round }` | 404 unknown code |
-| `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 409 name taken · 409 "A round is in progress. You can join between rounds." (during a countdown too) · 404 · 429 rate-limited |
+| `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 429 too many wrong passwords from this address (§5) · 409 name taken · 409 "A round is in progress. You can join between rounds." (during a countdown too) · 404 |
 
 `joinUrl` is `{origin}/join/{code}`, which is what the QR encodes. The password is never in the URL.
 
@@ -37,7 +37,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/auto` | – | Auto mode: draws a ball at once and starts the timer (409 unless in manual mode). |
 | `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |
 | `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
-| `POST /sessions/{code}/wins` | `{ participantId, cardId?, wins?, claimId? }` | Award a win for the current win condition, as *Multiple wins* allows (FR-43). `wins` > 1 only with *every declared win*. Passing the `claimId` makes repeats harmless; awards without a claim (a shouted Bingo) should send an `Idempotency-Key` header so a double click counts once. |
+| `POST /sessions/{code}/wins` | `{ participantId, cardId?, wins?, claimId? }` | Award a win for the current win condition, as *Multiple wins* allows (FR-43). `wins` > 1 only with *every declared win*. Passing the `claimId` makes repeats harmless; awards without a claim (a shouted Bingo) send an `Idempotency-Key` header so a double click counts once (§5). |
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
 | `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim (FR-38): `{ participantId, name, autoFillOn, cards[] }` with marks. |
 | `DELETE /sessions/{code}/participants/{id}` | – | Kick. |
@@ -95,9 +95,15 @@ In the table, "all" means all three streams.
 - `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied in their stream.
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
-- Rate limits: join endpoint per code + IP; marks per participant.
+- **Rate limits** (config section `RateLimits`; counted per API instance), answered with 429, `Retry-After` where known, and a problem with `code: "TooManyRequests"`:
+  - **Wrong game passwords:** 20 per game and IP address per 5 minutes, after which joining that game from that address waits for the window to end (the right password too, or guessing could continue). Only *wrong* passwords count, because a whole class behind one school address must be able to join at once.
+  - **Creating games:** 30 per IP address per hour.
+  - **Marks, Undo and Bingo presses:** per player token, bursts of 10, refilling at 5 a second.
+  - Behind a reverse proxy (Caddy, CloudFront) the client address must come from forwarded headers, configured with the trusted proxies (roadmap Phase 1b); until then every caller shares the proxy's address.
+- **`Idempotency-Key`** on `POST /wins`: an award repeated with the same key (up to 100 characters) changes nothing, so a double-clicked award for a shouted Bingo counts once. The game remembers its last 100 keys.
+- **OpenAPI:** the API describes itself at `GET /openapi/v1.json` (OpenAPI 3.1), from which the web app's typed client is generated.
 - Authentication: a missing, unknown or revoked token, or a token for a different game, is 401; a valid token without the right role is 403 (the application layer decides roles). A game whose lock stays taken longer than 5 s answers 503 "The game is busy. Please try again."
 - Problem bodies carry `detail` (the message to show) and `code` (the `DomainErrorCode` name) for clients to branch on.
 - Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, rules `{ settings, winCondition }`.
 - Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /rules` every settings field is optional and only those sent change, applied under the session lock to the current settings. `winCondition` is one of `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`; left out, the pattern stays.
-- OpenAPI is generated from the API project and used to produce the typed TypeScript client.
+

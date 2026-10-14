@@ -110,8 +110,8 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
     case 'SettingsChanged':
     case 'WinClaimed':
     case 'ClaimDismissed':
-    case 'ParticipantRemoved':
       return { snapshot, refetch: true }
+    case 'ParticipantRemoved':
     case 'WinAwarded':
     case 'WinDetected':
       return { snapshot, refetch: true, alert: { type: event.type, data: event.data } }

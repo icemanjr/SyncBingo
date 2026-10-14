@@ -4,6 +4,8 @@ import { FullScreen, Layout } from './app/Layout'
 import { CreateGamePage } from './features/host/CreateGamePage'
 import { HostConsole } from './features/host/HostConsole'
 import { LandingPage } from './features/landing/LandingPage'
+import { JoinPage } from './features/play/JoinPage'
+import { PlayScreen } from './features/play/PlayScreen'
 
 /** The site's pages (docs/06 §1). */
 export function AppRoutes() {
@@ -37,7 +39,7 @@ export function AppRoutes() {
         path="/join"
         element={
           <Layout>
-            <ComingNext what="Joining a game" />
+            <JoinPage />
           </Layout>
         }
       />
@@ -45,7 +47,7 @@ export function AppRoutes() {
         path="/join/:code"
         element={
           <Layout>
-            <ComingNext what="Joining a game" />
+            <JoinPage />
           </Layout>
         }
       />
@@ -53,7 +55,7 @@ export function AppRoutes() {
         path="/play/:code"
         element={
           <Layout>
-            <ComingNext what="Your card" />
+            <PlayScreen />
           </Layout>
         }
       />

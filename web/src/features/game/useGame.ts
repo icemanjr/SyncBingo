@@ -12,6 +12,8 @@ export interface GameState {
   messages: { type: string; data: unknown; at: number }[]
   dismissMessage: (at: number) => void
   refresh: () => Promise<void>
+  /** Updates the snapshot locally from a command's reply (e.g. a player's own new marks). */
+  patch: (change: (snapshot: Snapshot) => Snapshot) => void
 }
 
 /** How long to gather events that need a refetch before fetching once. */
@@ -118,5 +120,10 @@ export function useGame(code: string, token: string | undefined): GameState {
       setMessages((list) => list.filter((m) => m.at !== at))
     },
     refresh,
+    patch: (change) => {
+      if (!latest.current) return
+      latest.current = change(latest.current)
+      setSnapshot(latest.current)
+    },
   }
 }

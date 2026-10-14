@@ -1,6 +1,7 @@
 /** How this browser takes part in a game: as its host or as a player. */
 export type Seat =
-  { role: 'host'; token: string } | { role: 'player'; token: string; participantId: string }
+  | { role: 'host'; token: string }
+  | { role: 'player'; token: string; participantId: string; name: string }
 
 const key = (code: string) => `syncbingo:${code}`
 

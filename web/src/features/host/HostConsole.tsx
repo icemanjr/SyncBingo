@@ -6,16 +6,21 @@ import { normalizeCode } from '../game/codes'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
 import { Button, ErrorText, Panel } from '../game/ui'
+import { RulesNotice } from '../game/RulesNotice'
 import { CardInspector } from './CardInspector'
 import { ClaimsPanel } from './ClaimsPanel'
+import { DisplayMenu } from './DisplayMenu'
 import { hostApi } from './hostApi'
 import { JoinPanel } from './JoinPanel'
+import { LeaderboardPanel } from './LeaderboardPanel'
+import { OptionsPanel } from './OptionsPanel'
 import { PlayersPanel } from './PlayersPanel'
 import { RoundControls } from './RoundControls'
 
 /**
  * The host console (docs/06): the call board by default, with the calling controls, Bingo claims and
- * detections, players, and alerts. Options, displays and the leaderboard arrive in the next pull request.
+ * detections, players, alerts, the leaderboard, and two menus: **Options** (rules, as a draft applied in one
+ * step; hidden in auto mode, FR-32) and **Open display ⧉** (displays, TVs, the join note).
  */
 export function HostConsole() {
   const code = normalizeCode(useParams().code ?? '')
@@ -25,6 +30,7 @@ export function HostConsole() {
   const host = useMemo(() => hostApi(code, token ?? ''), [code, token])
   const [inspecting, setInspecting] = useState<string>()
   const [confirmEnd, setConfirmEnd] = useState(false)
+  const [open, setOpen] = useState<'options' | 'displays'>()
   const end = useAction()
 
   if (!token) {
@@ -80,12 +86,62 @@ export function HostConsole() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm">
         <JoinPanel code={code} joinNote={view.joinNote} />
-        <p className="font-semibold text-ink">
-          {inRound
-            ? `${roundLabel} · ${pattern}${view.state === 'Auto' ? ' · ▶ Auto' : ''}`
-            : `Lobby · next: ${pattern}`}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-semibold text-ink">
+            {inRound
+              ? `${roundLabel} · ${pattern}${view.state === 'Auto' ? ' · ▶ Auto' : ''}`
+              : `Lobby · next: ${pattern}`}
+          </p>
+          <span className="flex gap-2">
+            <Button
+              look="secondary"
+              onClick={() => {
+                setOpen(open === 'displays' ? undefined : 'displays')
+              }}
+            >
+              Open display ⧉
+            </Button>
+            {view.state !== 'Auto' && (
+              <Button
+                look="secondary"
+                onClick={() => {
+                  setOpen(open === 'options' ? undefined : 'options')
+                }}
+              >
+                Options
+              </Button>
+            )}
+          </span>
+        </div>
       </header>
+
+      {game.rulesNotice && (
+        <RulesNotice
+          notice={game.rulesNotice}
+          patterns={view.patterns}
+          onClose={game.dismissRulesNotice}
+        />
+      )}
+
+      {open === 'options' && view.state !== 'Auto' && hostView && (
+        <OptionsPanel
+          game={view}
+          settings={hostView.settings}
+          host={host}
+          onClose={() => {
+            setOpen(undefined)
+          }}
+        />
+      )}
+      {open === 'displays' && (
+        <DisplayMenu
+          host={host}
+          joinNote={view.joinNote}
+          onClose={() => {
+            setOpen(undefined)
+          }}
+        />
+      )}
 
       {passwordAlerts.map((alert) => {
         const data = alert.data as { wrongInLastMinute: number; lockedFor: string | null }
@@ -146,6 +202,12 @@ export function HostConsole() {
         inRound={inRound}
         host={host}
         onInspect={setInspecting}
+      />
+
+      <LeaderboardPanel
+        entries={view.leaderboard ?? []}
+        shown={view.leaderboardVisible}
+        host={host}
       />
 
       <div className="flex justify-end">

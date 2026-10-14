@@ -1,4 +1,4 @@
-import { api, unwrap } from '../../api/client'
+import { api, unwrap, type Schemas } from '../../api/client'
 
 const auth = (token: string) => ({ Authorization: `Bearer ${token}` })
 
@@ -60,6 +60,46 @@ export function hostApi(code: string, token: string) {
         }),
       ),
     endGame: () => unwrap(api.POST('/api/sessions/{code}/end', { params: { path }, headers })),
+    applyRules: (settings: Schemas['SettingsBody'] | null, winCondition: string | null) =>
+      unwrap(
+        api.PUT('/api/sessions/{code}/rules', {
+          params: { path },
+          headers,
+          body: { settings, winCondition },
+        }),
+      ),
+    showLeaderboard: (visible: boolean) =>
+      unwrap(
+        api.POST('/api/sessions/{code}/leaderboard/show', {
+          params: { path },
+          headers,
+          body: { visible },
+        }),
+      ),
+    leaderboard: () =>
+      unwrap(api.GET('/api/sessions/{code}/leaderboard', { params: { path }, headers })),
+    createDisplayLink: () =>
+      unwrap(api.POST('/api/sessions/{code}/display-links', { params: { path }, headers })),
+    displays: () => unwrap(api.GET('/api/sessions/{code}/displays', { params: { path }, headers })),
+    disconnectDisplay: (displayId: string) =>
+      unwrap(
+        api.DELETE('/api/sessions/{code}/displays/{id}', {
+          params: { path: { code, id: displayId } },
+          headers,
+        }),
+      ),
+    connectTv: (pairingCode: string) =>
+      unwrap(
+        api.POST('/api/sessions/{code}/display-pairings', {
+          params: { path },
+          headers,
+          body: { pairingCode },
+        }),
+      ),
+    setJoinNote: (note: string) =>
+      unwrap(
+        api.PUT('/api/sessions/{code}/join-note', { params: { path }, headers, body: { note } }),
+      ),
   }
 }
 

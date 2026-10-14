@@ -28,6 +28,7 @@ interface EventData {
   round?: number
   nextBallFrom?: string
   note?: string | null
+  visible?: boolean
 }
 
 const totalBalls = (game: Game) => game.board.reduce((sum, group) => sum + group.balls.length, 0)
@@ -101,8 +102,12 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
       return with_({ joinNote: data.note ?? null })
     case 'SessionEnded':
       return with_({ state: 'Ended' })
-    case 'SettingsChanged':
     case 'LeaderboardVisibilityChanged':
+      return {
+        ...with_({ leaderboardVisible: data.visible ?? game.leaderboardVisible }),
+        refetch: true,
+      } // players now get the entries
+    case 'SettingsChanged':
     case 'WinClaimed':
     case 'ClaimDismissed':
     case 'ParticipantRemoved':

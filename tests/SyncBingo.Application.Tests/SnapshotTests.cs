@@ -61,7 +61,9 @@ public sealed class SnapshotTests
         (await Queries.SnapshotAsync(code, Caller.Host, TestApp.Ct)).Value.Game.Leaderboard.ShouldNotBeNull();
 
         (await _app.Host.ShowLeaderboardAsync(code, Caller.Host, true, TestApp.Ct)).IsSuccess.ShouldBeTrue();
-        (await Queries.SnapshotAsync(code, Caller.Participant(ava), TestApp.Ct)).Value.Game.Leaderboard.ShouldNotBeNull();
+        var shown = (await Queries.SnapshotAsync(code, Caller.Participant(ava), TestApp.Ct)).Value.Game;
+        shown.Leaderboard.ShouldNotBeNull();
+        shown.LeaderboardVisible.ShouldBeTrue("the host's Show / Hide button reads this");
     }
 
     [Fact]

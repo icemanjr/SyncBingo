@@ -622,6 +622,7 @@ export interface components {
             /** Format: int64 */
             seq: number;
             joinNote: null | string;
+            leaderboardVisible: boolean;
         };
         HostBody: {
             settings: components["schemas"]["SettingsBody"];

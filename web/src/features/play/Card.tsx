@@ -1,6 +1,6 @@
 import type { Schemas } from '../../api/client'
 import { Mark } from './Mark'
-import type { MarkStyle } from './markStyle'
+import { textSizes, type MarkStyle } from './markStyle'
 
 /**
  * A player's card. Each square is a toggle button (48 px or more): tap to mark, tap again to unmark (the
@@ -56,7 +56,7 @@ export function Card({
           >
             {marked && <Mark style={markStyle} />}
             <span
-              className="relative z-10 text-xl font-bold tabular-nums"
+              className={`relative z-10 font-bold tabular-nums ${textSizes.find((t) => t.value === markStyle.textSize)?.className ?? 'text-xl'}`}
               style={{
                 textShadow:
                   '0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 1px var(--surface)',

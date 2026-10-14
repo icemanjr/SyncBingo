@@ -221,7 +221,7 @@ describe('the play screen', () => {
     })
   })
 
-  it('keeps the chosen mark style on this device', async () => {
+  it('keeps the chosen mark style and text size on this device', async () => {
     fakeApi({ [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) } })
     renderAt(`/play/${code}`)
 
@@ -229,9 +229,15 @@ describe('the play screen', () => {
     await userEvent.click(screen.getByRole('radio', { name: /Heart/ }))
     await userEvent.click(screen.getByRole('radio', { name: 'High contrast' }))
 
+    await userEvent.click(screen.getByRole('radio', { name: 'Largest' }))
+
     expect(JSON.parse(localStorage.getItem('syncbingo:mark-style') ?? '{}')).toMatchObject({
       shape: 'heart',
       colour: 'var(--ink)',
+      textSize: 'largest',
     })
+    expect(screen.getByRole('gridcell', { name: '1' }).querySelector('span')).toHaveClass(
+      'text-4xl',
+    )
   })
 })

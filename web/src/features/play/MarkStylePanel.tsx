@@ -1,8 +1,8 @@
 import { Button, Panel } from '../game/ui'
 import { Mark } from './Mark'
-import { colours, shapes, type MarkStyle } from './markStyle'
+import { colours, shapes, textSizes, type MarkStyle } from './markStyle'
 
-/** **⚙ My marks** (FR-51): shape, colour and opacity, with a live preview; kept on this device. */
+/** **⚙ My marks** (FR-51): shape, colour, opacity and text size, with a live preview; kept on this device. */
 export function MarkStylePanel({
   style,
   onChange,
@@ -23,14 +23,14 @@ export function MarkStylePanel({
           >
             <Mark style={style} />
             <span
-              className="relative z-10 text-2xl font-bold"
+              className={`relative z-10 font-bold ${textSizes.find((t) => t.value === style.textSize)?.className ?? 'text-xl'}`}
               style={{ textShadow: '0 0 3px var(--surface), 0 0 3px var(--surface)' }}
             >
               17
             </span>
           </div>
           <p className="text-sm text-ink-muted">
-            The number always stays on top, so it stays readable.
+            The text always stays on top, so it stays readable.
           </p>
         </div>
 
@@ -81,6 +81,29 @@ export function MarkStylePanel({
                   className="h-7 w-7 rounded-full"
                   style={{ backgroundColor: colour.value }}
                 />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-1 font-semibold">Text size</legend>
+          <div className="flex flex-wrap gap-2">
+            {textSizes.map((size) => (
+              <label
+                key={size.value}
+                className={`flex min-h-12 cursor-pointer items-center rounded-xl border-2 px-3 ${style.textSize === size.value ? 'border-accent bg-accent-soft' : 'border-line-soft'}`}
+              >
+                <input
+                  type="radio"
+                  name="text-size"
+                  checked={style.textSize === size.value}
+                  onChange={() => {
+                    onChange({ ...style, textSize: size.value })
+                  }}
+                  className="sr-only"
+                />
+                {size.label}
               </label>
             ))}
           </div>

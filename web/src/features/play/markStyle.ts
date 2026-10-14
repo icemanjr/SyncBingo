@@ -2,12 +2,16 @@ import { useState } from 'react'
 
 export type MarkShape = 'circle' | 'star' | 'heart' | 'square' | 'tint'
 
+export type TextSize = 'normal' | 'large' | 'larger' | 'largest'
+
 /** How this player's marks look (FR-51), on this device only. */
 export interface MarkStyle {
   shape: MarkShape
   colour: string
   /** 0.2 to 0.8 */
   opacity: number
+  /** How big the text in the squares is (a number, or a word with custom sets); the largest still fits two digits on a small phone. */
+  textSize: TextSize
 }
 
 export const shapes: { value: MarkShape; label: string; symbol: string }[] = [
@@ -32,7 +36,19 @@ export const colours: { value: string; label: string }[] = [
   { value: 'var(--ink)', label: 'High contrast' },
 ]
 
-export const defaultMarkStyle: MarkStyle = { shape: 'circle', colour: '#2563eb', opacity: 0.45 }
+export const textSizes: { value: TextSize; label: string; className: string }[] = [
+  { value: 'normal', label: 'Normal', className: 'text-xl' },
+  { value: 'large', label: 'Large', className: 'text-2xl' },
+  { value: 'larger', label: 'Larger', className: 'text-3xl' },
+  { value: 'largest', label: 'Largest', className: 'text-4xl' },
+]
+
+export const defaultMarkStyle: MarkStyle = {
+  shape: 'circle',
+  colour: '#2563eb',
+  opacity: 0.45,
+  textSize: 'normal',
+}
 
 const storageKey = 'syncbingo:mark-style'
 const clampOpacity = (value: number) => Math.min(0.8, Math.max(0.2, value))
@@ -45,11 +61,13 @@ export function loadMarkStyle(): MarkStyle {
     if (!saved) return defaultMarkStyle
     const shape = shapes.find((s) => s.value === saved.shape)?.value
     const colour = colours.find((c) => c.value === saved.colour)?.value
+    const textSize = textSizes.find((t) => t.value === saved.textSize)?.value
     return {
       shape: shape ?? defaultMarkStyle.shape,
       colour: colour ?? defaultMarkStyle.colour,
       opacity:
         typeof saved.opacity === 'number' ? clampOpacity(saved.opacity) : defaultMarkStyle.opacity,
+      textSize: textSize ?? defaultMarkStyle.textSize,
     }
   } catch {
     return defaultMarkStyle

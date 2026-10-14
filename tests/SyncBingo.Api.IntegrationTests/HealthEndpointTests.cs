@@ -1,14 +1,15 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
+using SyncBingo.Api.IntegrationTests.Http;
+using SyncBingo.Api.IntegrationTests.Redis;
 
 namespace SyncBingo.Api.IntegrationTests;
 
-public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests(RedisFixture redis)
 {
     [Fact]
     public async Task Healthz_returns_healthy()
     {
+        await using var factory = new ApiFactory(redis);
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/healthz", UriKind.Relative), TestContext.Current.CancellationToken);

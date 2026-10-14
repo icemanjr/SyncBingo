@@ -4,7 +4,7 @@
 
 | Screen | Route | Purpose |
 |--------|-------|---------|
-| Landing | `/` | **Host a game**, **Join a game**, greyed-out **Serious Bingo (coming soon)** |
+| Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
 | Host console | `/host/:code` | **Call board by default** (FR-27), with QR + game code, last ball, draw/pause/round controls, claims and alerts, participant list, leaderboard. Rules and settings sit behind an **Options** button. **Open display** pops out the display view |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |

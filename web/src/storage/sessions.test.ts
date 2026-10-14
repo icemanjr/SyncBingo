@@ -8,9 +8,14 @@ describe('seats', () => {
   })
 
   it('remembers how this browser takes part in a game', () => {
-    seats.save('abc', { role: 'player', token: 't', participantId: 'p1' })
+    seats.save('abc', { role: 'player', token: 't', participantId: 'p1', name: 'Ava' })
 
-    expect(seats.load('abc')).toEqual({ role: 'player', token: 't', participantId: 'p1' })
+    expect(seats.load('abc')).toEqual({
+      role: 'player',
+      token: 't',
+      participantId: 'p1',
+      name: 'Ava',
+    })
     seats.forget('abc')
     expect(seats.load('abc')).toBeUndefined()
   })

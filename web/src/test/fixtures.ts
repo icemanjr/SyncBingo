@@ -71,3 +71,23 @@ export const aCall = (number: number, sequence = 1): Schemas['BallCall'] => ({
   calledAt: '2026-10-14T19:00:00Z',
   source: 'Manual',
 })
+
+/** A player's snapshot: the game as a player sees it, and their own card (cells 1–24 around the free centre). */
+export function aPlayerSnapshot(
+  game: Partial<Schemas['GameView']> = {},
+  marks = 1 << 12,
+): Snapshot {
+  const cells = Array.from({ length: 25 }, (_, cell) =>
+    cell === 12 ? 0 : cell < 12 ? cell + 1 : cell,
+  )
+  return {
+    game: aGame({ joinNote: null, ...game }),
+    you: {
+      participantId: 'p1',
+      name: 'Ava',
+      autoFillOn: false,
+      cards: [{ cardId: 1, cells, marks }],
+    },
+    host: null,
+  }
+}

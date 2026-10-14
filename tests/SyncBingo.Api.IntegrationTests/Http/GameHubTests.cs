@@ -22,7 +22,12 @@ public sealed class GameHubTests : IAsyncDisposable
 
     public GameHubTests(RedisFixture redis)
     {
-        _factory = new ApiFactory(redis);
+        // Low wrong-password limits so the host alerts can be reached; no other test here types a wrong password.
+        _factory = new ApiFactory(redis, new Dictionary<string, string>
+        {
+            ["RateLimits:WrongPasswordWarning"] = "3",
+            ["RateLimits:WrongPasswords"] = "6",
+        });
         _client = _factory.CreateClient();
     }
 
@@ -126,6 +131,31 @@ public sealed class GameHubTests : IAsyncDisposable
         await ava.WaitForNoticeAsync("AutoFillApplied");
         await ben.WaitForAsync("BallCalled", 1);
         ben.Notices.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task The_host_is_warned_when_many_passwords_are_wrong_and_told_of_a_lockout()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var host = await ListenAsync(code, hostToken);
+
+        for (var i = 0; i < 6; i++)
+        {
+            (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/join", body: new { password = "wrong", name = $"Guess{i}" })).Dispose();
+        }
+
+        await host.WaitForNoticeAsync("WrongPasswordsAlert");
+        var until = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (host.Notices.Count(n => n.GetProperty("type").GetString() == "WrongPasswordsAlert") < 2 && DateTime.UtcNow < until)
+        {
+            await Task.Delay(20, Ct);
+        }
+
+        var alerts = host.Notices.Where(n => n.GetProperty("type").GetString() == "WrongPasswordsAlert").Select(n => n.GetProperty("data")).ToList();
+        alerts.Count.ShouldBe(2, "once at the warning level, once at the lockout; not on every typo");
+        alerts[0].GetProperty("wrongInLastMinute").GetInt32().ShouldBe(3);
+        alerts[0].GetProperty("lockedFor").ValueKind.ShouldBe(JsonValueKind.Null);
+        alerts[1].GetProperty("lockedFor").GetString().ShouldBe("00:10:00");
     }
 
     [Fact]

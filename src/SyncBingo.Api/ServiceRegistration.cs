@@ -75,6 +75,9 @@ internal static class ServiceRegistration
         services.AddExceptionHandler<Problems.ExceptionHandler>();
         services.Configure<JsonOptions>(json => json.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
+        services.AddSyncBingoRateLimits(configuration.GetSection("RateLimits").Get<RateLimitOptions>() ?? new RateLimitOptions());
+        services.AddOpenApi();
+
         services.AddHealthChecks().AddCheck<RedisHealthCheck>("redis", tags: ["ready"]);
         return services;
     }

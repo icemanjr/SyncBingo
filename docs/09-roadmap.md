@@ -19,14 +19,15 @@
 ## Phase 1b — Lean launch (live at SyncBingo.com, ADR 0011, docs/10)
 - [ ] Switch Redis to **Valkey** (Compose, Testcontainers); the integration tests prove compatibility
 - [ ] **arm64 + amd64** images, cross-compiled (keep the CI image job under 2 minutes)
-- [ ] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence
+- [ ] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)
 - [ ] AWS account (Paid plan, credits), **Budgets alerts at $10 and $25**, the Lean instance, Cloudflare DNS records
 - [ ] Deploy pipeline to the instance (pull and restart off-hours); measure real bytes per game; verify the docs/10 figures for Lean
 
 ## Phase 2 — Polish and hardening
 - [ ] Accessibility pass, reduced motion, screen-reader labels
-- [ ] Rate limiting, profanity filter, TTL/expiry handling
+- [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
+- [ ] Profanity filter, TTL/expiry handling
 - [ ] Playwright suite, OpenAPI-generated client
 - [ ] **k6 WebSocket load test against the real Lean box** with `docker stats` (target ~10 sessions × 30 players); record the result in docs/10
 

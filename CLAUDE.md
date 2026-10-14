@@ -45,7 +45,7 @@ docker-compose.yml
 4. **Redis with TTL**, behind `ISessionStore`. Shared-state mutations take a short per-session lock; marks update only the participant's own hash field.
 5. **Auto-call scheduling** uses a Redis sorted set with an atomic Lua claim and lease, so exactly one instance draws per tick.
 6. **Host credits wins.** A win needs a claim (Bingo button or a shout) and the host's *Award win*. Detection only alerts the host and uses called numbers, not marks; every Bingo press reaches the host, valid or not. Auto-fill is opt-in per participant when the host makes it available. The host does not play; a host who wants to play joins from another device.
-7. Secrets and tokens are stored hashed; join attempts are rate-limited; a participant only ever receives their own card.
+7. Secrets and tokens are stored hashed; wrong game passwords, game creation and marking are rate-limited; a participant only ever receives their own card.
 
 ## Ads and UI constraints
 

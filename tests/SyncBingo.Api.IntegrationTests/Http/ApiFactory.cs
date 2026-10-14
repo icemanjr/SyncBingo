@@ -11,7 +11,7 @@ using SyncBingo.Infrastructure.Security;
 namespace SyncBingo.Api.IntegrationTests.Http;
 
 /// <summary>The real API on the test Redis, with a clock tests can move forward and a cheap password hash.</summary>
-public sealed class ApiFactory(RedisFixture redis) : WebApplicationFactory<Program>
+public sealed class ApiFactory(RedisFixture redis, IReadOnlyDictionary<string, string>? settings = null) : WebApplicationFactory<Program>
 {
     public ShiftedTime Time { get; } = new();
 
@@ -19,6 +19,11 @@ public sealed class ApiFactory(RedisFixture redis) : WebApplicationFactory<Progr
     {
         builder.UseSetting("Redis:ConnectionString", redis.ConnectionString);
         builder.UseSetting("Redis:LockWait", "00:00:00.3");
+        foreach (var (key, value) in settings ?? new Dictionary<string, string>())
+        {
+            builder.UseSetting(key, value);
+        }
+
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Time);

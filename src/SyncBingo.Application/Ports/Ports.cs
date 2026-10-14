@@ -52,6 +52,13 @@ public abstract record Notification;
 
 public sealed record ParticipantJoined(string ParticipantId, string Name) : Notification;
 
+/// <summary>
+/// Many people are typing a wrong game password (docs/05 §5): often the password shared with the room
+/// is not the one the game was created with. <see cref="LockedFor"/> is set once joining from one
+/// address has been locked.
+/// </summary>
+public sealed record WrongPasswordsAlert(int WrongInLastMinute, TimeSpan? LockedFor) : Notification;
+
 public sealed record AutoFillApplied(IReadOnlyList<AutoFilledCell> Cells) : Notification;
 
 public sealed record CardReplaced(int CardId, IReadOnlyList<int> Cells) : Notification;

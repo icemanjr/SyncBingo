@@ -54,7 +54,7 @@ flowchart TB
 | TLS and DNS | ACM certificates; DNS records in Cloudflare, where `syncbingo.com` is registered (no Route 53 zone needed; docs/10 §2a) |
 | Secrets/config | SSM Parameter Store / Secrets Manager injected into tasks |
 | Network | Private subnets for tasks and Redis; consider VPC endpoints versus NAT cost for a demo |
-| Protection | AWS WAF rate rules in front of CloudFront (optional), security groups scoped tightly |
+| Protection | Security groups scoped tightly. Edge rate rules (AWS WAF in front of CloudFront, or Cloudflare) only with **very high per-IP thresholds**, or none: a whole event of up to 100 people shares one WiFi address, and a busy game is thousands of requests from that address in a few minutes. The API's own limits (docs/05 §5) are keyed by player token where it matters |
 
 ## 3. AWS CDK (C#)
 

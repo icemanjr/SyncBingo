@@ -59,7 +59,7 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 ┌───────────────────────┐
 │ [Ad: top banner]      │
 ├───────────────────────┤
-│  Normal Bingo   (N 37)│  ← ball corner (if enabled)
+│ [Normal Bingo ⓘ] (N37)│  ← tap: How to win (FR-48); ball corner (if enabled)
 │  B  I  N  G  O        │
 │ 07 22 38 51 66        │
 │ 12 19 41 49 70        │
@@ -71,6 +71,32 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 │ [Ad: bottom banner]   │
 └───────────────────────┘
 ```
+
+### How to win and house rules (FR-48)
+
+Tapping the pattern name opens this panel, in the lobby, during the countdown or during a round:
+
+```
+┌──────────────────────────┐
+│ How to win           [X] │
+│ Normal Bingo             │
+│ Any row, column or diag. │
+│ ■■■■■  ■....  ■....      │
+│ .....  ■....  .■...      │
+│ .....  ■....  ..★..      │
+│ .....  ■....  ...■.      │
+│ .....  ■....  ....■      │
+│──────────────────────────│
+│ House rules              │
+│ • Mark only called numbers│
+│ • Free space: earned     │
+│ • Undo always available  │
+└──────────────────────────┘
+```
+
+- Pattern grids are drawn from the shapes the server sends (docs/05 snapshot), never hard-coded, so other card sizes and patterns need no client change. Cells in the pattern are filled **and** outlined, not shown by colour alone; each grid has a text alternative ("Top row", "Column B", "Diagonal").
+- *House rules* lists only what changes how players play, in plain words (e.g. "Squares can be unmarked only if their number hasn't been called"); host-only settings are left out.
+- It updates in place if the host applies new rules while it is open, and it never covers the BINGO button.
 
 ### Rules notices (FR-47)
 
@@ -85,7 +111,7 @@ A panel over the top of the card or board, on participants' screens, the display
 └───────────────────────────────┘
 ```
 
-- **Rules updated** appears when the host applies changes mid-round, listing each change in plain words. The round-start version, shown during the countdown, reads **This round: Four Corners** with the pattern's shape drawn as a small 5×5 grid.
+- **Rules updated** appears when the host applies changes mid-round, listing each change in plain words; a pattern change shows the new pattern's grid (as in FR-48), and tapping the notice opens the full *How to win* panel. The round-start version, shown during the countdown, reads **This round: Four Corners** with the pattern's shape drawn as a small 5×5 grid.
 - It closes with **X** (48 px target) or by itself when the next ball is called. It never hides the BINGO button, and it is announced to screen readers (`aria-live="polite"`). It has no animation under reduced motion and never flashes.
 - For 3 seconds after a *Rules updated* notice the host's **Grab ball** button counts down ("Grab ball 3…") and **Auto mode** is disabled, so everyone has time to read before the next ball.
 

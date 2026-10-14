@@ -82,8 +82,9 @@ On the play screen, **⚙ My marks** opens a small panel with a live preview cel
 
 - **Shape:** ● circle (default, like a dauber), ★ star, ♥ heart, ■ filled square, or ▢ tint (the whole cell's background).
 - **Colour:** a palette of 6 colours, each checked so a marked number stays readable in both themes, plus a high-contrast option.
+- **Opacity:** a slider from 20% to 80% (45% by default), shown live on the preview cell.
 
-The mark sits *behind* the number at about 45% opacity and the number stays bold on top, so a marked square never hides what is on it. Marked cells also say so to screen readers ("17, marked"). The choice is remembered on the device and never sent to the server.
+The mark sits *behind* the number and the number stays bold on top, so a marked square never hides what is on it, even at 80%. **Layering is a property of the square's content, not fixed:** text squares draw the mark behind; when image squares arrive (ADR 0009, deferred) the mark is drawn over the picture as a translucent overlay, since a picture would hide a mark behind it. Marked cells also say so to screen readers ("17, marked"). The choice is remembered on the device and never sent to the server.
 
 ### Patterns and current rules (FR-48)
 

@@ -28,8 +28,8 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
 
     /// <summary>
     /// Change some settings (docs/05 "partial settings"). <paramref name="change"/> runs under the
-    /// lock on the newest settings, those waiting for the next round if any, so two hosts' tabs
-    /// changing different settings at once do not undo each other.
+    /// lock on the newest settings, those waiting for the next round if any, so a quick second
+    /// change (or one racing a scheduler tick) builds on the first instead of replacing it.
     /// </summary>
     public Task<Result<CommandOutcome>> ChangeSettingsAsync(
         GameCode code, Caller caller, Func<SessionSettings, SessionSettings> change, CancellationToken cancellationToken)

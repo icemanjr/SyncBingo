@@ -22,6 +22,7 @@ app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = check => che
 
 var api = app.MapGroup("/api");
 api.MapPublicEndpoints();
+api.MapTvEndpoints();
 
 var game = api.MapGroup("/sessions/{code}").RequireAuthorization();
 game.MapQueryEndpoints();
@@ -30,6 +31,7 @@ game.MapHostEndpoints();
 game.MapDisplayEndpoints();
 
 app.MapHub<GameHub>("/hubs/game", hub => hub.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
+app.MapHub<PairingHub>("/hubs/pairing", hub => hub.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 
 app.Run();
 

@@ -47,10 +47,10 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/display-links` | – | `201 { displayId, displayUrl }`: a read-only display link (FR-28), `{origin}/display/{code}#t={token}`. The token is in the URL fragment, never the query, so it never reaches a server log. At most 10 displays per game (409 beyond). |
 | `DELETE /sessions/{code}/display-links` | – | Revoke every display link (paired TVs stay); each open display gets `DisplayDisconnected` and its token stops working. |
 | `PUT /sessions/{code}/join-note` | `{ note }` | The note shown with the join QR (FR-49), up to 80 characters; empty or `null` clears it. Any state but ended, even auto mode. |
-| `POST /sessions/{code}/display-pairings` | `{ pairingCode }` | **Connect a TV** (ADR 0010): approve the code shown on a TV. `204`; the TV receives its display token. `404` unknown or expired code. Rate-limited per host. |
+| `POST /sessions/{code}/display-pairings` | `{ pairingCode }` | **Connect a TV** (ADR 0010): approve the code shown on a TV, typed in any case, with or without the hyphen. `204`; the TV becomes a display of kind `Tv` and receives its token. `404` unknown, used or expired code; `409` when the game already has 10 displays (the code stays usable). Rate-limited to 10 per minute per host token. |
 | `GET /sessions/{code}/displays` · `DELETE …/displays/{id}` | – | List the displays (`[{ displayId, kind: Link \| Tv, createdAt }]`); disconnect one (its token stops working and it gets `DisplayDisconnected`). |
 
-**TV pairing (anonymous, ADR 0010):** `POST /tv/pairings` → `201 { pairingId, pairingCode, expiresAt }` (rate-limited per IP). The TV then connects to `/hubs/pairing?pairingId=…`, which can only deliver `Paired { sessionCode, displayToken }` (or `PairingExpired`) for that pairing, and then closes.
+**TV pairing (anonymous, ADR 0010):** `POST /tv/pairings` → `201 { pairingId, pairingCode, expiresAt }`, where the code is shown as `K7M-2QX` and lives 10 minutes, and `pairingId` is a 64-character secret only that TV knows. Rate-limited to 30 per IP per hour. The TV then connects to `/hubs/pairing?pairingId=…` (WebSockets, anonymous, server to client only), which can deliver only that pairing's `Paired { sessionCode, displayToken }`, or `PairingExpired` for an unknown or expired pairing. A result approved before the TV connected is handed over on connect.
 
 Future (Serious Bingo): `POST /sessions/{code}/cards/generate` → `{ claimId, claimUrl }`; `POST /claims/{claimId}/redeem`.
 
@@ -103,6 +103,7 @@ In the table, "all" means all three streams.
   - **Wrong game passwords:** reaching 60 within a minute, per game and IP address, **locks joining that game from that address for 10 minutes** (the right password too, or guessing could continue; `Retry-After` says how long). Only *wrong* passwords count, and the limit is high, because a whole event (up to 100 people) or class can share one WiFi address and children mistype; going past it means a bot or something broken. The host is alerted at 10 wrong passwords within a minute and again on a lockout (`WrongPasswordsAlert`, §4), since the password shared with the room may not be the game's.
   - **Creating games:** 30 per IP address per hour.
   - **Marks, Undo and Bingo presses:** per player token, bursts of 10, refilling at 5 a second.
+  - **TV pairings:** 30 started per IP address per hour; 10 approvals per minute per host token.
   - Behind a reverse proxy (Caddy, CloudFront) the client address must come from forwarded headers, configured with the trusted proxies (roadmap Phase 1b); until then every caller shares the proxy's address.
 - **`Idempotency-Key`** on `POST /wins`: an award repeated with the same key (up to 100 characters) changes nothing, so a double-clicked award for a shouted Bingo counts once. The game remembers its last 100 keys.
 - **OpenAPI:** the API describes itself at `GET /openapi/v1.json` (OpenAPI 3.1), from which the web app's typed client is generated.

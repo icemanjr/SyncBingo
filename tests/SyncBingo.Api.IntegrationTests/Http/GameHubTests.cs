@@ -214,6 +214,52 @@ public sealed class GameHubTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_tv_shows_a_code_the_host_approves_and_it_becomes_a_display()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (pairingId, pairingCode) = await StartPairingAsync();
+        var tv = await WaitForPairingAsync(pairingId);
+
+        pairingCode.ShouldMatch("^[A-Z2-9]{3}-[A-Z2-9]{3}$");
+        using var approve = await _client.SendAsync(
+            HttpMethod.Post, $"/api/sessions/{code}/display-pairings", hostToken, new { pairingCode = pairingCode.Replace("-", "", StringComparison.Ordinal).ToLowerInvariant() });
+        approve.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var paired = await tv.Paired.Task.WaitAsync(Patience, Ct);
+        paired.GetProperty("sessionCode").GetString().ShouldBe(code.Replace("-", "", StringComparison.Ordinal));
+        var displayToken = paired.GetProperty("displayToken").GetString()!;
+        (await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/snapshot", displayToken)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/balls", displayToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        using var list = await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/displays", hostToken);
+        (await list.Content.ReadFromJsonAsync<JsonElement>(Ct))[0].GetProperty("kind").GetString().ShouldBe("Tv");
+    }
+
+    [Fact]
+    public async Task A_tv_that_connects_after_the_approval_still_gets_its_token()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (pairingId, pairingCode) = await StartPairingAsync();
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/display-pairings", hostToken, new { pairingCode })).Dispose();
+
+        var tv = await WaitForPairingAsync(pairingId);
+
+        (await tv.Paired.Task.WaitAsync(Patience, Ct)).GetProperty("displayToken").GetString().ShouldNotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task A_pairing_code_works_once_and_an_unknown_pairing_is_expired()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (_, pairingCode) = await StartPairingAsync();
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/display-pairings", hostToken, new { pairingCode })).Dispose();
+
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/display-pairings", hostToken, new { pairingCode }))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        var stranger = await WaitForPairingAsync(new string('a', 64));
+        await stranger.Expired.Task.WaitAsync(Patience, Ct);
+    }
+
+    [Fact]
     public async Task Only_a_token_for_that_game_can_listen()
     {
         var (code, _) = await NewGameAsync();
@@ -259,6 +305,46 @@ public sealed class GameHubTests : IAsyncDisposable
         await connection.StartAsync(Ct);
         _listeners.Add(listener);
         return listener;
+    }
+
+    private async Task<(string PairingId, string PairingCode)> StartPairingAsync()
+    {
+        using var response = await _client.SendAsync(HttpMethod.Post, "/api/tv/pairings");
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        return (body.GetProperty("pairingId").GetString()!, body.GetProperty("pairingCode").GetString()!);
+    }
+
+    /// <summary>A TV waiting on the anonymous pairing hub, as the /tv page does.</summary>
+    private async Task<TvListener> WaitForPairingAsync(string pairingId)
+    {
+        var server = _factory.Server;
+        var connection = new HubConnectionBuilder()
+            .WithUrl(new Uri(server.BaseAddress, $"/hubs/pairing?pairingId={pairingId}"), options =>
+            {
+                options.Transports = HttpTransportType.WebSockets;
+                options.SkipNegotiation = true;
+                options.WebSocketFactory = (context, ct) => new ValueTask<System.Net.WebSockets.WebSocket>(
+                    server.CreateWebSocketClient().ConnectAsync(context.Uri, ct));
+            })
+            .Build();
+        var tv = new TvListener(connection);
+        await connection.StartAsync(Ct);
+        _listeners.Add(new Listener(connection));
+        return tv;
+    }
+
+    private sealed class TvListener
+    {
+        public TvListener(HubConnection connection)
+        {
+            connection.On<JsonElement>("Paired", result => Paired.TrySetResult(result));
+            connection.On("PairingExpired", () => Expired.TrySetResult());
+        }
+
+        public TaskCompletionSource<JsonElement> Paired { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Expired { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     /// <summary>Creates a display link and reads its token from the URL fragment, as the display page does.</summary>

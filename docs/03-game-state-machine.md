@@ -37,9 +37,9 @@ stateDiagram-v2
 | Round start (at zero) | – | ✔ | – | – | Scheduler only; refills the hopper and resets marks |
 | Clear cards | ✔ | ✖ | ✔ (ends current) | ✔ (ends current) | Clears marks and calls, optional redraw, back to the lobby (FR-34) |
 | End round | – | – | ✔ | ✔ | Stops the round; cards and calls stay visible |
-| Auto mode | – | – | ✔ | – | Draws a ball at once, then schedules the next after the interval |
+| Auto mode | – | – | ✔ | – | Draws a ball at once, then schedules the next after the interval. Not within 3 s of a mid-round rules change (FR-47) |
 | Pause | – | – | – | ✔ | Back to manual: cancels the auto-call schedule. No banner is shown |
-| Grab ball (host) | – | – | ✔ | ✖ | Manual mode only (FR-11) |
+| Grab ball (host) | – | – | ✔ | ✖ | Manual mode only (FR-11). Not within 3 s of a mid-round rules change: "Give everyone a moment to read the new rules." (FR-47) |
 | Auto draw (scheduler) | – | – | ✖ | ✔ | Auto mode only |
 | Mark square | ✖ | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free centre only once earned (FR-26) |
 | Unmark square | ✖ | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked |

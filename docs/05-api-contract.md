@@ -64,7 +64,8 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `SessionStateChanged` | all | `{ state, round, version }` |
 | `SettingsChanged` | all | settings visible to participants |
 | `WinConditionChanged` | all | `{ condition }` |
-| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto }`: clients count down locally to `endsAt` in the last-ball slot |
+| `RulesUpdated` | all | `{ changes: [{ rule, value, fromNextRound }], nextBallFrom }`: the "Rules updated" notice (FR-47). `rule` is a settings wire name or `winCondition`; clients word it ("Pattern changed to Blackout"). Raised only mid-round, and only for changes players notice. *Grab ball* and *Auto mode* answer 409 until `nextBallFrom` |
+| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto, winCondition }`: clients count down locally to `endsAt` in the last-ball slot and show the round-start notice with the pattern (FR-47) |
 | `RoundCountdownCancelled` | all | `{ round }` |
 | `RoundStarted` | all | `{ round }` |
 | `CardsCleared` | all | `{ redraw }` (players with new cards also get `CardReplaced`) |

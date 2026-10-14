@@ -47,6 +47,12 @@ public sealed class Session
     /// <summary>When the running countdown reaches zero; <c>null</c> when no countdown runs.</summary>
     public DateTimeOffset? CountdownEndsAt { get; private set; }
 
+    /// <summary>How long players get to read a "Rules updated" notice before the next ball (FR-47).</summary>
+    public static readonly TimeSpan RulesReadingTime = TimeSpan.FromSeconds(3);
+
+    /// <summary>No ball may be called before this, after rules changed mid-round (FR-47); <c>null</c> when there is no wait.</summary>
+    public DateTimeOffset? NextBallFrom { get; private set; }
+
     /// <summary>Whether the round being counted down starts in auto mode.</summary>
     public bool StartInAuto { get; private set; }
 
@@ -144,7 +150,8 @@ public sealed class Session
         [.. _wins],
         [.. _rounds],
         LeaderboardVisible,
-        [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))]);
+        [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))],
+        NextBallFrom);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
@@ -175,6 +182,7 @@ public sealed class Session
             Version = snapshot.Version,
             LastActivityAt = snapshot.LastActivityAt,
             LeaderboardVisible = snapshot.LeaderboardVisible,
+            NextBallFrom = snapshot.NextBallFrom,
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
@@ -205,7 +213,7 @@ public sealed class Session
         State = SessionState.Starting;
         CountdownEndsAt = now + CountdownLength;
         StartInAuto = startInAuto;
-        return Commit(now, new RoundCountdownStarted(RoundNumber + 1, CountdownEndsAt.Value, startInAuto));
+        return Commit(now, new RoundCountdownStarted(RoundNumber + 1, CountdownEndsAt.Value, startInAuto, WinConditionId));
     }
 
     /// <summary>The host stops the countdown; back to the lobby, and joining reopens.</summary>
@@ -315,6 +323,11 @@ public sealed class Session
             return WrongState("switch to auto mode");
         }
 
+        if (StillReadingRules(now) is { } reading)
+        {
+            return reading;
+        }
+
         if (BallsRemaining == 0)
         {
             return HopperEmpty();
@@ -348,6 +361,11 @@ public sealed class Session
         if (State != required)
         {
             return WrongState(source == DrawSource.Manual ? "grab a ball" : "auto-draw a ball");
+        }
+
+        if (StillReadingRules(now) is { } reading)
+        {
+            return reading;
         }
 
         if (BallsRemaining == 0)
@@ -392,6 +410,7 @@ public sealed class Session
         }
 
         var events = new List<SessionEvent>();
+        var (oldNow, oldNext, oldPattern) = (Settings, NextRoundSettings, WinConditionId);
         var (current, next) = IsInRound
             ? (settings.KeepRoundScopedFrom(Settings), settings)
             : (settings, settings);
@@ -412,6 +431,15 @@ public sealed class Session
             }
 
             events.Add(new WinConditionChanged(winConditionId));
+        }
+
+        // Mid-round, everyone is told what changed, and gets a moment to read it before the next ball (FR-47).
+        List<RuleChange> noticed = winConditionId != oldPattern ? [new RuleChange("winCondition", winConditionId)] : [];
+        noticed.AddRange(SessionSettings.PlayerFacingChanges(oldNow, oldNext, Settings, NextRoundSettings));
+        if (IsInRound && noticed.Count > 0)
+        {
+            NextBallFrom = now + RulesReadingTime;
+            events.Add(new RulesUpdated(noticed, NextBallFrom.Value));
         }
 
         return events.Count == 0 ? Result.Success<IReadOnlyList<SessionEvent>>([]) : Commit(now, events);
@@ -723,6 +751,7 @@ public sealed class Session
         _calls.Clear();
         _calledNumbers.Clear();
         _alerted.Clear();
+        NextBallFrom = null;
     }
 
     private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
@@ -780,6 +809,12 @@ public sealed class Session
         LastActivityAt = now;
         return Result.Success<IReadOnlyList<SessionEvent>>(numbered);
     }
+
+    /// <summary>Refuses a ball while players still have time to read new rules (FR-47).</summary>
+    private DomainError? StillReadingRules(DateTimeOffset now) =>
+        now < NextBallFrom
+            ? Failure(DomainErrorCode.WrongState, "Give everyone a moment to read the new rules.")
+            : null;
 
     private DomainError WrongState(string action) =>
         new(DomainErrorCode.WrongState, $"Cannot {action} while the session is {Describe(State)}.");

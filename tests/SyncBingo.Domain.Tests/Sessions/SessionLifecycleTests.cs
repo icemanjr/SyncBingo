@@ -73,7 +73,7 @@ public sealed class SessionLifecycleTests
         var session = InState(SessionState.Manual);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
 
-        session.ChangePattern("blackout", Now).Single<WinConditionChanged>().WinConditionId.ShouldBe("blackout");
+        session.ChangePattern("blackout", Now).Value.OfType<WinConditionChanged>().ShouldHaveSingleItem().WinConditionId.ShouldBe("blackout");
 
         session.WinConditionId.ShouldBe("blackout");
         session.Calls.Count.ShouldBe(1);

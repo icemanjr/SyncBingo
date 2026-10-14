@@ -55,10 +55,13 @@ internal sealed class PlayerTestKit
     public IRandomSource Picks(int number) =>
         new FixedRandom(Enumerable.Range(1, number - 1).Count(n => !Session.HasBeenCalled(n)));
 
-    /// <summary>Calls exactly <paramref name="number"/> (manual draw) and returns the previous ball.</summary>
+    /// <summary>
+    /// Calls exactly <paramref name="number"/> (manual draw) and returns the previous ball. Like a host,
+    /// it waits out the reading time after a mid-round rules change (FR-47).
+    /// </summary>
     public int? Call(int number)
     {
-        var called = Session.DrawBall(DrawSource.Manual, Picks(number), Now).Single<BallCalled>();
+        var called = Session.DrawBall(DrawSource.Manual, Picks(number), Session.NextBallFrom ?? Now).Single<BallCalled>();
         called.Call.Number.ShouldBe(number);
         return called.PreviousNumber;
     }

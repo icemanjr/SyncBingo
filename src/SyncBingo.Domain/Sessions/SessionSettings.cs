@@ -96,6 +96,49 @@ public sealed record SessionSettings
 
     public static SessionSettings Default { get; } = new();
 
+    /// <summary>
+    /// The settings players notice, by wire name, for the "Rules updated" notice (FR-47). Left out
+    /// on purpose: the auto-call interval and win detection (how the host runs the game) and the
+    /// cosmetic win highlight and round numbers.
+    /// </summary>
+    private static readonly (string Rule, Func<SessionSettings, object> Value, bool RoundScoped)[] PlayerFacing =
+    [
+        ("showBallToPlayers", s => s.ShowBallToPlayers, false),
+        ("highlightMatches", s => s.HighlightMatches, false),
+        ("showCallBoard", s => s.ShowCallBoard, false),
+        ("autoFillAvailable", s => s.AutoFillAvailable, false),
+        ("bingoButton", s => s.BingoButton, false),
+        ("freeMarking", s => s.FreeMarking, false),
+        ("requireMarksForClaims", s => s.RequireMarksForClaims, false),
+        ("unmarking", s => s.Unmarking, false),
+        ("freeSpace", s => s.FreeSpace, true),
+        ("redrawPolicy", s => s.RedrawPolicy, true),
+        ("multipleWins", s => s.MultipleWins, true),
+    ];
+
+    /// <summary>
+    /// What players would notice going from (<paramref name="oldNow"/>, <paramref name="oldNext"/>)
+    /// to (<paramref name="newNow"/>, <paramref name="newNext"/>): settings in force now, and the
+    /// round-scoped ones waiting for the next round.
+    /// </summary>
+    internal static IEnumerable<RuleChange> PlayerFacingChanges(
+        SessionSettings oldNow, SessionSettings? oldNext, SessionSettings newNow, SessionSettings? newNext)
+    {
+        foreach (var (rule, value, roundScoped) in PlayerFacing)
+        {
+            if (!Equals(value(oldNow), value(newNow)))
+            {
+                yield return new RuleChange(rule, Format(value(newNow)));
+            }
+            else if (roundScoped && !Equals(value(oldNext ?? oldNow), value(newNext ?? newNow)))
+            {
+                yield return new RuleChange(rule, Format(value(newNext ?? newNow)), FromNextRound: true);
+            }
+        }
+    }
+
+    private static string Format(object value) => value is bool flag ? (flag ? "true" : "false") : value.ToString()!;
+
     internal DomainError? Validate()
     {
         if (AutoCallInterval < MinAutoCallInterval || AutoCallInterval > MaxAutoCallInterval)

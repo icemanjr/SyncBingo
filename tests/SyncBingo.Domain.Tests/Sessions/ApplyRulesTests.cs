@@ -16,7 +16,7 @@ public sealed class ApplyRulesTests
 
         var events = session.ApplyRules(NoBoard, "blackout", Now).Value;
 
-        events.Select(e => e.GetType()).ShouldBe([typeof(SettingsChanged), typeof(WinConditionChanged)]);
+        events.Select(e => e.GetType()).ShouldBe([typeof(SettingsChanged), typeof(WinConditionChanged), typeof(RulesUpdated)]);
         session.Settings.ShowCallBoard.ShouldBeFalse();
         session.WinConditionId.ShouldBe("blackout");
         session.Version.ShouldBe(version + 1, "one change, however many rules");
@@ -27,8 +27,10 @@ public sealed class ApplyRulesTests
     {
         var session = InState(SessionState.Manual);
 
-        session.ApplyRules(session.Settings, "blackout", Now).Value.ShouldHaveSingleItem().ShouldBeOfType<WinConditionChanged>();
-        session.ApplyRules(NoBoard, "blackout", Now).Value.ShouldHaveSingleItem().ShouldBeOfType<SettingsChanged>();
+        session.ApplyRules(session.Settings, "blackout", Now).Value.Select(e => e.GetType())
+            .ShouldBe([typeof(WinConditionChanged), typeof(RulesUpdated)]);
+        session.ApplyRules(NoBoard, "blackout", Now).Value.Select(e => e.GetType())
+            .ShouldBe([typeof(SettingsChanged), typeof(RulesUpdated)]);
     }
 
     [Fact]

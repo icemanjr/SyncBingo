@@ -72,6 +72,23 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 └───────────────────────┘
 ```
 
+### Rules notices (FR-47)
+
+A panel over the top of the card or board, on participants' screens, the display view and the host console:
+
+```
+┌───────────────────────────────┐
+│ Rules updated              [X]│
+│ • Pattern changed to Blackout │
+│ • Free space must be earned   │
+│   (from next round)           │
+└───────────────────────────────┘
+```
+
+- **Rules updated** appears when the host applies changes mid-round, listing each change in plain words. The round-start version, shown during the countdown, reads **This round: Four Corners** with the pattern's shape drawn as a small 5×5 grid.
+- It closes with **X** (48 px target) or by itself when the next ball is called. It never hides the BINGO button, and it is announced to screen readers (`aria-live="polite"`). It has no animation under reduced motion and never flashes.
+- For 3 seconds after a *Rules updated* notice the host's **Grab ball** button counts down ("Grab ball 3…") and **Auto mode** is disabled, so everyone has time to read before the next ball.
+
 ### Lobby and round countdown (FR-45, FR-46)
 
 Between rounds the host console's main control is the round button, with the start-mode toggle beside it:

@@ -186,6 +186,22 @@ public sealed class ApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task After_a_mid_round_rules_change_the_next_ball_waits_three_seconds()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/rounds/countdown", hostToken, new { startInAuto = false })).Dispose();
+        await CountdownEndsAsync(code);
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/rules", hostToken, new { winCondition = "blackout" })).Dispose();
+
+        using var early = await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/balls", hostToken);
+        early.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await Json(early)).GetProperty("detail").GetString().ShouldBe("Give everyone a moment to read the new rules.");
+
+        _factory.Time.Shift += Session.RulesReadingTime;
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/balls", hostToken)).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task The_rules_cannot_change_in_auto_mode()
     {
         var (code, hostToken) = await NewGameAsync();

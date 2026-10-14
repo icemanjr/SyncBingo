@@ -47,8 +47,10 @@ public sealed class SessionSnapshotTests
         restored.Leaderboard().ShouldBe(original.Leaderboard());
         restored.ChangePattern("normal", Now).IsSuccess.ShouldBeTrue();
         restored.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("the line alerted before the restore is not alerted again");
-        restored.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).Single<BallCalled>().Seq.ShouldBe(restored.LastEventSeq);
-        restored.LastEventSeq.ShouldBe(original.LastEventSeq + 2, "numbering carries on after the restore");
+        restored.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).Error!.Message
+            .ShouldBe("Give everyone a moment to read the new rules.", "the reading time survives a restore");
+        restored.DrawBall(DrawSource.Manual, new SeededRandom(1), restored.NextBallFrom!.Value).Single<BallCalled>().Seq.ShouldBe(restored.LastEventSeq);
+        restored.LastEventSeq.ShouldBe(original.LastEventSeq + 3, "numbering carries on after the restore (pattern, notice, ball)");
     }
 
     [Fact]

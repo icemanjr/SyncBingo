@@ -18,7 +18,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `GET /sessions/{code}/snapshot` | – | Full state for the caller (the call board as groups of items, docs/06; own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Includes the variant's **patterns as data**, `{ id, name, masks[] }` with the card's rows and columns, so clients draw the *Patterns* tab (FR-48) from it. Used on load, reconnect and gap detection. |
+| `GET /sessions/{code}/snapshot` | – | The caller's view: `{ game, you, host }`. **`game`** (everyone): code, state, round and upcoming round, countdown end, pattern, the variant's **patterns as data** `{ id, name, masks[] }` (bit *i* = cell *i*; FR-48), the card shape `{ rows, columns, freeCell }`, the call board as groups of balls, the calls (`null` for a player unless *Show ball*, *Highlight matching square* or *Show call board* is on), balls remaining, `nextBallFrom` (FR-47), the settings players notice, the leaderboard (`null` for players and the display until the host shows it), `version` and `seq`. **`you`** (a player): own id, name, auto-fill switch and cards `{ cardId, cells, marks }`, never anyone else's. **`host`** (the host): every setting, the players `{ participantId, name, joinedAt }`, open claims this round and the round summaries. Create and join return the same snapshot. Used on load, reconnect and gap detection. |
 | `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects (422) marking an uncalled number when *Free marking* is off, and an unmark that *Unmarking* does not allow (off, or a called square under *Mismarks only*). Returns updated marks. |
 | `POST /sessions/{code}/cards/{cardId}/undo` | – | Undo (FR-25): resets the card to its marks when the last ball was called. Always allowed during a round. Returns updated marks. |
 | `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `202 { claimedAt }`: the claim always goes to the host (FR-37a); the player is not told whether it qualifies. |
@@ -39,9 +39,9 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
 | `POST /sessions/{code}/wins` | `{ participantId, cardId?, wins?, claimId? }` | Award a win for the current win condition, as *Multiple wins* allows (FR-43). `wins` > 1 only with *every declared win*. Passing the `claimId` makes repeats harmless; awards without a claim (a shouted Bingo) should send an `Idempotency-Key` header so a double click counts once. |
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
-| `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim. |
+| `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim (FR-38): `{ participantId, name, autoFillOn, cards[] }` with marks. |
 | `DELETE /sessions/{code}/participants/{id}` | – | Kick. |
-| `GET /sessions/{code}/leaderboard` | – | Wins per participant + round summaries. |
+| `GET /sessions/{code}/leaderboard` | – | `{ entries, rounds }`: wins per participant and the round summaries. |
 | `POST /sessions/{code}/leaderboard/show` | `{ visible }` | Show or hide the leaderboard on participants' screens. |
 | `POST /sessions/{code}/end` | – | End the session; data discarded. |
 | `POST /sessions/{code}/display-links` | – | `201 { displayUrl }`: a read-only display link (FR-28), token in the URL fragment. |

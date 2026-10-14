@@ -7,6 +7,7 @@ using SyncBingo.Api.Http;
 using SyncBingo.Application.Calling;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
+using SyncBingo.Application.Queries;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
 using SyncBingo.Infrastructure;
@@ -48,6 +49,7 @@ internal static class ServiceRegistration
         services.AddSingleton<CreateSessionHandler>();
         services.AddSingleton<JoinSessionHandler>();
         services.AddSingleton<JoinInfoQuery>();
+        services.AddSingleton<GameQueries>();
         services.AddSingleton<HostCommandHandler>();
         services.AddSingleton<RoundHandler>();
         services.AddSingleton<DrawHandler>();

@@ -1,3 +1,4 @@
+using SyncBingo.Application.Queries;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Api.Endpoints;
@@ -7,11 +8,36 @@ namespace SyncBingo.Api.Endpoints;
 
 public sealed record CreateGameRequest(string Password, SettingsBody? Settings = null, string? WinCondition = null);
 
-public sealed record GameCreated(string Code, Uri JoinUrl, string HostToken);
+public sealed record GameCreated(string Code, Uri JoinUrl, string HostToken, SnapshotBody Snapshot);
 
 public sealed record JoinRequest(string Password, string Name);
 
-public sealed record Joined(string ParticipantId, string Token);
+public sealed record Joined(string ParticipantId, string Token, SnapshotBody Snapshot);
+
+/// <summary>
+/// The caller's view of the game (docs/05 §2): <c>game</c> for everyone, <c>you</c> for a player, <c>host</c>
+/// for the host. Settings use the same wire shape as <c>PUT /rules</c>.
+/// </summary>
+public sealed record SnapshotBody(GameView Game, PlayerView? You, HostBody? Host)
+{
+    public static SnapshotBody From(GameSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return new SnapshotBody(
+            snapshot.Game,
+            snapshot.You,
+            snapshot.Host is { } host
+                ? new HostBody(SettingsBody.From(host.Settings), host.Participants, host.PendingClaims, host.Rounds)
+                : null);
+    }
+}
+
+public sealed record HostBody(
+    SettingsBody Settings,
+    IReadOnlyList<ParticipantSummary> Participants,
+    IReadOnlyList<Claim> PendingClaims,
+    IReadOnlyList<RoundSummary> Rounds);
 
 public sealed record MarkRequest(int CardId, int Cell, bool Marked);
 

@@ -5,7 +5,7 @@
 - [x] Domain: variant model, card generation, bitmask patterns, state machine (with tests)
 
 ## Phase 1 — Core game (MVP)
-- [ ] Create session, game code, QR, password; join by QR and by code
+- [ ] Create session, game code, QR, password (web: done); join by QR and by code
 - [ ] Name uniqueness, session tokens, reconnect + snapshot
 - [ ] Manual and auto calling: rounds start manual ("Grab ball"); "Auto mode" draws at once then on a timer; "Pause" returns to manual
 - [ ] Marking with server validation; auto-fill; Bingo button

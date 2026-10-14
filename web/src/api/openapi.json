@@ -3532,7 +3532,8 @@
           "leaderboard",
           "version",
           "seq",
-          "joinNote"
+          "joinNote",
+          "leaderboardVisible"
         ],
         "type": "object",
         "properties": {
@@ -3620,6 +3621,9 @@
               "null",
               "string"
             ]
+          },
+          "leaderboardVisible": {
+            "type": "boolean"
           }
         }
       },

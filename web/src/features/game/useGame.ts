@@ -82,6 +82,7 @@ export function useGame(code: string, token: string | undefined): GameState {
             latest.current = applied.snapshot
             setSnapshot(applied.snapshot)
             if (applied.rulesNotice) setRulesNotice(applied.rulesNotice)
+            else if (event.type === 'BallCalled') setRulesNotice(undefined) // the notice lasts until the next ball (FR-47)
             if (applied.alert) note(applied.alert)
             if (applied.refetch) scheduleRefetch()
           },

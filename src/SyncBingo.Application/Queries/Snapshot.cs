@@ -33,7 +33,8 @@ public sealed record GameView(
     IReadOnlyList<LeaderboardEntry>? Leaderboard,
     long Version,
     long Seq,
-    string? JoinNote);
+    string? JoinNote,
+    bool LeaderboardVisible);
 
 /// <summary>A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.</summary>
 public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks);
@@ -191,7 +192,8 @@ public sealed class GameQueries(ISessionStore store)
             showLeaderboard ? session.Leaderboard() : null,
             session.Version,
             session.StreamSeqs.For(stream),
-            stream == Audience.Players ? null : session.JoinNote);
+            stream == Audience.Players ? null : session.JoinNote,
+            session.LeaderboardVisible);
     }
 
     private static PlayerView PlayerOf(Participant participant) => new(

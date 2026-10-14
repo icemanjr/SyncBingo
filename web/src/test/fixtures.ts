@@ -42,6 +42,7 @@ export function aGame(changes: Partial<Schemas['GameView']> = {}): Schemas['Game
     version: 1,
     seq: 0,
     joinNote: null,
+    leaderboardVisible: false,
     ...changes,
   }
 }

@@ -229,12 +229,12 @@ describe('the play screen', () => {
     await userEvent.click(screen.getByRole('radio', { name: /Heart/ }))
     await userEvent.click(screen.getByRole('radio', { name: 'High contrast' }))
 
-    await userEvent.click(screen.getByRole('radio', { name: 'Largest' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Max' }))
 
     expect(JSON.parse(localStorage.getItem('syncbingo:mark-style') ?? '{}')).toMatchObject({
       shape: 'heart',
       colour: 'var(--ink)',
-      textSize: 'largest',
+      textSize: 'max',
     })
     expect(screen.getByRole('gridcell', { name: '1' }).querySelector('span')).toHaveClass(
       'text-4xl',

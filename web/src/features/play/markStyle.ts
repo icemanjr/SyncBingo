@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 export type MarkShape = 'circle' | 'star' | 'heart' | 'square' | 'tint'
 
-export type TextSize = 'normal' | 'large' | 'larger' | 'largest'
+export type TextSize = 'small' | 'medium' | 'large' | 'max'
 
 /** How this player's marks look (FR-51), on this device only. */
 export interface MarkStyle {
@@ -10,7 +10,7 @@ export interface MarkStyle {
   colour: string
   /** 0.2 to 0.8 */
   opacity: number
-  /** How big the text in the squares is (a number, or a word with custom sets); the largest still fits two digits on a small phone. */
+  /** How big the text in the squares is (a number, or a word with custom sets); Max still fits two digits on a small phone. */
   textSize: TextSize
 }
 
@@ -37,17 +37,17 @@ export const colours: { value: string; label: string }[] = [
 ]
 
 export const textSizes: { value: TextSize; label: string; className: string }[] = [
-  { value: 'normal', label: 'Normal', className: 'text-xl' },
-  { value: 'large', label: 'Large', className: 'text-2xl' },
-  { value: 'larger', label: 'Larger', className: 'text-3xl' },
-  { value: 'largest', label: 'Largest', className: 'text-4xl' },
+  { value: 'small', label: 'Small', className: 'text-xl' },
+  { value: 'medium', label: 'Medium', className: 'text-2xl' },
+  { value: 'large', label: 'Large', className: 'text-3xl' },
+  { value: 'max', label: 'Max', className: 'text-4xl' },
 ]
 
 export const defaultMarkStyle: MarkStyle = {
   shape: 'circle',
   colour: '#2563eb',
   opacity: 0.45,
-  textSize: 'normal',
+  textSize: 'small',
 }
 
 const storageKey = 'syncbingo:mark-style'

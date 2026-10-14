@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AppRoutes } from './App'
 
 function renderAt(path: string) {
@@ -12,6 +12,10 @@ function renderAt(path: string) {
 }
 
 describe('the landing page', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('offers hosting and joining', () => {
     renderAt('/')
 
@@ -20,7 +24,14 @@ describe('the landing page', () => {
     expect(screen.getByRole('link', { name: 'Join a game' })).toHaveAttribute('href', '/join')
   })
 
-  it('shows Serious Bingo as coming soon, not as something to click', () => {
+  it('makes no promise of Serious Bingo on the live site', () => {
+    renderAt('/')
+
+    expect(screen.queryByText('Serious Bingo')).not.toBeInTheDocument()
+  })
+
+  it('in the Full portfolio build, shows Serious Bingo as coming soon, not as something to click', () => {
+    vi.stubEnv('VITE_SERIOUS_BINGO_TEASER', 'true')
     renderAt('/')
 
     const tile = screen.getByText('Serious Bingo').parentElement

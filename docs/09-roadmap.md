@@ -15,7 +15,7 @@
 - [ ] Leaderboard and session stats; host inspect card; kick
 - [x] API: display links, the displays list and disconnect, and the join note (FR-28, FR-49); TV pairing with a short code (ADR 0010)
 - [ ] Call board as the host's default view (Options button for rules), shareable with participants; pop-out read-only display view for projectors (no ads); smart TV / projector pairing with a short code (ADR 0010)
-- [ ] Ad layout with placeholder slots; greyed-out Serious Bingo tile (web: done)
+- [ ] Ad layout with placeholder slots (web: done); greyed-out Serious Bingo tile in the Full build only (`VITE_SERIOUS_BINGO_TEASER`)
 - [x] Dark mode with a System / Light / Dark switch (FR-50)
 - [ ] Player-chosen mark shape and colour (FR-51), with the play screen
 

@@ -18,4 +18,5 @@ The site should be live and always on at SyncBingo.com, so a recruiter can simpl
 - The live site costs about a bundle's price plus the domain; the Full design stays real code, synthesized in CI.
 - Lean has no high availability: a deploy or restart briefly drops connections (clients reconnect and resync from the snapshot, ADR 0002), and a failure of the instance ends live games. Deploys happen off-hours.
 - Caddy replaces nginx in the Lean profile. The `web` image (nginx) stays for local Compose; the Full profile serves the same SPA build from S3 + CloudFront.
+- The live Lean site shows no "Serious Bingo — coming soon" teaser, so it promises nothing that may not come; the Full build turns it on (`VITE_SERIOUS_BINGO_TEASER=true`).
 - An in-memory store remains possible behind `ISessionStore` if a store-less host is ever wanted; not planned.

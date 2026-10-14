@@ -6,6 +6,9 @@ using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Sessions;
 
+/// <summary>The rules in force after an Apply: settings now, those waiting for the next round, and the pattern.</summary>
+public sealed record RulesApplied(SessionSettings Settings, SessionSettings? NextRoundSettings, string WinConditionId);
+
 /// <summary>
 /// Host commands that change only shared session state. Each runs through
 /// <see cref="SessionCommandRunner"/> and maps to one domain method.
@@ -18,26 +21,30 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
     public Task<Result<CommandOutcome>> PauseAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.Pause(now), cancellationToken);
 
-    public Task<Result<CommandOutcome>> ChangeWinConditionAsync(
-        GameCode code, Caller caller, string winConditionId, CancellationToken cancellationToken) =>
-        runner.RunAsync(code, caller, (session, now) => session.ChangeWinCondition(winConditionId, now), cancellationToken);
-
-    public Task<Result<CommandOutcome>> UpdateSettingsAsync(
-        GameCode code, Caller caller, SessionSettings settings, CancellationToken cancellationToken) =>
-        runner.RunAsync(code, caller, (session, now) => session.UpdateSettings(settings, now), cancellationToken);
-
     /// <summary>
-    /// Change some settings (docs/05 "partial settings"). <paramref name="change"/> runs under the
-    /// lock on the newest settings, those waiting for the next round if any, so a quick second
-    /// change (or one racing a scheduler tick) builds on the first instead of replacing it.
+    /// The host's <b>Apply</b> in Options (docs/06): new settings and, if given, a new pattern, in
+    /// one step and only in the lobby or manual mode (<see cref="Session.ApplyRules"/>).
+    /// <paramref name="change"/> runs under the lock on the newest settings, those waiting for the
+    /// next round if any, so it changes only what the host changed. Returns the rules now in force.
     /// </summary>
-    public Task<Result<CommandOutcome>> ChangeSettingsAsync(
-        GameCode code, Caller caller, Func<SessionSettings, SessionSettings> change, CancellationToken cancellationToken)
+    public async Task<Result<RulesApplied>> ApplyRulesAsync(
+        GameCode code, Caller caller, Func<SessionSettings, SessionSettings> change, string? winConditionId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(change);
 
-        return runner.RunAsync(
-            code, caller, (session, now) => session.UpdateSettings(change(session.NextRoundSettings ?? session.Settings), now), cancellationToken);
+        RulesApplied? applied = null;
+        var result = await runner.RunAsync(
+                code,
+                caller,
+                (session, now) =>
+                {
+                    var outcome = session.ApplyRules(change(session.NextRoundSettings ?? session.Settings), winConditionId ?? session.WinConditionId, now);
+                    applied = new RulesApplied(session.Settings, session.NextRoundSettings, session.WinConditionId);
+                    return outcome;
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
+        return result.IsSuccess ? Result.Success(applied!) : result.Error!;
     }
 
     public Task<Result<CommandOutcome>> ShowLeaderboardAsync(GameCode code, Caller caller, bool visible, CancellationToken cancellationToken) =>

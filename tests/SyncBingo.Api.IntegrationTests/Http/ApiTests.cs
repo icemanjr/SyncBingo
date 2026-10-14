@@ -108,7 +108,7 @@ public sealed class ApiTests : IAsyncDisposable
         var (code, hostToken) = await NewGameAsync();
         var (_, playerToken) = await JoinAsync(code, "Ava");
 
-        foreach (var (method, path) in new[] { (HttpMethod.Post, "balls"), (HttpMethod.Post, "end"), (HttpMethod.Put, "settings") })
+        foreach (var (method, path) in new[] { (HttpMethod.Post, "balls"), (HttpMethod.Post, "end"), (HttpMethod.Put, "rules") })
         {
             using var response = await _client.SendAsync(method, $"/api/sessions/{code}/{path}", playerToken, new { });
             response.StatusCode.ShouldBe(HttpStatusCode.Forbidden, path);
@@ -156,8 +156,9 @@ public sealed class ApiTests : IAsyncDisposable
 
         (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/wins", hostToken, new { participantId = avaId, claimId = 1 }))
             .StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/win-condition", hostToken, new { condition = "blackout" }))
-            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        using var rules = await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/rules", hostToken, new { winCondition = "blackout" });
+        rules.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await Json(rules)).GetProperty("winCondition").GetString().ShouldBe("blackout");
         (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/cards/clear", hostToken, new { redrawCards = true }))
             .StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
@@ -167,19 +168,34 @@ public sealed class ApiTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task Settings_change_only_the_fields_sent()
+    public async Task Apply_changes_only_the_settings_sent()
     {
         var (code, hostToken) = await NewGameAsync();
 
         using var response = await _client.SendAsync(
-            HttpMethod.Put, $"/api/sessions/{code}/settings", hostToken, new { freeMarking = false, autoCallIntervalSeconds = 6 });
+            HttpMethod.Put, $"/api/sessions/{code}/rules", hostToken, new { settings = new { freeMarking = false, autoCallIntervalSeconds = 6 } });
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var settings = (await Json(response)).GetProperty("settings");
+        var rules = await Json(response);
+        var settings = rules.GetProperty("settings");
         settings.GetProperty("freeMarking").GetBoolean().ShouldBeFalse();
         settings.GetProperty("autoCallIntervalSeconds").GetInt32().ShouldBe(6);
         settings.GetProperty("showCallBoard").GetBoolean().ShouldBeTrue("unsent fields keep their values");
         settings.GetProperty("unmarking").GetString().ShouldBe("Any", "enums are sent as names");
+        rules.GetProperty("winCondition").GetString().ShouldBe("normal", "the pattern stays unless sent");
+    }
+
+    [Fact]
+    public async Task The_rules_cannot_change_in_auto_mode()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/rounds/countdown", hostToken, new { startInAuto = true })).Dispose();
+        await CountdownEndsAsync(code);
+
+        using var response = await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/rules", hostToken, new { winCondition = "blackout" });
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await Json(response)).GetProperty("detail").GetString().ShouldBe("Pause before changing the rules.");
     }
 
     [Fact]

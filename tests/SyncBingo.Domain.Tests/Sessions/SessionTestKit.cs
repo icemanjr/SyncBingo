@@ -1,6 +1,7 @@
 using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
+using static SyncBingo.Domain.Tests.Sessions.SessionTestKit;
 namespace SyncBingo.Domain.Tests.Sessions;
 
 /// <summary>Builds sessions in a given state for tests.</summary>
@@ -61,6 +62,14 @@ internal static class SessionTestKit
         events.AddRange(session.StartRound(new SeededRandom(0), now + Session.CountdownLength).Value);
         return events;
     }
+
+    /// <summary>The host applying a new pattern and nothing else.</summary>
+    public static Result<IReadOnlyList<SessionEvent>> ChangePattern(this Session session, string winConditionId, DateTimeOffset now) =>
+        session.ApplyRules(session.NextRoundSettings ?? session.Settings, winConditionId, now);
+
+    /// <summary>The host applying new settings and keeping the pattern.</summary>
+    public static Result<IReadOnlyList<SessionEvent>> ChangeSettings(this Session session, SessionSettings settings, DateTimeOffset now) =>
+        session.ApplyRules(settings, session.WinConditionId, now);
 
     public static T Single<T>(this Result<IReadOnlyList<SessionEvent>> result)
         where T : SessionEvent

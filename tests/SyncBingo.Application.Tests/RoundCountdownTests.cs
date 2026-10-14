@@ -97,7 +97,7 @@ public sealed class RoundCountdownTests
     {
         var code = await _app.NewGameAsync();
         var id = await _app.JoinAsync(code, "Ava");
-        (await _app.Host.UpdateSettingsAsync(code, Caller.Host, SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, TestApp.Ct))
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, null, TestApp.Ct))
             .IsSuccess.ShouldBeTrue();
 
         await _app.StartRoundAsync(code);

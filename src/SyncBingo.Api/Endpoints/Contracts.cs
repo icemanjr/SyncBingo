@@ -36,14 +36,15 @@ public sealed record BallBody(int Number, string Letter, int Sequence)
     public static BallBody From(BallCall call) => new(call.Number, call.Letter, call.Sequence);
 }
 
-public sealed record WinConditionRequest(string Condition);
-
 public sealed record AwardRequest(string ParticipantId, int? CardId = null, int? Wins = null, int? ClaimId = null);
 
 public sealed record VisibleRequest(bool Visible);
 
-/// <summary>Settings now, and those waiting for the next round (round-scoped ones changed mid-round).</summary>
-public sealed record SettingsView(SettingsBody Settings, SettingsBody? NextRound);
+/// <summary>The host's Apply: the settings changed (only fields sent) and, optionally, the new pattern.</summary>
+public sealed record RulesRequest(SettingsBody? Settings = null, string? WinCondition = null);
+
+/// <summary>The rules in force: settings now, those waiting for the next round (round-scoped ones changed mid-round), and the pattern.</summary>
+public sealed record RulesView(SettingsBody Settings, SettingsBody? NextRound, string WinCondition);
 
 /// <summary>
 /// Host settings on the wire. In a request every field is optional and only those sent change

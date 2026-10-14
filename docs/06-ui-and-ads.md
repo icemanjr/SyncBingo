@@ -20,7 +20,7 @@
 │ [Ad: top banner]                            │
 ├─────────────────────────────────────────────┤
 │ 9ve4-shp3-k7mw-a2qx  [QR]   [Open display ⧉]│
-│ Round 3 · Normal Bingo · ▶ Auto    [Options]│
+│ Round 3 · Normal Bingo · ▶ Auto             │
 ├─────────────────────────────────────────────┤
 │  Auto: [ Pause ]  Manual: [Grab][Auto mode] │
 │  ── call board (FR-27) ──                   │
@@ -39,6 +39,19 @@
 │ [Ad: bottom banner]                         │
 └─────────────────────────────────────────────┘
 ```
+
+In auto mode the **Options** button is hidden, as above; in the lobby and in manual mode it sits at the end of the status line. Displays are not rules, so they live under **Open display ⧉** rather than in Options and stay available in auto mode.
+
+### Options and Apply (FR-32)
+
+Options holds every rule: the settings and the win pattern. Changes there are a **draft** kept on the host's device until the host presses **Apply**:
+
+- Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
+- **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.
+- After Apply the button shows **Applied ✓** and stays disabled for about 1.5 s, so a double-click can't send the batch twice. There is no server-side lockout: nothing can be half-applied.
+- Mid-round, a setting that only takes effect next round (free space, redraw policy, multiple wins) is labelled **from next round** before it is applied.
+- Closing Options with unapplied changes asks **Discard changes?**
+- Options is **not available in auto mode**: the host presses **Pause** first, so no ball is called while new rules are announced. During the round countdown Options can be opened but **Apply** is disabled ("Cancel the countdown to change the rules").
 
 ### Participant play screen (mobile sketch)
 
@@ -164,7 +177,7 @@ Never shown: settings, claims, alerts, the participant list, inspect and award c
 └────────────────────────────────────────────┘
 ```
 
-The host opens **Options → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; Options also lists connected displays, each with **Disconnect**. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
+The host opens **Open display ⧉ → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; the same menu lists connected displays, each with **Disconnect**. It lives outside Options so it works in auto mode too. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
 
 ## 2. Ad slots
 

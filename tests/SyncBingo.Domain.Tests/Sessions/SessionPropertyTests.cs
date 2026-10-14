@@ -22,8 +22,8 @@ public sealed class SessionPropertyTests
         (s, r) => s.DrawBall(DrawSource.Manual, r, Now),
         (s, r) => s.DrawBall(DrawSource.Auto, r, Now),
         (s, r) => s.DrawBall(DrawSource.Manual, r, Now), // draws twice as often, to empty hoppers
-        (s, _) => s.ChangeWinCondition("corners", Now),
-        (s, _) => s.UpdateSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now),
+        (s, _) => s.ChangePattern("corners", Now),
+        (s, _) => s.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now),
         (s, _) => s.End(Now),
     ];
 
@@ -39,9 +39,13 @@ public sealed class SessionPropertyTests
             var before = (session.State, session.Version, session.Calls.Count);
             var result = Commands[step % Commands.Length](session, random);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value.Count == 0)
             {
-                result.Value.ShouldNotBeEmpty();
+                // Applying rules that are already in force changes nothing at all.
+                (session.State, session.Version, session.Calls.Count).ShouldBe(before);
+            }
+            else if (result.IsSuccess)
+            {
                 foreach (var e in result.Value)
                 {
                     e.Seq.ShouldBe(++lastSeq);

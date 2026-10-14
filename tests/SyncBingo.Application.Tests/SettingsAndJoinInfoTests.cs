@@ -13,7 +13,7 @@ public sealed class SettingsAndJoinInfoTests
     {
         var code = await _app.NewGameAsync(SessionSettings.Default with { FreeMarking = false });
 
-        (await _app.Host.ChangeSettingsAsync(code, Caller.Host, s => s with { ShowCallBoard = false }, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { ShowCallBoard = false }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         var settings = (await _app.SessionAsync(code)).Settings;
         settings.ShowCallBoard.ShouldBeFalse();
@@ -25,11 +25,36 @@ public sealed class SettingsAndJoinInfoTests
     {
         var code = await _app.NewGameAsync();
         await _app.StartRoundAsync(code);
-        (await _app.Host.ChangeSettingsAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        (await _app.Host.ChangeSettingsAsync(code, Caller.Host, s => s with { ShowCallBoard = false }, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { ShowCallBoard = false }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         (await _app.SessionAsync(code)).NextRoundSettings!.FreeSpace.ShouldBe(FreeSpace.Earned, "the earlier change still waits");
+    }
+
+    [Fact]
+    public async Task Apply_changes_the_pattern_with_the_settings_and_reports_the_rules_in_force()
+    {
+        var code = await _app.NewGameAsync();
+        await _app.StartRoundAsync(code);
+
+        var applied = (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, "blackout", TestApp.Ct)).Value;
+
+        applied.WinConditionId.ShouldBe("blackout");
+        applied.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked);
+        applied.NextRoundSettings!.FreeSpace.ShouldBe(FreeSpace.Earned);
+        _app.Publisher.Events.OfType<WinConditionChanged>().ShouldHaveSingleItem();
+    }
+
+    [Fact]
+    public async Task Apply_is_refused_in_auto_mode()
+    {
+        var code = await _app.NewGameAsync();
+        await _app.StartRoundAsync(code, startInAuto: true);
+
+        var refused = await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s, "blackout", TestApp.Ct);
+
+        refused.Error!.Message.ShouldBe("Pause before changing the rules.");
     }
 
     [Fact]
@@ -37,7 +62,7 @@ public sealed class SettingsAndJoinInfoTests
     {
         var code = await _app.NewGameAsync();
 
-        (await _app.Host.ChangeSettingsAsync(code, Caller.Participant("p1"), s => s, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
+        (await _app.Host.ApplyRulesAsync(code, Caller.Participant("p1"), s => s, null, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
     }
 
     [Fact]

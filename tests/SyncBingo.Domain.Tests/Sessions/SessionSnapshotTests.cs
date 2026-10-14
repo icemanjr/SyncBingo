@@ -45,7 +45,7 @@ public sealed class SessionSnapshotTests
         restored.HasBeenCalled(original.LastCall!.Number).ShouldBeTrue("the called set is rebuilt from the calls");
         restored.BallsRemaining.ShouldBe(original.BallsRemaining);
         restored.Leaderboard().ShouldBe(original.Leaderboard());
-        restored.ChangeWinCondition("normal", Now).IsSuccess.ShouldBeTrue();
+        restored.ChangePattern("normal", Now).IsSuccess.ShouldBeTrue();
         restored.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("the line alerted before the restore is not alerted again");
         restored.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).Single<BallCalled>().Seq.ShouldBe(restored.LastEventSeq);
         restored.LastEventSeq.ShouldBe(original.LastEventSeq + 2, "numbering carries on after the restore");
@@ -71,8 +71,8 @@ public sealed class SessionSnapshotTests
         kit.Session.DetectWins([kit.Player], Now).Value.ShouldNotBeEmpty();
         kit.Session.ClaimBingo(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
         kit.Session.AwardWin(kit.Player, 1, Now, claimId: 1).IsSuccess.ShouldBeTrue();
-        kit.Session.ChangeWinCondition("blackout", Now).IsSuccess.ShouldBeTrue();
-        kit.Session.UpdateSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("blackout", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
         kit.Session.ShowLeaderboard(true, Now).IsSuccess.ShouldBeTrue();
         return kit;
     }

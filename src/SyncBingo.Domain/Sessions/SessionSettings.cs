@@ -42,7 +42,7 @@ public enum FreeSpace
 /// <summary>
 /// Host settings (docs/01 §3.2). Defaults follow the documented decisions; the rest
 /// favour a friendly first game. <see cref="FreeSpace"/>, <see cref="RedrawPolicy"/> and
-/// <see cref="MultipleWins"/> only change between rounds (see <see cref="Session.UpdateSettings"/>).
+/// <see cref="MultipleWins"/> only change between rounds (see <see cref="Session.ApplyRules"/>).
 /// </summary>
 public sealed record SessionSettings
 {

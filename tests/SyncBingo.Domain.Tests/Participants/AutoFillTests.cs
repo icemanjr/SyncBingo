@@ -1,6 +1,7 @@
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Sessions;
 using static SyncBingo.Domain.Tests.Participants.PlayerTestKit;
+using static SyncBingo.Domain.Tests.Sessions.SessionTestKit;
 
 namespace SyncBingo.Domain.Tests.Participants;
 
@@ -45,7 +46,7 @@ public sealed class AutoFillTests
     {
         var kit = new PlayerTestKit(Available);
         kit.Player.SetAutoFill(true, kit.Session).IsSuccess.ShouldBeTrue();
-        kit.Session.UpdateSettings(SessionSettings.Default, Sessions.SessionTestKit.Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeSettings(SessionSettings.Default, Sessions.SessionTestKit.Now).IsSuccess.ShouldBeTrue();
         kit.Call(1);
 
         kit.CallWithAutoFill(2).ShouldBeEmpty();

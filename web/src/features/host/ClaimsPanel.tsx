@@ -38,7 +38,7 @@ export function ClaimsPanel({
     <Panel title="Bingo!">
       <ul className="flex flex-col gap-3">
         {claims.map((claim) => (
-          <li key={claim.id} className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3">
+          <li key={claim.id} className="flex flex-col gap-2 rounded-xl bg-notice p-3">
             <p className="font-semibold">
               🔔 {claim.name} pressed Bingo ·{' '}
               {claim.matches > 0
@@ -86,7 +86,7 @@ export function ClaimsPanel({
           </li>
         ))}
         {detections.map(({ at, data }) => (
-          <li key={at} className="flex flex-col gap-2 rounded-xl bg-sky-50 p-3">
+          <li key={at} className="flex flex-col gap-2 rounded-xl bg-info p-3">
             <p className="font-semibold">
               Detected: {data.name} has {data.winConditionId} ({data.matches} line
               {data.matches > 1 ? 's' : ''}) on called numbers

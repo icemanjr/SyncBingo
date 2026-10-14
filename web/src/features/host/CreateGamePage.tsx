@@ -45,9 +45,9 @@ export function CreateGamePage() {
           required
           autoComplete="off"
           aria-describedby="password-hint"
-          className="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-lg focus:border-indigo-600 focus:outline-none"
+          className="min-h-12 rounded-xl border-2 border-line px-3 text-lg focus:border-accent focus:outline-none"
         />
-        <p id="password-hint" className="text-sm text-slate-600">
+        <p id="password-hint" className="text-sm text-ink-muted">
           Players type this to join. Pick something easy to say out loud, like the event&apos;s name
           (4–64 characters).
         </p>

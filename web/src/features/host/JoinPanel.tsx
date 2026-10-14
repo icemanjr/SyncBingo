@@ -22,13 +22,13 @@ export function JoinPanel({ code, joinNote }: { code: string; joinNote: string |
         <img
           src={qr}
           alt={`QR code to join game ${displayCode(code)}`}
-          className="h-28 w-28 bg-white"
+          className="h-28 w-28 bg-white p-1"
         />
       )}
       <div>
-        <p className="text-sm text-slate-500">Game code</p>
+        <p className="text-sm text-ink-muted">Game code</p>
         <p className="font-mono text-xl font-bold tracking-wider">{displayCode(code)}</p>
-        <p className="text-sm break-all text-slate-600">{joinUrl}</p>
+        <p className="text-sm break-all text-ink-muted">{joinUrl}</p>
         {joinNote && <p className="mt-1 font-semibold">{joinNote}</p>}
       </div>
     </div>

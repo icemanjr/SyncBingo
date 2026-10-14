@@ -11,7 +11,7 @@ export function CallBoard({ board, calls }: { board: Schemas['BoardGroup'][]; ca
   return (
     <div className="flex flex-col items-center gap-4">
       <div aria-live="polite" className="text-center">
-        <p className="text-sm text-slate-500">Last ball</p>
+        <p className="text-sm text-ink-muted">Last ball</p>
         <p className="text-5xl font-bold tabular-nums" data-testid="last-ball">
           {last ? `${last.letter} ${String(last.number)}` : '–'}
         </p>
@@ -29,10 +29,10 @@ export function CallBoard({ board, calls }: { board: Schemas['BoardGroup'][]; ca
                     aria-label={`${group.label} ${String(ball)}${isCalled ? ', called' : ''}`}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-sm tabular-nums ${
                       ball === last?.number
-                        ? 'bg-amber-400 font-bold text-slate-900 ring-4 ring-amber-600'
+                        ? 'bg-amber-400 font-bold text-ink ring-4 ring-amber-600'
                         : isCalled
-                          ? 'bg-indigo-600 font-bold text-white'
-                          : 'text-slate-400'
+                          ? 'bg-accent font-bold text-accent-ink'
+                          : 'text-ink-faint'
                     }`}
                   >
                     {ball}

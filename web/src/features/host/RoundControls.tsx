@@ -81,7 +81,7 @@ export function RoundControls({ game, host }: { game: Game; host: HostApi }) {
       )}
 
       {(inRound || game.state === 'BetweenRounds') && (
-        <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-3">
+        <div className="flex flex-wrap items-center gap-3 border-t border-line-soft pt-3">
           {inRound && (
             <Button look="quiet" disabled={busy} onClick={() => void run(host.endRound)}>
               End round

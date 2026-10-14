@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import { AdSlot } from './AdSlot'
+import { ThemeToggle } from './ThemeToggle'
 
 /**
  * The page frame (docs/06 §2): banners top and bottom on phones, left and right on desktops, each in a
@@ -7,14 +9,22 @@ import { AdSlot } from './AdSlot'
  */
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900 lg:flex-row lg:items-start lg:justify-center lg:gap-4 lg:p-4">
+    <div className="flex min-h-dvh flex-col bg-page text-ink lg:flex-row lg:items-start lg:justify-center lg:gap-4 lg:p-4">
       <div className="flex justify-center lg:hidden">
         <AdSlot position="top" />
       </div>
       <div className="hidden lg:block">
         <AdSlot position="left" />
       </div>
-      <main className="flex w-full max-w-3xl flex-1 flex-col p-4">{children}</main>
+      <main className="flex w-full max-w-3xl flex-1 flex-col gap-4 p-4">
+        <header className="flex items-center justify-between gap-3">
+          <Link to="/" className="min-h-12 content-center text-lg font-bold text-ink">
+            SyncBingo
+          </Link>
+          <ThemeToggle />
+        </header>
+        {children}
+      </main>
       <div className="hidden lg:block">
         <AdSlot position="right" />
       </div>
@@ -25,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
   )
 }
 
-/** The display view's frame (FR-28): no ads, the whole screen for the board. */
+/** The display view's frame (FR-28): no ads and no controls, the whole screen for the board; it follows the screen's own theme. */
 export function FullScreen({ children }: { children: ReactNode }) {
-  return <main className="min-h-dvh bg-slate-900 text-white">{children}</main>
+  return <main className="min-h-dvh bg-page text-ink">{children}</main>
 }

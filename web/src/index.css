@@ -1,1 +1,75 @@
 @import 'tailwindcss';
+
+/* Dark mode follows a class on <html>, set from the player's choice or the device (FR-50). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Colours by meaning, not by hue, so each component is written once and both themes meet WCAG AA:
+ * body text and muted text are at least 4.5:1 on the page and on surfaces, in light and in dark.
+ */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-notice: var(--notice);
+  --color-info: var(--info);
+}
+
+:root {
+  color-scheme: light;
+  --page: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --ink-muted: #475569;
+  --ink-faint: #64748b;
+  --line: #94a3b8;
+  --line-soft: #e2e8f0;
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-ink: #ffffff;
+  --accent-text: #4338ca;
+  --accent-soft: #eef2ff;
+  --danger: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-ink: #7f1d1d;
+  --notice: #fffbeb;
+  --info: #f0f9ff;
+}
+
+.dark {
+  color-scheme: dark;
+  --page: #0b1120;
+  --surface: #1e293b;
+  --ink: #f1f5f9;
+  --ink-muted: #cbd5e1;
+  --ink-faint: #94a3b8;
+  --line: #64748b;
+  --line-soft: #334155;
+  --accent: #818cf8;
+  --accent-strong: #a5b4fc;
+  --accent-ink: #0b1120;
+  --accent-text: #a5b4fc;
+  --accent-soft: #1e1b4b;
+  --danger: #f87171;
+  --danger-soft: #450a0a;
+  --danger-ink: #fecaca;
+  --notice: #422006;
+  --info: #082f49;
+}
+
+body {
+  background-color: var(--page);
+  color: var(--ink);
+}

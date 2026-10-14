@@ -9,7 +9,7 @@ export function AdSlot({ position }: { position: 'top' | 'bottom' | 'left' | 'ri
     <aside
       aria-label="Advertisement"
       data-ad-slot={position}
-      className={`${size} flex shrink-0 items-center justify-center border border-dashed border-slate-300 text-xs text-slate-400`}
+      className={`${size} flex shrink-0 items-center justify-center border border-dashed border-line text-xs text-ink-faint`}
     >
       Ad
     </aside>

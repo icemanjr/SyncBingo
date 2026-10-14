@@ -31,7 +31,7 @@ export function HostConsole() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <p>This browser isn't hosting that game.</p>
-        <Link to="/host/new" className="font-semibold text-indigo-700 underline">
+        <Link to="/host/new" className="font-semibold text-accent-text underline">
           Host a new game
         </Link>
       </div>
@@ -40,7 +40,7 @@ export function HostConsole() {
 
   if (!game.snapshot) {
     return (
-      <p className="m-auto text-slate-600">
+      <p className="m-auto text-ink-muted">
         {game.error ? game.error.detail : 'Loading the game…'}
       </p>
     )
@@ -51,7 +51,7 @@ export function HostConsole() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <h1 className="text-2xl font-bold">The game has ended</h1>
-        <Link to="/" className="font-semibold text-indigo-700 underline">
+        <Link to="/" className="font-semibold text-accent-text underline">
           Back to the start
         </Link>
       </div>
@@ -78,9 +78,9 @@ export function HostConsole() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
+      <header className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm">
         <JoinPanel code={code} joinNote={view.joinNote} />
-        <p className="font-semibold text-slate-700">
+        <p className="font-semibold text-ink">
           {inRound
             ? `${roundLabel} · ${pattern}${view.state === 'Auto' ? ' · ▶ Auto' : ''}`
             : `Lobby · next: ${pattern}`}
@@ -93,7 +93,7 @@ export function HostConsole() {
           <div
             key={alert.at}
             role="alert"
-            className="flex items-start justify-between gap-3 rounded-2xl bg-red-50 p-4 text-red-900"
+            className="flex items-start justify-between gap-3 rounded-2xl bg-danger-soft p-4 text-danger-ink"
           >
             <p>
               {data.lockedFor

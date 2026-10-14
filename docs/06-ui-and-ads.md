@@ -72,6 +72,19 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 └───────────────────────┘
 ```
 
+### Theme (FR-50)
+
+A three-way switch in every page's header: **System** (the default: follows the device, including when the device switches at sunset), **Light** and **Dark**. Remembered on the device; nothing is sent to the server. Colours are defined by meaning (page, surface, ink, muted ink, accent, danger…) with a light and a dark value each, so every screen supports both, and body and muted text meet 4.5:1 in both. The join QR stays black on white in either theme so phones can scan it. The display view has no header and follows the screen's own setting.
+
+### Mark style (FR-51)
+
+On the play screen, **⚙ My marks** opens a small panel with a live preview cell:
+
+- **Shape:** ● circle (default, like a dauber), ★ star, ♥ heart, ■ filled square, or ▢ tint (the whole cell's background).
+- **Colour:** a palette of 6 colours, each checked so a marked number stays readable in both themes, plus a high-contrast option.
+
+The mark sits *behind* the number at about 45% opacity and the number stays bold on top, so a marked square never hides what is on it. Marked cells also say so to screen readers ("17, marked"). The choice is remembered on the device and never sent to the server.
+
 ### Patterns and current rules (FR-48)
 
 Tapping the pattern name opens this panel, in the lobby, during the countdown or during a round. It has two tabs, and opens on **Patterns**:

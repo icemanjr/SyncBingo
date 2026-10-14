@@ -25,9 +25,9 @@ export function PlayersPanel({
   return (
     <Panel title={`Players (${String(players.length)})`}>
       {players.length === 0 ? (
-        <p className="text-slate-600">No one has joined yet. Show them the QR code.</p>
+        <p className="text-ink-muted">No one has joined yet. Show them the QR code.</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-slate-100">
+        <ul className="flex flex-col divide-y divide-line-soft">
           {players.map((player) => (
             <li
               key={player.participantId}

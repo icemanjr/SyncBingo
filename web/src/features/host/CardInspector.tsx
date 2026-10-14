@@ -46,7 +46,7 @@ export function CardInspector({
                 key={cell}
                 aria-label={`${number === 0 ? 'Free' : String(number)}${marked ? ', marked' : ''}${isCalled ? ', called' : ''}`}
                 className={`flex h-12 items-center justify-center rounded-lg border-2 font-bold tabular-nums ${
-                  marked ? 'border-indigo-700 bg-indigo-600 text-white' : 'border-slate-200'
+                  marked ? 'border-accent-strong bg-accent text-accent-ink' : 'border-line-soft'
                 } ${isCalled ? '' : 'opacity-60'}`}
               >
                 {number === 0 ? '★' : number}
@@ -56,7 +56,7 @@ export function CardInspector({
           })}
         </div>
       ))}
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-ink-muted">
         Filled: marked by the player. Faded: not called yet.
       </p>
       <Button look="secondary" className="mt-3" onClick={onClose}>

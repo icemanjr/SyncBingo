@@ -8,7 +8,7 @@
 |---------|-------|-------|
 | `web` | multi-stage build: `node` → `nginx-unprivileged` serving the Vite build on port 8080 (planned dev profile: Vite dev server with hot reload) | SPA fallback to `index.html`; proxies `/api` and `/hubs` to `api`, including WebSocket upgrade. Host port 8080 |
 | `api` | multi-stage build: .NET SDK → chiseled ASP.NET runtime (no shell, non-root) | Env: `Redis__ConnectionString`, later `Cors__Origins` and token/password settings. Host port 5080 for debugging |
-| `redis` | `redis:7.4-alpine` (matches the Redis OSS 7.x line on ElastiCache) | No volume; data is disposable |
+| `redis` | `redis:7.4-alpine` today; switching to **Valkey** (ADR 0011, roadmap Phase 1b) | No volume; data is disposable |
 
 Commands: `docker compose up --build` (everything, then open http://localhost:8080). Planned: `docker compose --profile dev up` (hot reload) and `docker compose run --rm tests`, which will run the Playwright end-to-end suite against the running stack. The .NET and web unit/integration suites run directly (locally and in CI); integration tests use **Testcontainers** for Redis, so they do not need Compose.
 
@@ -16,7 +16,19 @@ CI builds both images on every PR so a broken Dockerfile is caught before merge.
 
 Podman works in place of Docker: enable the user socket (`systemctl --user enable --now podman.socket`), set `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`, and use `podman compose` or `docker-compose`.
 
-## 2. AWS target
+## 1a. Lean deployment (the live site, ADR 0011)
+
+One small instance (AWS Lightsail; size to be verified, docs/10) runs a production Compose file:
+
+| Service | Role |
+|---------|------|
+| `caddy` | Let's Encrypt TLS for SyncBingo.com, serves the SPA build, proxies `/api` and `/hubs` (WebSockets) to `api` |
+| `api` | The same image as everywhere else |
+| `valkey` | Append-only persistence on a volume, so live games survive API restarts, deploys and reboots |
+
+Deploys: CI builds and pushes the images, then the instance pulls and restarts `api` off-hours; clients reconnect and resync. AWS Budgets alerts at $10 and $25.
+
+## 2. AWS target (Full profile)
 
 ```mermaid
 flowchart TB
@@ -36,7 +48,7 @@ flowchart TB
 |---------|--------|
 | Compute | ECS on Fargate, ≥ 2 tasks across AZs, autoscaling on CPU and connection count |
 | Real-time | WebSocket-only SignalR; ALB idle timeout raised above the heartbeat interval; Redis backplane |
-| State | ElastiCache for Redis (single node for demo, replicated for production) |
+| State | ElastiCache for **Valkey** (single node for demo, replicated for production) |
 | Static site | S3 + CloudFront with SPA fallback to `index.html` |
 | Edge routing | CloudFront behaviours: default → S3; `/api/*` and `/hubs/*` → ALB with caching disabled and WebSocket support |
 | TLS and DNS | ACM certificates, Route 53 records |
@@ -56,7 +68,7 @@ Stacks in `infra/`:
 | `WebStack` | S3 bucket, CloudFront distribution, behaviours, certificate, DNS |
 | `PipelineRoleStack` | GitHub OIDC role for CI deploys |
 
-Stage configuration (`dev`, `prod`) comes from CDK context so the same code deploys both.
+Stage configuration (`dev`, `prod`) comes from CDK context so the same code deploys both. A second context flag, `profile=lean|full` (ADR 0011), selects the Lean instance or the full set of stacks; `cdk synth` runs for both in CI.
 
 ## 4. CI/CD (GitHub Actions)
 
@@ -65,9 +77,9 @@ Stage configuration (`dev`, `prod`) comes from CDK context so the same code depl
 3. **Release tag:** manual approval, deploy `prod`; sync SPA to S3 and invalidate CloudFront.
 4. AWS access via GitHub **OIDC** (no long-lived keys). Dependabot for NuGet and npm. Optional container and dependency scanning.
 
-## 5. Cost-conscious demo mode
+## 5. Cost
 
-For a portfolio deployment: one Fargate task, one small Redis node, no NAT (public subnets with restrictive security groups or VPC endpoints), CloudFront default certificate or a single custom domain. Document teardown (`cdk destroy`) so the demo can be switched off.
+See [10 — Cost and Hosting](10-cost-and-hosting.md): the Lean, Middle and Full tiers, cost drivers, the free-credit strategy, budgets and teardown. Fargate tasks use **arm64** (Graviton) images; ElastiCache uses **Valkey**.
 
 ## 6. Operations
 

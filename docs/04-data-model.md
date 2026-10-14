@@ -59,7 +59,7 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
 | `s:{code}:tokens` | hash | tokenHash → caller: `host`, `display` or `participant:{id}` |
 | `s:{code}:token-owners` | hash | participantId → their tokenHash, so removing a player revokes their token in the same script |
-| `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs (call face and card face, at least 24) and optional named groups; the *Group items* setting decides whether dealing and the board use them; images live in S3 under a session prefix that expires with it (ADR 0009) |
+| `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs of text (call face and card face, 24–500, each side unique) and optional named groups; the *Group items* setting decides whether dealing and the board use them. Text only: no images (ADR 0009, amended) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:lock` | string | the per-session lock: `SET NX` with a random owner value and a 10 s lease; released only by its owner (compare-and-delete); a command waits up to 5 s for it |
 | `schedule` | sorted set | session code → when its next tick is due (countdown end or next ball), or the end of the lease while an instance has claimed it (see 02 §5). One key for the whole app, outside any session's hash tag |

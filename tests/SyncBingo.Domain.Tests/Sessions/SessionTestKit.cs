@@ -65,7 +65,7 @@ internal static class SessionTestKit
 
     /// <summary>The host applying a new pattern and nothing else.</summary>
     public static Result<IReadOnlyList<SessionEvent>> ChangePattern(this Session session, string winConditionId, DateTimeOffset now) =>
-        session.ApplyRules(session.NextRoundSettings ?? session.Settings, winConditionId, now);
+        session.ApplyRules(session.Settings, winConditionId, now);
 
     /// <summary>The host applying new settings and keeping the pattern.</summary>
     public static Result<IReadOnlyList<SessionEvent>> ChangeSettings(this Session session, SessionSettings settings, DateTimeOffset now) =>

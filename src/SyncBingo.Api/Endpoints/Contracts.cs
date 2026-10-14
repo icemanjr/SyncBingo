@@ -43,8 +43,8 @@ public sealed record VisibleRequest(bool Visible);
 /// <summary>The host's Apply: the settings changed (only fields sent) and, optionally, the new pattern.</summary>
 public sealed record RulesRequest(SettingsBody? Settings = null, string? WinCondition = null);
 
-/// <summary>The rules in force: settings now, those waiting for the next round (round-scoped ones changed mid-round), and the pattern.</summary>
-public sealed record RulesView(SettingsBody Settings, SettingsBody? NextRound, string WinCondition);
+/// <summary>The rules in force: the settings and the pattern.</summary>
+public sealed record RulesView(SettingsBody Settings, string WinCondition);
 
 /// <summary>
 /// Host settings on the wire. In a request every field is optional and only those sent change

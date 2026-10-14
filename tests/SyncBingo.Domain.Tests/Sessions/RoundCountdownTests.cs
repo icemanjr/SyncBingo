@@ -15,7 +15,7 @@ public sealed class RoundCountdownTests
 
         var countdown = session.StartCountdown(startInAuto: false, Now).Single<RoundCountdownStarted>();
 
-        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false) { Seq = countdown.Seq });
+        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false, "normal") { Seq = countdown.Seq });
         session.State.ShouldBe(SessionState.Starting);
         session.IsInRound.ShouldBeFalse();
         session.UpcomingRound.ShouldBe(1);
@@ -68,12 +68,11 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public void Settings_waiting_for_the_next_round_apply_when_it_starts()
+    public void Settings_chosen_in_the_lobby_apply_to_the_next_round()
     {
         var session = InState(SessionState.Manual);
-        session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
         session.ClearCards(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
-        session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked, "still waiting: the next round has not started");
+        session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
 
         session.StartCountdown(startInAuto: false, Now).IsSuccess.ShouldBeTrue();
         session.StartRound(new SeededRandom(1), Now.AddSeconds(10)).IsSuccess.ShouldBeTrue();

@@ -12,7 +12,6 @@ public sealed record SessionSnapshot(
     DateTimeOffset? CountdownEndsAt,
     bool StartInAuto,
     SessionSettings Settings,
-    SessionSettings? NextRoundSettings,
     string WinConditionId,
     int RoundNumber,
     IReadOnlyList<BallCall> Calls,
@@ -24,7 +23,8 @@ public sealed record SessionSnapshot(
     IReadOnlyList<WinRecord> Wins,
     IReadOnlyList<RoundSummary> Rounds,
     bool LeaderboardVisible,
-    IReadOnlyList<WinAlert> Alerts);
+    IReadOnlyList<WinAlert> Alerts,
+    DateTimeOffset? NextBallFrom = null);
 
 /// <summary>Lines already alerted for a card and win condition this round, so detection never repeats an alert.</summary>
 public sealed record WinAlert(string ParticipantId, int CardId, string WinConditionId, int Lines);

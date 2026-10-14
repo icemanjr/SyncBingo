@@ -171,10 +171,10 @@ public sealed class MultipleWinsTests
     {
         var kit = DoubleBingo(MultipleWins.OncePerPattern);
 
-        kit.Session.ChangeSettings(SessionSettings.Default with { MultipleWins = MultipleWins.EveryDeclaredWin }, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeSettings(SessionSettings.Default with { MultipleWins = MultipleWins.EveryDeclaredWin }, Now)
+            .Error!.Message.ShouldBe("Multiple wins can only be changed between rounds.");
 
         kit.Session.Settings.MultipleWins.ShouldBe(MultipleWins.OncePerPattern);
-        kit.Session.NextRoundSettings!.MultipleWins.ShouldBe(MultipleWins.EveryDeclaredWin);
     }
 
     /// <summary>Top row and column B both complete when ball 1 is called last.</summary>

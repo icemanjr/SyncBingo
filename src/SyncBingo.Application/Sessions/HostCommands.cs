@@ -6,8 +6,8 @@ using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Sessions;
 
-/// <summary>The rules in force after an Apply: settings now, those waiting for the next round, and the pattern.</summary>
-public sealed record RulesApplied(SessionSettings Settings, SessionSettings? NextRoundSettings, string WinConditionId);
+/// <summary>The rules in force after an Apply: the settings and the pattern.</summary>
+public sealed record RulesApplied(SessionSettings Settings, string WinConditionId);
 
 /// <summary>
 /// Host commands that change only shared session state. Each runs through
@@ -24,8 +24,8 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
     /// <summary>
     /// The host's <b>Apply</b> in Options (docs/06): new settings and, if given, a new pattern, in
     /// one step and only in the lobby or manual mode (<see cref="Session.ApplyRules"/>).
-    /// <paramref name="change"/> runs under the lock on the newest settings, those waiting for the
-    /// next round if any, so it changes only what the host changed. Returns the rules now in force.
+    /// <paramref name="change"/> runs under the lock on the current settings, so it changes only
+    /// what the host changed. Returns the rules now in force.
     /// </summary>
     public async Task<Result<RulesApplied>> ApplyRulesAsync(
         GameCode code, Caller caller, Func<SessionSettings, SessionSettings> change, string? winConditionId, CancellationToken cancellationToken)
@@ -38,8 +38,8 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
                 caller,
                 (session, now) =>
                 {
-                    var outcome = session.ApplyRules(change(session.NextRoundSettings ?? session.Settings), winConditionId ?? session.WinConditionId, now);
-                    applied = new RulesApplied(session.Settings, session.NextRoundSettings, session.WinConditionId);
+                    var outcome = session.ApplyRules(change(session.Settings), winConditionId ?? session.WinConditionId, now);
+                    applied = new RulesApplied(session.Settings, session.WinConditionId);
                     return outcome;
                 },
                 cancellationToken)

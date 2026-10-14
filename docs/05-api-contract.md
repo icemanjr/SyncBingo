@@ -29,7 +29,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `PUT /sessions/{code}/rules` | `{ settings?, winCondition? }` | **Apply** in Options: the settings sent (only those fields change) and the pattern, in one step. `200 { settings, nextRound, winCondition }`. 409 in auto mode ("Pause before changing the rules.") and during the countdown. |
+| `PUT /sessions/{code}/rules` | `{ settings?, winCondition? }` | **Apply** in Options: the settings sent (only those fields change) and the pattern, in one step. `200 { settings, winCondition }`. 409 in auto mode ("Pause before changing the rules.") and during the countdown; 422 for a lobby-only setting (free space, redraw policy, multiple wins) during a round, with nothing applied. |
 | `POST /sessions/{code}/rounds/countdown` | `{ startInAuto: bool }` | *Start Round N*: begins the 10 s countdown (FR-45); 409 unless in the lobby. |
 | `DELETE /sessions/{code}/rounds/countdown` | – | Cancel the countdown; back to the lobby. |
 | `POST /sessions/{code}/cards/clear` | `{ redrawCards: bool }` | *Clear cards*: ends any running round, clears marks and calls, optional redraw, back to the lobby (FR-34); 409 during a countdown. |
@@ -64,7 +64,8 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 | `SessionStateChanged` | all | `{ state, round, version }` |
 | `SettingsChanged` | all | settings visible to participants |
 | `WinConditionChanged` | all | `{ condition }` |
-| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto }`: clients count down locally to `endsAt` in the last-ball slot |
+| `RulesUpdated` | all | `{ changes: [{ rule, value }], nextBallFrom }`: the "Rules updated" notice (FR-47). `rule` is a settings wire name or `winCondition`; clients word it ("Pattern changed to Blackout"). Raised only mid-round, and only for changes players notice. *Grab ball* and *Auto mode* answer 409 until `nextBallFrom` |
+| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto, winCondition }`: clients count down locally to `endsAt` in the last-ball slot and show the round-start notice with the pattern (FR-47) |
 | `RoundCountdownCancelled` | all | `{ round }` |
 | `RoundStarted` | all | `{ round }` |
 | `CardsCleared` | all | `{ redraw }` (players with new cards also get `CardReplaced`) |
@@ -90,6 +91,6 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 - Rate limits: join endpoint per code + IP; marks per participant.
 - Authentication: a missing, unknown or revoked token, or a token for a different game, is 401; a valid token without the right role is 403 (the application layer decides roles). A game whose lock stays taken longer than 5 s answers 503 "The game is busy. Please try again."
 - Problem bodies carry `detail` (the message to show) and `code` (the `DomainErrorCode` name) for clients to branch on.
-- Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, rules `{ settings, nextRound, winCondition }`.
-- Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `bingoButton`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /rules` every settings field is optional and only those sent change, applied under the session lock to the newest settings (those waiting for the next round, if any). `winCondition` is one of `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`; left out, the pattern stays.
+- Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, rules `{ settings, winCondition }`.
+- Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `bingoButton`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /rules` every settings field is optional and only those sent change, applied under the session lock to the current settings. `winCondition` is one of `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`; left out, the pattern stays.
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

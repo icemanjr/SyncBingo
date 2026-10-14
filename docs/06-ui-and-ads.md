@@ -49,7 +49,7 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 - Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
 - **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.
 - After Apply the button shows **Applied ✓** and stays disabled for about 1.5 s, so a double-click can't send the batch twice. There is no server-side lockout: nothing can be half-applied.
-- Mid-round, a setting that only takes effect next round (free space, redraw policy, multiple wins) is labelled **from next round** before it is applied.
+- Settings that shape a whole round (free space, redraw policy, multiple wins) sit in a separate **Between rounds** section. During a round it is locked, with the note "Change these in the lobby", so everything Apply sends mid-round takes effect at once.
 - Closing Options with unapplied changes asks **Discard changes?**
 - Options is **not available in auto mode**: the host presses **Pause** first, so no ball is called while new rules are announced. During the round countdown Options can be opened but **Apply** is disabled ("Cancel the countdown to change the rules").
 
@@ -71,6 +71,23 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 │ [Ad: bottom banner]   │
 └───────────────────────┘
 ```
+
+### Rules notices (FR-47)
+
+A panel over the top of the card or board, on participants' screens, the display view and the host console:
+
+```
+┌───────────────────────────────┐
+│ Rules updated              [X]│
+│ • Pattern changed to Blackout │
+│ • Squares can only be marked  │
+│   once their number is called │
+└───────────────────────────────┘
+```
+
+- **Rules updated** appears when the host applies changes mid-round, listing each change in plain words. The round-start version, shown during the countdown, reads **This round: Four Corners** with the pattern's shape drawn as a small 5×5 grid.
+- It closes with **X** (48 px target) or by itself when the next ball is called. It never hides the BINGO button, and it is announced to screen readers (`aria-live="polite"`). It has no animation under reduced motion and never flashes.
+- For 3 seconds after a *Rules updated* notice the host's **Grab ball** button counts down ("Grab ball 3…") and **Auto mode** is disabled, so everyone has time to read before the next ball.
 
 ### Lobby and round countdown (FR-45, FR-46)
 

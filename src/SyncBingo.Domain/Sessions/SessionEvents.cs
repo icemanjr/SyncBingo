@@ -42,8 +42,12 @@ public abstract record SessionEvent
     public long Seq { get; init; }
 }
 
-/// <summary>"Start Round N": the countdown runs until <see cref="EndsAt"/>; clients count down locally.</summary>
-public sealed record RoundCountdownStarted(int Round, DateTimeOffset EndsAt, bool StartInAuto) : SessionEvent;
+/// <summary>
+/// "Start Round N": the countdown runs until <see cref="EndsAt"/>; clients count down locally.
+/// Every screen also shows the round's pattern, <see cref="WinConditionId"/>, until the first ball
+/// (FR-47); it can't change during the countdown.
+/// </summary>
+public sealed record RoundCountdownStarted(int Round, DateTimeOffset EndsAt, bool StartInAuto, string WinConditionId) : SessionEvent;
 
 public sealed record RoundCountdownCancelled(int Round) : SessionEvent;
 
@@ -69,6 +73,19 @@ public sealed record BallCalled(BallCall Call, int? PreviousNumber) : SessionEve
 
 public sealed record WinConditionChanged(string WinConditionId) : SessionEvent;
 
-public sealed record SettingsChanged(SessionSettings Settings, SessionSettings? NextRoundSettings) : SessionEvent;
+public sealed record SettingsChanged(SessionSettings Settings) : SessionEvent;
+
+/// <summary>
+/// One rule that changed, for the "Rules updated" notice (FR-47): <see cref="Rule"/> is the
+/// setting's wire name (<c>winCondition</c>, <c>freeMarking</c>, …) and <see cref="Value"/> its new
+/// value (<c>blackout</c>, <c>false</c>, <c>MismarksOnly</c>). Every change listed is in force at once.
+/// </summary>
+public sealed record RuleChange(string Rule, string Value);
+
+/// <summary>
+/// Rules that matter to players changed mid-round (FR-47). Every screen shows the list until
+/// it is closed or the next ball is called, which can't happen for <see cref="Session.RulesReadingTime"/>.
+/// </summary>
+public sealed record RulesUpdated(IReadOnlyList<RuleChange> Changes, DateTimeOffset NextBallFrom) : SessionEvent;
 
 public sealed record SessionEnded : SessionEvent;

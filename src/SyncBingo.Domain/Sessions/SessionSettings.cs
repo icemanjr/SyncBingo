@@ -42,7 +42,7 @@ public enum FreeSpace
 /// <summary>
 /// Host settings (docs/01 §3.2). Defaults follow the documented decisions; the rest
 /// favour a friendly first game. <see cref="FreeSpace"/>, <see cref="RedrawPolicy"/> and
-/// <see cref="MultipleWins"/> only change between rounds (see <see cref="Session.ApplyRules"/>).
+/// <see cref="MultipleWins"/> change only in the lobby (see <see cref="Session.ApplyRules"/>).
 /// </summary>
 public sealed record SessionSettings
 {
@@ -96,6 +96,44 @@ public sealed record SessionSettings
 
     public static SessionSettings Default { get; } = new();
 
+    /// <summary>
+    /// The settings players notice, by wire name, for the "Rules updated" notice (FR-47). Left out
+    /// on purpose: the auto-call interval and win detection (how the host runs the game), the
+    /// cosmetic win highlight and round numbers, and the round-scoped settings, which can't change
+    /// mid-round.
+    /// </summary>
+    private static readonly (string Rule, Func<SessionSettings, object> Value)[] PlayerFacing =
+    [
+        ("showBallToPlayers", s => s.ShowBallToPlayers),
+        ("highlightMatches", s => s.HighlightMatches),
+        ("showCallBoard", s => s.ShowCallBoard),
+        ("autoFillAvailable", s => s.AutoFillAvailable),
+        ("bingoButton", s => s.BingoButton),
+        ("freeMarking", s => s.FreeMarking),
+        ("requireMarksForClaims", s => s.RequireMarksForClaims),
+        ("unmarking", s => s.Unmarking),
+    ];
+
+    /// <summary>Settings that shape a whole round, so they change only in the lobby: the cards' free space, redraws and multiple wins.</summary>
+    private static readonly (string Name, Func<SessionSettings, object> Value)[] RoundScoped =
+    [
+        ("free space", s => s.FreeSpace),
+        ("redraw policy", s => s.RedrawPolicy),
+        ("multiple wins", s => s.MultipleWins),
+    ];
+
+    /// <summary>The settings players would notice changing from these to <paramref name="next"/>.</summary>
+    internal static IEnumerable<RuleChange> PlayerFacingChanges(SessionSettings current, SessionSettings next) =>
+        PlayerFacing
+            .Where(field => !Equals(field.Value(current), field.Value(next)))
+            .Select(field => new RuleChange(field.Rule, Format(field.Value(next))));
+
+    /// <summary>The names of round-scoped settings that differ in <paramref name="next"/>, e.g. "free space".</summary>
+    internal List<string> RoundScopedChanges(SessionSettings next) =>
+        [.. RoundScoped.Where(field => !Equals(field.Value(this), field.Value(next))).Select(field => field.Name)];
+
+    private static string Format(object value) => value is bool flag ? (flag ? "true" : "false") : value.ToString()!;
+
     internal DomainError? Validate()
     {
         if (AutoCallInterval < MinAutoCallInterval || AutoCallInterval > MaxAutoCallInterval)
@@ -113,8 +151,4 @@ public sealed record SessionSettings
                 ? null
                 : new DomainError(DomainErrorCode.Invalid, "A setting has an unknown value.");
     }
-
-    /// <summary>This round's settings with the round-scoped ones kept as they were.</summary>
-    internal SessionSettings KeepRoundScopedFrom(SessionSettings current) =>
-        this with { RedrawPolicy = current.RedrawPolicy, FreeSpace = current.FreeSpace, MultipleWins = current.MultipleWins };
 }

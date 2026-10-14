@@ -15,10 +15,7 @@ internal static class HostEndpoints
         game.MapPut("/rules", (string code, RulesRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await host.ApplyRulesAsync(game, caller, settings => request.Settings?.ApplyTo(settings) ?? settings, request.WinCondition, ct))
-                    .ToHttp(rules => TypedResults.Ok(new RulesView(
-                        SettingsBody.From(rules.Settings),
-                        rules.NextRoundSettings is { } next ? SettingsBody.From(next) : null,
-                        rules.WinConditionId)))));
+                    .ToHttp(rules => TypedResults.Ok(new RulesView(SettingsBody.From(rules.Settings), rules.WinConditionId)))));
 
         game.MapPost("/rounds/countdown", (string code, CountdownRequest request, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>

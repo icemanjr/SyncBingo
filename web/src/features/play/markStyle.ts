@@ -37,8 +37,8 @@ export const colours: { value: string; label: string }[] = [
 ]
 
 export const textSizes: { value: TextSize; label: string; className: string }[] = [
-  { value: 'small', label: 'Small', className: 'text-xl' },
-  { value: 'medium', label: 'Medium', className: 'text-2xl' },
+  { value: 'small', label: 'Small', className: 'text-base' },
+  { value: 'medium', label: 'Medium', className: 'text-xl' },
   { value: 'large', label: 'Large', className: 'text-3xl' },
   { value: 'max', label: 'Max', className: 'text-4xl' },
 ]
@@ -47,7 +47,7 @@ export const defaultMarkStyle: MarkStyle = {
   shape: 'circle',
   colour: '#2563eb',
   opacity: 0.45,
-  textSize: 'small',
+  textSize: 'medium',
 }
 
 const storageKey = 'syncbingo:mark-style'

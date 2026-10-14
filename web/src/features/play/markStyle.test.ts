@@ -11,7 +11,7 @@ describe('mark style (FR-51)', () => {
       shape: 'circle',
       colour: '#2563eb',
       opacity: 0.45,
-      textSize: 'small',
+      textSize: 'medium',
     })
   })
 

@@ -83,7 +83,12 @@ On the play screen, **⚙ My marks** opens a small panel with a live preview cel
 - **Shape:** ● circle (default, like a dauber), ★ star, ♥ heart, ■ filled square, or ▢ tint (the whole cell's background).
 - **Colour:** a palette of 6 colours, each checked so a marked number stays readable in both themes, plus a high-contrast option.
 - **Opacity:** a slider from 20% to 80% (45% by default), shown live on the preview cell.
-- **Text size:** Small, Medium (the default), Large, or **Max**, for whatever is in the squares (numbers now; words with custom sets). Max is calculated, not fixed: the largest size at which the longest face in the set fits a square on one line without being cut off, measured in the card's font and recalculated when the square resizes (rotating the phone, resizing the window). Every square uses the same size, so cards look alike for everyone. With custom sets the snapshot will carry the set's longest card face for this.
+- **Text size:** Small, **Medium** (the default), Large, or Max, for whatever is in the squares (numbers now; words or short phrases of up to 20 characters with custom sets).
+  - Text **wraps at spaces only**, never inside a word, as many lines as the square's height allows.
+  - A square whose text doesn't fit **shrinks on its own**, never below its size's minimum: **8 / 12 / 16 / 20 pt** for Small / Medium / Large / Max.
+  - Past the minimum, the end is **cut off with "…"**. The full text shows on **hover** (a mouse) or a **long press** (touch, half a second), which never marks the square; a normal tap marks. Screen readers always hear the full text.
+  - **Max** is calculated: one size for every square, the largest at which the set's *hardest* face fits whole (one long word can be harder than a short phrase), measured in the card's font and recalculated when the square resizes. Every card in the game uses the same Max.
+  - The fitting rules are pure functions (`web/src/features/play/fitText.ts`) with their own tests.
 
 The mark sits *behind* the number and the number stays bold on top, so a marked square never hides what is on it, even at 80%. **Layering is a property of the square's content, not fixed:** text squares draw the mark behind; when image squares arrive (ADR 0009, deferred) the mark is drawn over the picture as a translucent overlay, since a picture would hide a mark behind it. Marked cells also say so to screen readers ("17, marked"). The choice is remembered on the device and never sent to the server.
 

@@ -14,13 +14,11 @@ import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
 
 /**
- * The longest face in the set, for **Max** text size (FR-51): every square uses one size, so cards look the
- * same for everyone. Standard Bingo's faces are its ball numbers; custom sets will send their longest card face.
+ * Every card face in the set, for **Max** text size (FR-51): one size fitted to the hardest face, so cards
+ * look the same for everyone. Standard Bingo's faces are its ball numbers; custom sets will send theirs.
  */
-function longestFace(board: { balls: number[] }[], cells: number[]): string {
-  return [...board.flatMap((group) => group.balls), ...cells]
-    .map(String)
-    .reduce((a, b) => (b.length > a.length ? b : a), '')
+function setFaces(board: { balls: number[] }[]): string[] {
+  return board.flatMap((group) => group.balls).map(String)
 }
 
 /** How long "Sent to the host!" shows after a Bingo press. */
@@ -207,7 +205,7 @@ export function PlayScreen() {
           called={calls ? new Set(calls.map((c) => c.number)) : null}
           highlightMatches={view.settings.highlightMatches}
           markStyle={markStyle}
-          longestFace={longestFace(view.board, card.cells)}
+          setFaces={setFaces(view.board)}
           disabled={!inRound || marking.busy}
           onToggle={toggle}
         />

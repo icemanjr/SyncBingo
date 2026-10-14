@@ -1,14 +1,45 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import type { Schemas } from '../../api/client'
-import { useFitFontSize } from './fitText'
+import {
+  fitText,
+  maxSizeForSet,
+  useSquareMetrics,
+  type Box,
+  type Fitted,
+  type Measure,
+} from './fitText'
 import { Mark } from './Mark'
 import { textSizes, type MarkStyle } from './markStyle'
 
+/** Each square's fitted text, or nothing where text can't be measured (then plain CSS sizes apply). */
+function fitSquares(
+  faces: string[],
+  setFaces: string[],
+  size: (typeof textSizes)[number] | undefined,
+  metrics: { box: Box; measure: Measure } | undefined,
+): (Fitted | undefined)[] {
+  if (!metrics || !size) return faces.map(() => undefined)
+  const { box, measure } = metrics
+  if (size.value === 'max') {
+    const max = maxSizeForSet(setFaces, measure, box, size.min)
+    return faces.map((face) => fitText(face, measure, box, max, max))
+  }
+
+  return faces.map((face) => fitText(face, measure, box, size.start, size.min))
+}
+
+/** How long a press must last to show a cut-off square's full text instead of marking it. */
+const LongPressMs = 500
+
 /**
  * A player's card. Each square is a toggle button (48 px or more): tap to mark, tap again to unmark (the
- * host's rules decide what's allowed). The mark sits behind the number, which stays bold on top with a
- * halo in the surface colour, so it reads at any opacity. "Highlight matching squares" outlines called,
- * unmarked numbers with a dashed ring, so it doesn't rely on colour either.
+ * host's rules decide what's allowed). The mark sits behind the text, which stays bold on top with a halo
+ * in the surface colour, so it reads at any opacity. "Highlight matching squares" outlines called, unmarked
+ * squares with a dashed ring, so it doesn't rely on colour.
+ *
+ * Text is fitted to the squares (FR-51): it wraps at spaces only, shrinks a square if needed but never below
+ * the chosen size's minimum, and is cut off with "…" past that. A cut-off square shows its full text on hover
+ * and on a long press, which never marks it; screen readers always hear the full text.
  */
 export function Card({
   card,
@@ -17,7 +48,7 @@ export function Card({
   called,
   highlightMatches,
   markStyle,
-  longestFace,
+  setFaces,
   disabled,
   onToggle,
 }: {
@@ -27,15 +58,26 @@ export function Card({
   called: Set<number> | null
   highlightMatches: boolean
   markStyle: MarkStyle
-  /** The longest face in the set, which **Max** text size fits to the square (FR-51). */
-  longestFace: string
+  /** Every card face in the set; Max text size is fitted to the hardest of them, so all cards match. */
+  setFaces: string[]
   disabled: boolean
   onToggle: (cell: number, marked: boolean) => void
 }) {
   const firstSquare = useRef<HTMLButtonElement>(null)
-  const fitted = useFitFontSize(longestFace, firstSquare)
-  const sizeClass = textSizes.find((t) => t.value === markStyle.textSize)?.className ?? 'text-xl'
-  const maxFitted = markStyle.textSize === 'max' && fitted !== undefined
+  const metrics = useSquareMetrics(firstSquare)
+  const size = textSizes.find((t) => t.value === markStyle.textSize) ?? textSizes[1]
+  const [showingFull, setShowingFull] = useState<number>()
+  const press = useRef<{ timer?: ReturnType<typeof setTimeout>; longPressed: boolean }>({
+    longPressed: false,
+  })
+  const faces = card.cells.map((number, cell) => (cell === freeCell ? '★' : String(number)))
+
+  // Cheap enough to work out on each render: measurements are cached per text.
+  const fitted = fitSquares(faces, setFaces, size, metrics)
+
+  const endPress = () => {
+    clearTimeout(press.current.timer)
+  }
 
   return (
     <div
@@ -45,10 +87,12 @@ export function Card({
       style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(3rem, 1fr))` }}
     >
       {card.cells.map((number, cell) => {
+        const face = faces[cell] ?? ''
+        const fit = fitted[cell]
         const marked = (card.marks & (2 ** cell)) !== 0
         const free = cell === freeCell
         const match = highlightMatches && !marked && called?.has(number) === true
-        const label = `${free ? 'Free space' : String(number)}${marked ? ', marked' : ''}${match ? ', called' : ''}`
+        const label = `${free ? 'Free space' : face}${marked ? ', marked' : ''}${match ? ', called' : ''}`
         return (
           <button
             key={cell}
@@ -57,25 +101,60 @@ export function Card({
             role="gridcell"
             aria-pressed={marked}
             aria-label={label}
+            title={fit?.truncated ? face : undefined}
             disabled={disabled}
+            onPointerDown={() => {
+              press.current.longPressed = false
+              if (!fit?.truncated) return
+              press.current.timer = setTimeout(() => {
+                press.current.longPressed = true
+                setShowingFull(cell)
+              }, LongPressMs)
+            }}
+            onPointerUp={endPress}
+            onPointerLeave={endPress}
+            onPointerCancel={endPress}
+            onContextMenu={(e) => {
+              if (fit?.truncated) e.preventDefault() // a long press shows the text, not the phone's menu
+            }}
             onClick={() => {
+              if (press.current.longPressed) {
+                press.current.longPressed = false
+                return // the long press showed the full text; it doesn't mark
+              }
+
+              setShowingFull(undefined)
               onToggle(cell, !marked)
             }}
-            className={`relative flex aspect-square min-h-12 items-center justify-center rounded-lg border-2 bg-surface focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`relative flex aspect-square min-h-12 flex-col items-center justify-center rounded-lg border-2 bg-surface focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               match ? 'border-dashed border-accent' : 'border-line-soft'
             }`}
           >
             {marked && <Mark style={markStyle} />}
             <span
-              className={`relative z-10 font-bold whitespace-nowrap tabular-nums ${maxFitted ? '' : sizeClass}`}
+              aria-hidden="true"
+              className={`relative z-10 flex flex-col items-center font-bold tabular-nums ${fit ? '' : (size?.className ?? 'text-xl')}`}
               style={{
                 textShadow:
                   '0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 1px var(--surface)',
-                fontSize: maxFitted ? `${String(fitted)}px` : undefined,
+                fontSize: fit ? `${String(fit.size)}px` : undefined,
+                lineHeight: 1.15,
               }}
             >
-              {free ? '★' : number}
+              {(fit?.lines ?? [face]).map((line, i) => (
+                <span key={i} className="whitespace-nowrap">
+                  {line}
+                </span>
+              ))}
             </span>
+            {showingFull === cell && (
+              <span
+                role="tooltip"
+                className="absolute -top-2 left-1/2 z-30 -translate-x-1/2 -translate-y-full rounded-lg bg-ink px-2 py-1 text-sm whitespace-nowrap text-page"
+              >
+                {face}
+              </span>
+            )}
           </button>
         )
       })}

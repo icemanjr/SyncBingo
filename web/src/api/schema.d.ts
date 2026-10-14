@@ -478,24 +478,24 @@ export interface components {
         AwardRequest: {
             participantId: string;
             /** Format: int32 */
-            cardId?: null | number | string;
+            cardId?: null | number;
             /** Format: int32 */
-            wins?: null | number | string;
+            wins?: null | number;
             /** Format: int32 */
-            claimId?: null | number | string;
+            claimId?: null | number;
         };
         BallBody: {
             /** Format: int32 */
-            number: number | string;
+            number: number;
             letter: string;
             /** Format: int32 */
-            sequence: number | string;
+            sequence: number;
         };
         BallCall: {
             /** Format: int32 */
-            sequence: number | string;
+            sequence: number;
             /** Format: int32 */
-            number: number | string;
+            number: number;
             letter: string;
             /** Format: date-time */
             calledAt: string;
@@ -503,50 +503,50 @@ export interface components {
         };
         BoardGroup: {
             label: string;
-            balls: (number | string)[];
+            balls: number[];
         };
         CardBody: {
             /** Format: int32 */
-            cardId: number | string;
-            cells: (number | string)[];
+            cardId: number;
+            cells: number[];
         };
         CardRequest: {
             /** Format: int32 */
-            cardId: number | string;
+            cardId: number;
         };
         CardShape: {
             /** Format: int32 */
-            rows: number | string;
+            rows: number;
             /** Format: int32 */
-            columns: number | string;
+            columns: number;
             /** Format: int32 */
-            freeCell: null | number | string;
+            freeCell: null | number;
         };
         CardView: {
             /** Format: int32 */
-            cardId: number | string;
-            cells: (number | string)[];
+            cardId: number;
+            cells: number[];
             /** Format: uint32 */
-            marks: number | string;
+            marks: number;
         };
         Claim: {
             /** Format: int32 */
-            id: number | string;
+            id: number;
             /** Format: int32 */
-            round: number | string;
+            round: number;
             participantId: string;
             name: string;
             /** Format: int32 */
-            cardId: number | string;
+            cardId: number;
             winConditionId: string;
             /** Format: date-time */
             claimedAt: string;
             /** Format: int32 */
-            matches: number | string;
+            matches: number;
             /** Format: int32 */
-            alreadyAwarded: number | string;
+            alreadyAwarded: number;
             /** Format: int32 */
-            awardable: number | string;
+            awardable: number;
             status: components["schemas"]["ClaimStatus"];
             qualified?: boolean;
         };
@@ -564,7 +564,7 @@ export interface components {
         };
         CountdownStarted: {
             /** Format: int32 */
-            round: number | string;
+            round: number;
             /** Format: date-time */
             endsAt: string;
         };
@@ -601,9 +601,9 @@ export interface components {
             code: string;
             state: components["schemas"]["SessionState"];
             /** Format: int32 */
-            round: number | string;
+            round: number;
             /** Format: int32 */
-            upcomingRound: number | string;
+            upcomingRound: number;
             /** Format: date-time */
             countdownEndsAt: null | string;
             winCondition: string;
@@ -612,15 +612,15 @@ export interface components {
             board: components["schemas"]["BoardGroup"][];
             calls: null | components["schemas"]["BallCall"][];
             /** Format: int32 */
-            ballsRemaining: number | string;
+            ballsRemaining: number;
             /** Format: date-time */
             nextBallFrom: null | string;
             settings: components["schemas"]["VisibleSettings"];
             leaderboard: null | components["schemas"]["LeaderboardEntry"][];
             /** Format: int64 */
-            version: number | string;
+            version: number;
             /** Format: int64 */
-            seq: number | string;
+            seq: number;
             joinNote: null | string;
         };
         HostBody: {
@@ -637,7 +637,7 @@ export interface components {
         JoinInfo: {
             acceptingJoins: boolean;
             /** Format: int32 */
-            round: number | string;
+            round: number;
         };
         JoinNoteRequest: {
             note: null | string;
@@ -650,7 +650,7 @@ export interface components {
             participantId: string;
             name: string;
             /** Format: int32 */
-            wins: number | string;
+            wins: number;
         };
         LeaderboardView: {
             entries: components["schemas"]["LeaderboardEntry"][];
@@ -658,14 +658,14 @@ export interface components {
         };
         MarkRequest: {
             /** Format: int32 */
-            cardId: number | string;
+            cardId: number;
             /** Format: int32 */
-            cell: number | string;
+            cell: number;
             marked: boolean;
         };
         MarksBody: {
             /** Format: uint32 */
-            marks: number | string;
+            marks: number;
         };
         /** @enum {unknown} */
         MultipleWins: "OncePerRound" | "OncePerPattern" | "EveryDeclaredWin";
@@ -687,7 +687,7 @@ export interface components {
         PatternView: {
             id: string;
             name: string;
-            masks: (number | string)[];
+            masks: number[];
         };
         PlayerView: {
             participantId: string;
@@ -699,7 +699,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
         };
@@ -707,7 +707,7 @@ export interface components {
         RedrawPolicy: "HostControls" | "ParticipantsMayRedraw";
         RoundSummary: {
             /** Format: int32 */
-            number: number | string;
+            number: number;
             /** Format: date-time */
             startedAt: string;
             /** Format: date-time */
@@ -727,7 +727,7 @@ export interface components {
         SessionState: "BetweenRounds" | "Starting" | "Manual" | "Auto" | "Ended";
         SettingsBody: {
             /** Format: int32 */
-            autoCallIntervalSeconds?: null | number | string;
+            autoCallIntervalSeconds?: null | number;
             showBallToPlayers?: null | boolean;
             highlightMatches?: null | boolean;
             showCallBoard?: null | boolean;
@@ -770,11 +770,11 @@ export interface components {
         WinDetection: "Off" | "AlertHost" | "AlertHostAndPause" | null;
         WinRecord: {
             /** Format: int32 */
-            round: number | string;
+            round: number;
             participantId: string;
             name: string;
             /** Format: int32 */
-            cardId: number | string;
+            cardId: number;
             winConditionId: string;
             /** Format: date-time */
             awardedAt: string;
@@ -783,7 +783,7 @@ export interface components {
              * Format: int32
              * @default 1
              */
-            wins: number | string;
+            wins: number;
         };
         /** @enum {unknown} */
         WinSource: "Claimed" | "Detected" | "Manual";

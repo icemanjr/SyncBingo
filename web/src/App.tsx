@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { ComingNext } from './app/ComingNext'
 import { FullScreen, Layout } from './app/Layout'
+import { CreateGamePage } from './features/host/CreateGamePage'
+import { HostConsole } from './features/host/HostConsole'
 import { LandingPage } from './features/landing/LandingPage'
 
 /** The site's pages (docs/06 §1). */
@@ -19,7 +21,7 @@ export function AppRoutes() {
         path="/host/new"
         element={
           <Layout>
-            <ComingNext what="Hosting a game" />
+            <CreateGamePage />
           </Layout>
         }
       />
@@ -27,7 +29,7 @@ export function AppRoutes() {
         path="/host/:code"
         element={
           <Layout>
-            <ComingNext what="The host console" />
+            <HostConsole />
           </Layout>
         }
       />

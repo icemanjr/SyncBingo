@@ -4,8 +4,15 @@ import type { components, paths } from './schema'
 /** Types generated from the API's own OpenAPI description (`npm run api:generate`). */
 export type Schemas = components['schemas']
 
-/** The API, typed end to end. Paths are relative, so the dev proxy and production serve it from the same origin. */
-export const api = createClient<paths>({ baseUrl: '' })
+/**
+ * The API, typed end to end, on the page's own origin (the dev proxy and production both serve it there).
+ * An absolute base, because `Request` outside a browser page can't resolve relative URLs.
+ */
+export const api = createClient<paths>({
+  baseUrl: window.location.origin,
+  // Looked up on each call rather than captured once, so tests can stand in for the server.
+  fetch: (request) => globalThis.fetch(request),
+})
 
 /**
  * A refusal from the API (RFC 7807, docs/05 §5): `detail` is safe to show to players, `code` names the

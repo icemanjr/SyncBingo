@@ -97,6 +97,7 @@ In the table, "all" means all three streams.
 ## 5. Conventions
 
 - `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied in their stream.
+- JSON numbers are strict: `7`, never `"7"` (so the OpenAPI types are plain integers for the typed web client).
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - **Rate limits** (config section `RateLimits`; counted per API instance), answered with 429, `Retry-After` where known, and a problem with `code: "TooManyRequests"`:

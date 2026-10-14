@@ -80,7 +80,13 @@ internal static class ServiceRegistration
 
         services.AddProblemDetails();
         services.AddExceptionHandler<Problems.ExceptionHandler>();
-        services.Configure<JsonOptions>(json => json.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+        services.Configure<JsonOptions>(json =>
+        {
+            json.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+
+            // Numbers are numbers: no "7" for 7. Also makes the OpenAPI types plain integers for the web client.
+            json.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict;
+        });
 
         services.AddSyncBingoRateLimits(configuration.GetSection("RateLimits").Get<RateLimitOptions>() ?? new RateLimitOptions());
         services.AddOpenApi();

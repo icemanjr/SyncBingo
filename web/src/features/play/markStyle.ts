@@ -40,6 +40,7 @@ export const textSizes: { value: TextSize; label: string; className: string }[] 
   { value: 'small', label: 'Small', className: 'text-base' },
   { value: 'medium', label: 'Medium', className: 'text-xl' },
   { value: 'large', label: 'Large', className: 'text-3xl' },
+  /** Fitted to the square for the longest face in the set (fitText.ts); text-4xl until measured. */
   { value: 'max', label: 'Max', className: 'text-4xl' },
 ]
 

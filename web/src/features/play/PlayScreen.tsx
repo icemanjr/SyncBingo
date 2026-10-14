@@ -13,6 +13,16 @@ import { MarkStylePanel } from './MarkStylePanel'
 import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
 
+/**
+ * The longest face in the set, for **Max** text size (FR-51): every square uses one size, so cards look the
+ * same for everyone. Standard Bingo's faces are its ball numbers; custom sets will send their longest card face.
+ */
+function longestFace(board: { balls: number[] }[], cells: number[]): string {
+  return [...board.flatMap((group) => group.balls), ...cells]
+    .map(String)
+    .reduce((a, b) => (b.length > a.length ? b : a), '')
+}
+
 /** How long "Sent to the host!" shows after a Bingo press. */
 const SentForMs = 4000
 
@@ -197,6 +207,7 @@ export function PlayScreen() {
           called={calls ? new Set(calls.map((c) => c.number)) : null}
           highlightMatches={view.settings.highlightMatches}
           markStyle={markStyle}
+          longestFace={longestFace(view.board, card.cells)}
           disabled={!inRound || marking.busy}
           onToggle={toggle}
         />

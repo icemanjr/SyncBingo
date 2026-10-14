@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import type { Schemas } from '../../api/client'
+import { useFitFontSize } from './fitText'
 import { Mark } from './Mark'
 import { textSizes, type MarkStyle } from './markStyle'
 
@@ -15,6 +17,7 @@ export function Card({
   called,
   highlightMatches,
   markStyle,
+  longestFace,
   disabled,
   onToggle,
 }: {
@@ -24,9 +27,16 @@ export function Card({
   called: Set<number> | null
   highlightMatches: boolean
   markStyle: MarkStyle
+  /** The longest face in the set, which **Max** text size fits to the square (FR-51). */
+  longestFace: string
   disabled: boolean
   onToggle: (cell: number, marked: boolean) => void
 }) {
+  const firstSquare = useRef<HTMLButtonElement>(null)
+  const fitted = useFitFontSize(longestFace, firstSquare)
+  const sizeClass = textSizes.find((t) => t.value === markStyle.textSize)?.className ?? 'text-xl'
+  const maxFitted = markStyle.textSize === 'max' && fitted !== undefined
+
   return (
     <div
       role="grid"
@@ -42,6 +52,7 @@ export function Card({
         return (
           <button
             key={cell}
+            ref={cell === 0 ? firstSquare : undefined}
             type="button"
             role="gridcell"
             aria-pressed={marked}
@@ -56,10 +67,11 @@ export function Card({
           >
             {marked && <Mark style={markStyle} />}
             <span
-              className={`relative z-10 font-bold tabular-nums ${textSizes.find((t) => t.value === markStyle.textSize)?.className ?? 'text-xl'}`}
+              className={`relative z-10 font-bold whitespace-nowrap tabular-nums ${maxFitted ? '' : sizeClass}`}
               style={{
                 textShadow:
                   '0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 1px var(--surface)',
+                fontSize: maxFitted ? `${String(fitted)}px` : undefined,
               }}
             >
               {free ? '★' : number}

@@ -198,6 +198,24 @@ public sealed class HostAndDrawTests
     }
 
     [Fact]
+    public async Task The_last_auto_ball_stops_the_schedule()
+    {
+        var code = await _app.NewGameAsync();
+        await StartRoundAsync(code);
+        for (var i = 0; i < 73; i++)
+        {
+            (await _app.Draw.GrabBallAsync(code, Caller.Host, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        }
+
+        (await _app.Draw.StartAutoModeAsync(code, Caller.Host, TestApp.Ct)).IsSuccess.ShouldBeTrue(); // ball 74
+        _app.Scheduler.Due.ShouldContainKey(code.Value);
+        (await _app.Draw.TickAsync(code, TestApp.Ct)).IsSuccess.ShouldBeTrue(); // ball 75
+
+        (await _app.SessionAsync(code)).State.ShouldBe(SessionState.Manual);
+        _app.Scheduler.Due.ShouldNotContainKey(code.Value);
+    }
+
+    [Fact]
     public async Task Ending_a_round_in_auto_mode_cancels_the_schedule()
     {
         var code = await StartedGameAsync();

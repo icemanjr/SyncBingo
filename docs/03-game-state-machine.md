@@ -44,7 +44,7 @@ stateDiagram-v2
 | Mark square | ✖ | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free centre only once earned (FR-26) |
 | Unmark square | ✖ | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked |
 | Undo (participant) | ✖ | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |
-| Claim Bingo | ✖ | ✖ | ✔ | ✔ | Only if Bingo button enabled. Any time during a round, even while the next ball waits after a rules change. Always alerts the host, valid or not (FR-37a) |
+| Claim Bingo | ✖ | ✖ | ✔ | ✔ | Any time during a round, even while the next ball waits after a rules change. Always alerts the host, valid or not (FR-37a) |
 | Apply rules (Options → Apply) | ✔ | ✖ | ✔ | ✖ | Settings and pattern together, in one step. Before a round: picks its rules. Mid-round: the same balls and marks continue; free space, redraw policy and multiple wins are lobby only, so an Apply changing them is refused. Refused in auto mode ("Pause before changing the rules") and during the countdown, so the host can announce the change while nothing is being called |
 | Redraw card (participant) | ✔ if allowed | ✖ | ✖ | ✖ | Policy FR-20 |
 | Redraw cards (host) | ✔ | – | – | – | With *Clear cards* |
@@ -98,7 +98,7 @@ Rules:
 - Detection runs only when a ball is drawn, against called numbers, so marks (or mismarks) can never trigger or suppress an alert, and *Alert + pause* happens inside the draw's critical section.
 - A card raises **at most one detection alert per win condition per round**. Claims are not limited: every press reaches the host, who can remove a player who abuses the button.
 - Claim order is recorded with a server timestamp so the host can see who was first.
-- The host can **award a win** to one or several participants, including when detection and the Bingo button are both off (serious mode: a player shouts, the host verifies via *inspect card*, then awards).
+- The host can **award a win** to one or several participants with no claim at all, e.g. with detection off (serious mode: a player shouts "Bingo!" instead of pressing the button, the host verifies via *inspect card*, then awards).
 - How many wins a card can earn in a round follows *Multiple wins* (FR-43): once per round, once per pattern (default), or every declared win (the host awards the number declared, e.g. 2 for a double Bingo).
 - Claims and detection alerts carry the number of lines the card completes; claims also carry the wins it already got for this pattern this round and how many more are **awardable** under *Multiple wins*, so the host sees "No awardable matches" when there are none. This informs the host; it does not block an award.
 - Detection alerts once per card, pattern and round; with *every declared win* it alerts again when more lines complete; with *once per round* a card that has won is not checked again.

@@ -33,11 +33,8 @@ public sealed class WinTests
     }
 
     [Fact]
-    public void Claims_need_the_bingo_button_and_a_round()
+    public void Claims_need_a_round()
     {
-        var off = new PlayerTestKit(SessionSettings.Default with { BingoButton = false });
-        off.Session.ClaimBingo(off.Player, 1, Now).Error!.Code.ShouldBe(DomainErrorCode.NotAllowed);
-
         var kit = new PlayerTestKit();
         kit.Session.EndRound(Now).IsSuccess.ShouldBeTrue();
         kit.Session.ClaimBingo(kit.Player, 1, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
@@ -100,9 +97,10 @@ public sealed class WinTests
     [Fact]
     public void The_host_can_award_a_shouted_bingo_without_any_alert()
     {
-        var kit = new PlayerTestKit(SessionSettings.Default with { BingoButton = false, WinDetection = WinDetection.Off });
+        var kit = new PlayerTestKit(SessionSettings.Default with { WinDetection = WinDetection.Off });
 
         kit.Session.AwardWin(kit.Player, 1, Now).Single<WinAwarded>().Win.Source.ShouldBe(WinSource.Manual);
+        kit.Session.Claims.ShouldBeEmpty("nobody pressed Bingo; the host heard a shout");
     }
 
     [Fact]

@@ -446,11 +446,6 @@ public sealed class Session
             return WrongState("call Bingo");
         }
 
-        if (!Settings.BingoButton)
-        {
-            return Failure(DomainErrorCode.NotAllowed, "The Bingo button is off in this game. Shout \"Bingo!\" instead.");
-        }
-
         var matches = participant.Matches(cardId, this);
         if (!matches.IsSuccess)
         {

@@ -10,7 +10,7 @@
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
-| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (if enabled), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
+| Play | `/play/:code` | Card, latest ball (if shown), Bingo button (during a round), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
 
 ### Host console (sketch)
@@ -66,7 +66,7 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 │ 03 27 ★  58 62        │
 │ 15 30 33 47 75        │
 │ 09 16 44 60 68        │
-│      [ BINGO! ]       │  ← if enabled
+│      [ BINGO! ]       │  ← during a round
 ├───────────────────────┤
 │ [Ad: bottom banner]   │
 └───────────────────────┘

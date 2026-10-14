@@ -64,9 +64,6 @@ public sealed record SessionSettings
     /// <summary>FR-16: lets each participant switch auto-fill on for their own card.</summary>
     public bool AutoFillAvailable { get; init; }
 
-    /// <summary>FR-17.</summary>
-    public bool BingoButton { get; init; } = true;
-
     /// <summary>FR-18.</summary>
     public bool WinHighlight { get; init; } = true;
 
@@ -108,7 +105,6 @@ public sealed record SessionSettings
         ("highlightMatches", s => s.HighlightMatches),
         ("showCallBoard", s => s.ShowCallBoard),
         ("autoFillAvailable", s => s.AutoFillAvailable),
-        ("bingoButton", s => s.BingoButton),
         ("freeMarking", s => s.FreeMarking),
         ("requireMarksForClaims", s => s.RequireMarksForClaims),
         ("unmarking", s => s.Unmarking),

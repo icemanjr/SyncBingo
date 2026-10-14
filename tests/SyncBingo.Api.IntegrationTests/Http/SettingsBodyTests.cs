@@ -14,7 +14,6 @@ public sealed class SettingsBodyTests
         HighlightMatches = true,
         ShowCallBoard = false,
         AutoFillAvailable = true,
-        BingoButton = false,
         WinHighlight = false,
         WinDetection = WinDetection.AlertHostAndPause,
         RedrawPolicy = RedrawPolicy.ParticipantsMayRedraw,

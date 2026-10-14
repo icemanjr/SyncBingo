@@ -257,7 +257,7 @@ public sealed class Session
         {
             State = SessionState.Auto;
             events.Add(new AutoCallingStarted());
-            events.Add(CallNextBall(DrawSource.Auto, random, now));
+            events.AddRange(CallNext(DrawSource.Auto, random, now));
         }
 
         return Commit(now, events);
@@ -321,7 +321,7 @@ public sealed class Session
         }
 
         State = SessionState.Auto;
-        return Commit(now, new AutoCallingStarted(), CallNextBall(DrawSource.Auto, random, now));
+        return Commit(now, [new AutoCallingStarted(), .. CallNext(DrawSource.Auto, random, now)]);
     }
 
     /// <summary>"Pause": stop automatic calls and return to manual calling.</summary>
@@ -355,7 +355,7 @@ public sealed class Session
             return HopperEmpty();
         }
 
-        return Commit(now, CallNextBall(source, random, now));
+        return Commit(now, CallNext(source, random, now));
     }
 
     public Result<IReadOnlyList<SessionEvent>> ChangeWinCondition(string winConditionId, DateTimeOffset now)
@@ -723,6 +723,22 @@ public sealed class Session
     private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
 
     private void ReplaceCurrentRound(RoundSummary summary) => _rounds[^1] = summary;
+
+    /// <summary>
+    /// Calls the next ball. In auto mode the last ball also returns to manual mode (FR-10):
+    /// nothing is left to call, so the schedule stops and the host is back on the manual controls.
+    /// </summary>
+    private List<SessionEvent> CallNext(DrawSource source, IRandomSource random, DateTimeOffset now)
+    {
+        List<SessionEvent> events = [CallNextBall(source, random, now)];
+        if (State == SessionState.Auto && BallsRemaining == 0)
+        {
+            State = SessionState.Manual;
+            events.Add(new AutoCallingPaused());
+        }
+
+        return events;
+    }
 
     private BallCalled CallNextBall(DrawSource source, IRandomSource random, DateTimeOffset now)
     {

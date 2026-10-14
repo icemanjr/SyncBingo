@@ -12,7 +12,7 @@ stateDiagram-v2
         [*] --> Manual : (default)
         [*] --> Auto : started in auto mode (first ball at zero)
         Manual --> Auto : Auto mode (draws a ball at once)
-        Auto --> Manual : Pause (or Alert host and pause)
+        Auto --> Manual : Pause, Alert host and pause, or the last ball
     }
     InRound --> BetweenRounds : Clear cards / End round
     BetweenRounds --> Ended : EndSession

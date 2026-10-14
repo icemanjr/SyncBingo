@@ -19,7 +19,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 | ID | Requirement |
 |----|-------------|
 | FR-1 | Landing page offers **Host** and **Join**, plus a greyed-out **"Serious Bingo — coming soon"** tile (non-functional, signals planned expansion). |
-| FR-2 | A host creates a session by choosing a **game password**. The system generates a random **game code** (16 characters, shown as four hyphenated groups of four) and a **QR code** that opens the join page with the code pre-filled. |
+| FR-2 | A host creates a session by choosing a **game password** (4–64 characters, no complexity rules: it only stops someone who mistypes a code from joining the wrong game, and hosts will often use the event's name). Each game has **exactly one host**: the host token is issued once, at creation, and there are no co-hosts. The system generates a random **game code** (16 characters, shown as four hyphenated groups of four) and a **QR code** that opens the join page with the code pre-filled. |
 | FR-3 | Participants join by scanning the QR code **or** typing the game code. Both paths require the game password. The password is never embedded in the QR code. |
 | FR-4 | After the password check, the participant enters a **name**. Names are unique within the session, compared case-insensitively. A duplicate name is rejected and the participant must choose another. |
 | FR-5 | Participants can join **only between rounds**. A join attempt during a round's countdown or the round itself is refused with **"A round is in progress. You can join between rounds."** |
@@ -30,7 +30,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 
 | ID | Setting | Options |
 |----|---------|---------|
-| FR-10 | **Calling: manual and auto** | Every round starts in **manual** mode: the host presses **Grab ball** for each ball and calls it aloud. Pressing **Auto mode** draws a ball **immediately**, then the app draws one every *auto-call interval* (a setting, 3–120 s). In auto mode the host's only calling button is **Pause**, which returns to manual mode; to speed up or slow down, the host pauses, changes the interval, and presses Auto mode again. |
+| FR-10 | **Calling: manual and auto** | Every round starts in **manual** mode: the host presses **Grab ball** for each ball and calls it aloud. Pressing **Auto mode** draws a ball **immediately**, then the app draws one every *auto-call interval* (a setting, 3–120 s). In auto mode the host's only calling button is **Pause**, which returns to manual mode; to speed up or slow down, the host pauses, changes the interval, and presses Auto mode again. When auto mode calls the **last ball**, it returns to manual mode by itself: nothing is left to call. |
 | FR-11 | **Grab ball** | Host button that draws immediately; shown in manual mode only (FR-10). |
 | FR-12 | **Show ball to participants** | On/off. When on, the latest ball appears in the corner of each participant's screen. |
 | FR-13 | **Highlight matching square** | On/off. When on, a called number is highlighted on cards that contain it. |

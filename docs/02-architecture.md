@@ -102,7 +102,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 - Every instance runs a `BackgroundService` polling every 500 ms. A Lua script **claims** up to 50 due sessions atomically by moving their score to `now + lease` (5 s) and returning them; the instance ticks up to 8 of them at once.
 - The claiming instance takes the session lock, draws, then re-schedules at `now + interval`.
 - If an instance dies mid-claim, the lease expires and another instance picks the session up. No ball is lost; at worst one draw is delayed by the lease. A tick that throws (Redis down, lock timeout) is left the same way, so it is retried.
-- A tick the rules refuse (the hopper is empty, the session is gone) takes the session off the schedule, but only if its score is still that claim's lease: if the host re-scheduled it meanwhile (*Auto mode* right after), the new entry stays.
+- A tick the rules refuse (for example, the session is gone) takes the session off the schedule, but only if its score is still that claim's lease: if the host re-scheduled it meanwhile (*Auto mode* right after), the new entry stays.
 - Logs name a session by the first group of its code only: enough to correlate, not enough to join.
 - *Start Round N* schedules the session at the countdown's end; *Cancel* removes it. At zero the tick starts the round; a manual round leaves the schedule, an auto round re-schedules after its first ball.
 - *Auto mode* draws one ball inside the command and adds the session to the schedule at `now + interval`; *Pause*, *Alert host and pause* and *Clear cards* remove it.

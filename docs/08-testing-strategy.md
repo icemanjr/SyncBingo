@@ -8,7 +8,7 @@
 | **Application** | xUnit + fakes for ports | Command handlers: authorisation (who may run each command, and on whose cards), state preconditions, event emission, lost-update races (the fake store refuses stale saves) |
 | **Integration (API)** | `WebApplicationFactory` + Testcontainers (Redis) | REST endpoints, auth, rate limits, Redis layout, scheduler claiming, concurrent joins |
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |
-| **Frontend unit** | Vitest + Testing Library | Card component, AdSlot layout, hooks, store reducers |
+| **Frontend unit** | Vitest + Testing Library | Event-stream sequencing and resync, the API client, token storage (incl. blocked storage), AdSlot layout, pages, store reducers |
 | **End-to-end** | Playwright (multiple browser contexts) | Host + 3 participants through full flows, mobile viewport emulation |
 | **Load** | k6 (WebSocket) | 100 participants per session, many sessions, draw fan-out latency |
 

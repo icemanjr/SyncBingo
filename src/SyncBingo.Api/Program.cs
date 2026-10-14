@@ -20,11 +20,20 @@ app.MapOpenApi();
 app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 
-var api = app.MapGroup("/api");
+// Every API endpoint may refuse with a problem (docs/05 §5); the typed web client relies on this.
+var api = app.MapGroup("/api")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status409Conflict)
+    .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+    .ProducesProblem(StatusCodes.Status429TooManyRequests);
 api.MapPublicEndpoints();
 api.MapTvEndpoints();
 
-var game = api.MapGroup("/sessions/{code}").RequireAuthorization();
+var game = api.MapGroup("/sessions/{code}")
+    .RequireAuthorization()
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden);
 game.MapQueryEndpoints();
 game.MapPlayerEndpoints();
 game.MapHostEndpoints();

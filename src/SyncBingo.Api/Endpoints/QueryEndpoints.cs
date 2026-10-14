@@ -11,14 +11,17 @@ internal static class QueryEndpoints
     {
         game.MapGet("/snapshot", (string code, ClaimsPrincipal user, GameQueries queries, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await queries.SnapshotAsync(game, caller, ct)).ToHttp(snapshot => TypedResults.Ok(SnapshotBody.From(snapshot)))));
+                (await queries.SnapshotAsync(game, caller, ct)).ToHttp(snapshot => TypedResults.Ok(SnapshotBody.From(snapshot)))))
+            .Produces<SnapshotBody>().WithName("GetSnapshot");
 
         game.MapGet("/participants/{id}/card", (string code, string id, ClaimsPrincipal user, GameQueries queries, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await queries.InspectAsync(game, caller, id, ct)).ToHttp(player => TypedResults.Ok(player))));
+                (await queries.InspectAsync(game, caller, id, ct)).ToHttp(player => TypedResults.Ok(player))))
+            .Produces<PlayerView>().WithName("InspectCard");
 
         game.MapGet("/leaderboard", (string code, ClaimsPrincipal user, GameQueries queries, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await queries.LeaderboardAsync(game, caller, ct)).ToHttp(board => TypedResults.Ok(board))));
+                (await queries.LeaderboardAsync(game, caller, ct)).ToHttp(board => TypedResults.Ok(board))))
+            .Produces<LeaderboardView>().WithName("GetLeaderboard");
     }
 }

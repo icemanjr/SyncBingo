@@ -16,24 +16,30 @@ internal static class DisplayEndpoints
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await displays.CreateLinkAsync(game, caller, ct)).ToHttp(issued => TypedResults.Created(
                     "/api/sessions/" + game.Value + "/displays",
-                    new DisplayLinkCreated(issued.DisplayId, new Uri(web.Value.PublicOrigin, $"/display/{game.Value}#t={issued.Token}"))))));
+                    new DisplayLinkCreated(issued.DisplayId, new Uri(web.Value.PublicOrigin, $"/display/{game.Value}#t={issued.Token}"))))))
+            .Produces<DisplayLinkCreated>(StatusCodes.Status201Created).WithName("CreateDisplayLink");
 
         game.MapDelete("/display-links", (string code, ClaimsPrincipal user, DisplayHandler displays, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await displays.RevokeLinksAsync(game, caller, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await displays.RevokeLinksAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("RevokeDisplayLinks");
 
         game.MapGet("/displays", (string code, ClaimsPrincipal user, DisplayHandler displays, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await displays.ListAsync(game, caller, ct)).ToHttp(list => TypedResults.Ok(list))));
+                (await displays.ListAsync(game, caller, ct)).ToHttp(list => TypedResults.Ok(list))))
+            .Produces<IReadOnlyList<Application.Ports.DisplayRecord>>().WithName("ListDisplays");
 
         game.MapDelete("/displays/{id}", (string code, string id, ClaimsPrincipal user, DisplayHandler displays, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await displays.DisconnectAsync(game, caller, id, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await displays.DisconnectAsync(game, caller, id, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("DisconnectDisplay");
 
         game.MapPost("/display-pairings", (string code, PairingApproval request, ClaimsPrincipal user, PairingHandler pairing, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await pairing.ApproveAsync(game, caller, request.PairingCode, ct)).NoContent()))
-            .RequireRateLimiting(RateLimits.Approve);
+            .RequireRateLimiting(RateLimits.Approve)
+            .Produces(StatusCodes.Status204NoContent).WithName("ApproveTvPairing");
 
         game.MapPut("/join-note", (string code, JoinNoteRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.SetJoinNoteAsync(game, caller, request.Note, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await host.SetJoinNoteAsync(game, caller, request.Note, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("SetJoinNote");
     }
 
     /// <summary>A TV starts pairing (ADR 0010): anonymous, limited per address.</summary>
@@ -44,6 +50,7 @@ internal static class DisplayEndpoints
             var started = await pairing.StartAsync(ct);
             return TypedResults.Created(
                 (string?)null, new PairingCreated(started.PairingId, started.Code.ToString(), started.ExpiresAt));
-        }).RequireRateLimiting(RateLimits.Pairing);
+        }).RequireRateLimiting(RateLimits.Pairing)
+            .Produces<PairingCreated>(StatusCodes.Status201Created).WithName("StartTvPairing");
     }
 }

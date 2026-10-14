@@ -35,6 +35,12 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release
 
+      # The web app's typed client is generated from this document; it must match the API.
+      - name: Check the API description is current
+        run: |
+          dotnet build src/SyncBingo.Api --no-restore --configuration Release -p:OpenApiGenerateDocuments=true
+          git diff --exit-code web/src/api/openapi.json || { echo "Run 'npm run api:generate' in web/ and commit."; exit 1; }
+
   web:
     name: Web lint, typecheck and test
     runs-on: ubuntu-latest
@@ -52,6 +58,11 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Check the API types match the API description
+        run: |
+          npm run api:types
+          git diff --exit-code src/api/schema.d.ts || { echo "Run 'npm run api:types' in web/ and commit."; exit 1; }
 
       - name: Lint
         run: npm run lint

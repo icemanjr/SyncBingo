@@ -88,15 +88,18 @@ dotnet build
 dotnet test
 ```
 
-Run and test the web app (requires [Node.js](https://nodejs.org/) 24 or later):
+Run and test the web app (requires [Node.js](https://nodejs.org/) 24 or later). In development the app proxies `/api` and `/hubs` to the API on port 5080, so start that first (`docker compose up api redis`):
 
 ```bash
 cd web
 npm install
-npm run dev     # http://localhost:5173
+npm run dev            # http://localhost:5173
 npm run lint
 npm test
+npm run api:generate   # after changing the API: regenerates the OpenAPI document and the typed client
 ```
+
+The web app's API types are generated from the API's own OpenAPI description, and CI fails if either is out of date, so the client can't drift from the server.
 
 Run the full stack in containers (web, api and redis):
 

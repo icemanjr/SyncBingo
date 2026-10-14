@@ -28,10 +28,12 @@ internal static class PublicEndpoints
                 $"/api/sessions/{game.Code.Value}",
                 new GameCreated(
                     game.Code.ToString(), new Uri(web.Value.PublicOrigin, $"/join/{game.Code.Value}"), game.HostToken, SnapshotBody.From(snapshot))));
-        }).RequireRateLimiting(RateLimits.Create);
+        }).RequireRateLimiting(RateLimits.Create)
+            .Produces<GameCreated>(StatusCodes.Status201Created).WithName("CreateGame");
 
         api.MapGet("/sessions/{code}/join-info", async (string code, JoinInfoQuery query, CancellationToken ct) =>
-            (await query.GetAsync(code, ct)).ToHttp(info => TypedResults.Ok(info)));
+            (await query.GetAsync(code, ct)).ToHttp(info => TypedResults.Ok(info)))
+            .Produces<Application.Sessions.JoinInfo>().WithName("GetJoinInfo");
 
         api.MapPost("/sessions/{code}/join", async (
             string code,
@@ -66,7 +68,8 @@ internal static class PublicEndpoints
             var player = joined.Value;
             return (await queries.SnapshotAsync(player.Code, Caller.Participant(player.ParticipantId), ct))
                 .ToHttp(snapshot => TypedResults.Ok(new Joined(player.ParticipantId, player.Token, SnapshotBody.From(snapshot))));
-        });
+        })
+            .Produces<Joined>().WithName("JoinGame");
     }
 }
 

@@ -35,7 +35,7 @@ Text-only custom sets (ADR 0009, amended) keep data transfer and storage out of 
 
 - **Lean:** an `A` record (and `AAAA`, if the instance has IPv6) for `syncbingo.com` and `www` points at the instance's static IP. Start **DNS only** (grey cloud), so Caddy gets Let's Encrypt certificates directly. Turning on Cloudflare's proxy later (free TLS at the edge, caching, DDoS protection; WebSockets are supported) means switching Caddy to a DNS-01 challenge with a Cloudflare API token, or to a Cloudflare origin certificate. That decision belongs to Phase 1b.
 - **Full:** CloudFront's alias (`CNAME`) and the ACM validation record go in Cloudflare too, so the Full profile needs no Route 53 zone. CDK outputs the records to add; they are added by hand or through the Cloudflare API.
-- **Account hygiene:** two-factor authentication on the Cloudflare account, registrar lock on, and auto-renew on (an expired domain can be taken by someone else).
+- **Account hygiene:** the Cloudflare account signs in with Google, so its security is the **Google account's**: keep 2-Step Verification on there (a passkey or an authenticator app rather than SMS). Registrar lock on, and auto-renew on (an expired domain can be taken by someone else).
 
 ## 3. Free credits (new account)
 

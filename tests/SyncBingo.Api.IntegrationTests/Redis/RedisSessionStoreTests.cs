@@ -10,7 +10,7 @@ namespace SyncBingo.Api.IntegrationTests.Redis;
 /// <summary>The Redis store keeps the <c>ISessionStore</c> contract against a real Redis (docs/04 §4).</summary>
 public sealed class RedisSessionStoreTests(RedisFixture redis)
 {
-    private static readonly string[] KeySuffixes = ["meta", "participants", "names", "tokens", "token-owners", "cards"];
+    private static readonly string[] KeySuffixes = ["meta", "participants", "names", "tokens", "token-owners", "cards", "displays"];
 
     private static readonly Card AnyCard = new(Enumerable.Range(1, 25).Select(i => i == 13 ? 0 : i));
 
@@ -64,6 +64,7 @@ public sealed class RedisSessionStoreTests(RedisFixture redis)
         await Store.TryAddParticipantAsync(session.Code, Player(session, "p1", "Ava"), Ct);
         await Store.TryClaimCardAsync(session.Code, AnyCard.Fingerprint, Ct);
         await Store.SaveTokenAsync(session.Code, "token-hash", Caller.Participant("p1"), Ct);
+        await Store.TryAddDisplayAsync(session.Code, new Application.Ports.DisplayRecord("d1", Application.Ports.DisplayKind.Link, _time.Now), "display-hash", 10, Ct);
 
         foreach (var key in Keys(session))
         {
@@ -200,6 +201,26 @@ public sealed class RedisSessionStoreTests(RedisFixture redis)
 
         (await Store.FindTokenAsync(session.Code, "hash", Ct)).ShouldBe(caller);
         (await Store.FindTokenAsync(session.Code, "unknown", Ct)).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task Displays_are_stored_capped_and_removed_with_their_tokens()
+    {
+        var session = await CreatedAsync();
+        var link = new Application.Ports.DisplayRecord("d1", Application.Ports.DisplayKind.Link, _time.Now);
+        var tv = new Application.Ports.DisplayRecord("d2", Application.Ports.DisplayKind.Tv, _time.Now.AddSeconds(1));
+
+        (await Store.TryAddDisplayAsync(session.Code, link, "link-hash", 2, Ct)).ShouldBeTrue();
+        (await Store.TryAddDisplayAsync(session.Code, tv, "tv-hash", 2, Ct)).ShouldBeTrue();
+        (await Store.TryAddDisplayAsync(session.Code, link with { DisplayId = "d3" }, "third-hash", 2, Ct)).ShouldBeFalse("the cap");
+
+        (await Store.FindTokenAsync(session.Code, "link-hash", Ct)).ShouldBe(Caller.Display("d1"));
+        (await Store.GetDisplaysAsync(session.Code, Ct)).ShouldBe([link, tv]);
+
+        (await Store.RemoveDisplayAsync(session.Code, "d1", Ct)).ShouldBeTrue();
+        (await Store.RemoveDisplayAsync(session.Code, "d1", Ct)).ShouldBeFalse();
+        (await Store.FindTokenAsync(session.Code, "link-hash", Ct)).ShouldBeNull();
+        (await Store.FindTokenAsync(session.Code, "tv-hash", Ct)).ShouldBe(Caller.Display("d2"));
     }
 
     [Fact]

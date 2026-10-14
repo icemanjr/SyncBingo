@@ -20,6 +20,9 @@ public sealed class Session
 
     public const int MaxRequestKeyLength = 100;
 
+    /// <summary>Longest join note (FR-49): a password or a short hint.</summary>
+    public const int MaxJoinNoteLength = 80;
+
     private readonly List<BallCall> _calls = [];
     private readonly HashSet<int> _calledNumbers = [];
     private readonly List<Claim> _claims = [];
@@ -107,6 +110,12 @@ public sealed class Session
 
     public bool LeaderboardVisible { get; private set; }
 
+    /// <summary>
+    /// What the host shows with the join QR on the display (FR-49), e.g. "Password: harvest2026" or a
+    /// hint. Typed by the host, never taken from the password, which is only stored hashed.
+    /// </summary>
+    public string? JoinNote { get; private set; }
+
     private RoundSummary? CurrentRound => _rounds.Count == 0 ? null : _rounds[^1];
 
     public static Result<Session> Create(
@@ -157,7 +166,8 @@ public sealed class Session
         [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))],
         NextBallFrom,
         StreamSeqs,
-        [.. _awardKeys]);
+        [.. _awardKeys],
+        JoinNote);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
@@ -189,6 +199,7 @@ public sealed class Session
             LeaderboardVisible = snapshot.LeaderboardVisible,
             NextBallFrom = snapshot.NextBallFrom,
             StreamSeqs = snapshot.StreamSeqs,
+            JoinNote = snapshot.JoinNote,
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
@@ -679,6 +690,32 @@ public sealed class Session
         return Commit(now, new WinAwarded(win));
     }
 
+    /// <summary>
+    /// Set or clear the join note (FR-49). Not a rule, so it can change in any state but Ended, even in
+    /// auto mode; only the host and the display hear about it.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> SetJoinNote(string? note, DateTimeOffset now)
+    {
+        if (State == SessionState.Ended)
+        {
+            return WrongState("change the join note");
+        }
+
+        var trimmed = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        if (trimmed?.Length > MaxJoinNoteLength)
+        {
+            return Failure(DomainErrorCode.Invalid, $"The note can be up to {MaxJoinNoteLength} characters.");
+        }
+
+        if (trimmed == JoinNote)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        JoinNote = trimmed;
+        return Commit(now, new JoinNoteChanged(JoinNote));
+    }
+
     /// <summary>Show or hide the leaderboard on participants' screens and the display (FR-41).</summary>
     public Result<IReadOnlyList<SessionEvent>> ShowLeaderboard(bool visible, DateTimeOffset now)
     {
@@ -857,6 +894,7 @@ public sealed class Session
             ? Audience.Everyone
             : Audience.Host | Audience.Display,
         AutoCallingStarted or AutoCallingPaused or WinClaimed or ClaimDismissed or WinDetected => Audience.Host,
+        JoinNoteChanged => Audience.Host | Audience.Display,
         _ => Audience.Everyone,
     };
 

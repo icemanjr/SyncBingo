@@ -201,6 +201,7 @@ Opened from the host console with **Open display**, in a new tab or on another d
 │      …                                                       │
 │                                                              │
 │   Between rounds: [QR] Join at syncbingo… code 9ve4-shp3-…   │
+│                   Password: harvest2026   ← join note (FR-49)│
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -219,6 +220,8 @@ Never shown: settings, claims, alerts, the participant list, inspect and award c
 │              Code expires in 9:41          │
 └────────────────────────────────────────────┘
 ```
+
+**Open display ⧉** is a small menu: **Open in a new tab**, **Copy display link**, **Connect a TV**, the list of displays (each with **Disconnect**), and **Show with the join QR**: a text box (up to 80 characters) for the password or a hint, shown under the QR on every display and on the host console between rounds (FR-49). Blank shows nothing.
 
 The host opens **Open display ⧉ → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; the same menu lists connected displays, each with **Disconnect**. It lives outside Options so it works in auto mode too. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
 

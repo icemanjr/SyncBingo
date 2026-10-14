@@ -167,6 +167,24 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
         return caller.IsNull ? null : StoreJson.ReadCaller(caller.ToString());
     }
 
+    public Task<bool> TryAddDisplayAsync(GameCode code, DisplayRecord display, string tokenHash, int maxDisplays, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(display);
+
+        return RunAsync(Scripts.AddDisplay, code, display.DisplayId, StoreJson.Write(display), tokenHash, maxDisplays);
+    }
+
+    public async Task<IReadOnlyList<DisplayRecord>> GetDisplaysAsync(GameCode code, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(code);
+
+        var entries = await Db.HashGetAllAsync(Keys(code).Displays).ConfigureAwait(false);
+        return [.. entries.Select(entry => StoreJson.ReadDisplay(entry.Value.ToString())).OrderBy(display => display.CreatedAt)];
+    }
+
+    public Task<bool> RemoveDisplayAsync(GameCode code, string displayId, CancellationToken cancellationToken) =>
+        RunAsync(Scripts.RemoveDisplay, code, displayId);
+
     private static StoredParticipant ToStored(string json)
     {
         var (participant, version) = StoreJson.ReadParticipant(json);

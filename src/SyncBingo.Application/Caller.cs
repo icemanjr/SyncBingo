@@ -15,13 +15,16 @@ public enum CallerRole
 }
 
 /// <summary>Who sent a command, as resolved from their session token by the API.</summary>
-public sealed record Caller(CallerRole Role, string? ParticipantId = null)
+public sealed record Caller(CallerRole Role, string? ParticipantId = null, string? DisplayId = null)
 {
     public static Caller Host { get; } = new(CallerRole.Host);
 
     public static Caller System { get; } = new(CallerRole.System);
 
     public static Caller Participant(string participantId) => new(CallerRole.Participant, participantId);
+
+    /// <summary>A read-only display view (FR-28): a display link or a paired TV.</summary>
+    public static Caller Display(string displayId) => new(CallerRole.Display, DisplayId: displayId);
 
     /// <summary>Host commands may come from the host, or from the system acting for the host (the auto-call scheduler).</summary>
     internal DomainError? RequireHost() =>

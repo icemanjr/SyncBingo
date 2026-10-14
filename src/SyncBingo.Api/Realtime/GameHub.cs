@@ -9,7 +9,7 @@ namespace SyncBingo.Api.Realtime;
 /// <summary>
 /// The game's event hub (ADR 0002): server to client only, so it has no methods clients can call.
 /// On connect the caller joins the group for its role in its own game, and a player also joins a
-/// group of their own for private messages (auto-fill, a replaced card, a private win, removal).
+/// group of their own for private messages (auto-fill, a replaced card), and a display one for being disconnected.
 /// </summary>
 [Authorize]
 public sealed class GameHub : Hub
@@ -17,6 +17,8 @@ public sealed class GameHub : Hub
     public static string RoleGroup(GameCode code, Audience stream) => $"s:{code.Value}:{stream.ToString().ToLowerInvariant()}";
 
     public static string PlayerGroup(GameCode code, string participantId) => $"s:{code.Value}:p:{participantId}";
+
+    public static string DisplayGroup(GameCode code, string displayId) => $"s:{code.Value}:d:{displayId}";
 
     public override async Task OnConnectedAsync()
     {
@@ -40,6 +42,11 @@ public sealed class GameHub : Hub
         if (caller.ParticipantId is { } participantId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, PlayerGroup(code, participantId)).ConfigureAwait(false);
+        }
+
+        if (caller.DisplayId is { } displayId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, DisplayGroup(code, displayId)).ConfigureAwait(false);
         }
 
         await base.OnConnectedAsync().ConfigureAwait(false);

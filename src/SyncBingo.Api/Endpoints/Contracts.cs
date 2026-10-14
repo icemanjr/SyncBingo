@@ -66,6 +66,11 @@ public sealed record AwardRequest(string ParticipantId, int? CardId = null, int?
 
 public sealed record VisibleRequest(bool Visible);
 
+public sealed record JoinNoteRequest(string? Note);
+
+/// <summary>A new display link (FR-28): the token is in the URL fragment, which browsers never send to a server.</summary>
+public sealed record DisplayLinkCreated(string DisplayId, Uri DisplayUrl);
+
 /// <summary>The host's Apply: the settings changed (only fields sent) and, optionally, the new pattern.</summary>
 public sealed record RulesRequest(SettingsBody? Settings = null, string? WinCondition = null);
 

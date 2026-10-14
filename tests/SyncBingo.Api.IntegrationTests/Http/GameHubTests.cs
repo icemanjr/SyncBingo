@@ -159,6 +159,61 @@ public sealed class GameHubTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_display_link_shows_public_state_and_the_join_note_and_can_do_nothing()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (_, avaToken) = await JoinAsync(code, "Ava");
+        var (displayId, displayToken) = await CreateDisplayLinkAsync(code, hostToken);
+        var display = await ListenAsync(code, displayToken);
+        var ava = await ListenAsync(code, avaToken);
+
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/join-note", hostToken, new { note = "Password: secret" })).Dispose();
+        await StartManualRoundAsync(code, hostToken);
+        await PostAsync(code, "balls", hostToken);
+        await PostAsync(code, "claims", avaToken, new { cardId = 1 });
+
+        (await display.WaitForAsync("JoinNoteChanged", 1)).GetProperty("data").GetProperty("note").GetString().ShouldBe("Password: secret");
+        await display.WaitForAsync("BallCalled", 1);
+        display.Types.ShouldNotContain("WinClaimed");
+        await ava.WaitForAsync("BallCalled", 1);
+        ava.Types.ShouldNotContain("JoinNoteChanged", "players have already joined");
+
+        using var snapshot = await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/snapshot", displayToken);
+        (await snapshot.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("game").GetProperty("joinNote").GetString().ShouldBe("Password: secret");
+        foreach (var (method, path) in new[] { (HttpMethod.Post, "balls"), (HttpMethod.Post, "marks"), (HttpMethod.Post, "display-links"), (HttpMethod.Put, "join-note") })
+        {
+            using var refused = await _client.SendAsync(method, $"/api/sessions/{code}/{path}", displayToken, new { cardId = 1, cell = 0, marked = true, note = "x" });
+            refused.StatusCode.ShouldBe(HttpStatusCode.Forbidden, path);
+        }
+
+        displayId.ShouldNotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task A_disconnected_display_is_told_and_its_token_stops_working()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (displayId, displayToken) = await CreateDisplayLinkAsync(code, hostToken);
+        var display = await ListenAsync(code, displayToken);
+
+        using var list = await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/displays", hostToken);
+        (await list.Content.ReadFromJsonAsync<JsonElement>(Ct))[0].GetProperty("kind").GetString().ShouldBe("Link");
+        (await _client.SendAsync(HttpMethod.Delete, $"/api/sessions/{code}/displays/{displayId}", hostToken)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        await display.WaitForNoticeAsync("DisplayDisconnected");
+        (await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/snapshot", displayToken)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Only_the_host_creates_display_links()
+    {
+        var (code, _) = await NewGameAsync();
+        var (_, avaToken) = await JoinAsync(code, "Ava");
+
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/display-links", avaToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task Only_a_token_for_that_game_can_listen()
     {
         var (code, _) = await NewGameAsync();
@@ -204,6 +259,19 @@ public sealed class GameHubTests : IAsyncDisposable
         await connection.StartAsync(Ct);
         _listeners.Add(listener);
         return listener;
+    }
+
+    /// <summary>Creates a display link and reads its token from the URL fragment, as the display page does.</summary>
+    private async Task<(string DisplayId, string Token)> CreateDisplayLinkAsync(string code, string hostToken)
+    {
+        using var response = await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/display-links", hostToken);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        var url = new Uri(body.GetProperty("displayUrl").GetString()!);
+        url.AbsolutePath.ShouldBe($"/display/{code.Replace("-", "", StringComparison.Ordinal)}");
+        url.Fragment.ShouldStartWith("#t=");
+        url.Query.ShouldBeEmpty("the token never goes in the query, where servers would log it");
+        return (body.GetProperty("displayId").GetString()!, url.Fragment["#t=".Length..]);
     }
 
     private async Task<(string Code, string HostToken)> NewGameAsync(object? settings = null)

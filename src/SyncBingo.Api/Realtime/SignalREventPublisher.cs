@@ -46,6 +46,7 @@ public sealed class SignalREventPublisher(IHubContext<GameHub> hub) : IEventPubl
         var group = recipient switch
         {
             Recipient.Participant player => GameHub.PlayerGroup(code, player.ParticipantId),
+            Recipient.Display display => GameHub.DisplayGroup(code, display.DisplayId),
             _ => GameHub.RoleGroup(code, Audience.Host),
         };
         var message = new NoticeMessage(notification.GetType().Name, JsonSerializer.SerializeToNode(notification, notification.GetType(), Json));

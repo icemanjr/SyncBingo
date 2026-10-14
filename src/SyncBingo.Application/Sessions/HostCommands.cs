@@ -47,6 +47,10 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
         return result.IsSuccess ? Result.Success(applied!) : result.Error!;
     }
 
+    /// <summary>The note shown with the join QR on the display (FR-49), or <c>null</c> to clear it.</summary>
+    public Task<Result<CommandOutcome>> SetJoinNoteAsync(GameCode code, Caller caller, string? note, CancellationToken cancellationToken) =>
+        runner.RunAsync(code, caller, (session, now) => session.SetJoinNote(note, now), cancellationToken);
+
     public Task<Result<CommandOutcome>> ShowLeaderboardAsync(GameCode code, Caller caller, bool visible, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.ShowLeaderboard(visible, now), cancellationToken);
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using SyncBingo.Api.Http;
 using SyncBingo.Application.Displays;
+using SyncBingo.Application.Pairing;
 using SyncBingo.Application.Sessions;
 
 namespace SyncBingo.Api.Endpoints;
@@ -27,7 +28,22 @@ internal static class DisplayEndpoints
         game.MapDelete("/displays/{id}", (string code, string id, ClaimsPrincipal user, DisplayHandler displays, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await displays.DisconnectAsync(game, caller, id, ct)).NoContent()));
 
+        game.MapPost("/display-pairings", (string code, PairingApproval request, ClaimsPrincipal user, PairingHandler pairing, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await pairing.ApproveAsync(game, caller, request.PairingCode, ct)).NoContent()))
+            .RequireRateLimiting(RateLimits.Approve);
+
         game.MapPut("/join-note", (string code, JoinNoteRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await host.SetJoinNoteAsync(game, caller, request.Note, ct)).NoContent()));
+    }
+
+    /// <summary>A TV starts pairing (ADR 0010): anonymous, limited per address.</summary>
+    public static void MapTvEndpoints(this RouteGroupBuilder api)
+    {
+        api.MapPost("/tv/pairings", async (PairingHandler pairing, CancellationToken ct) =>
+        {
+            var started = await pairing.StartAsync(ct);
+            return TypedResults.Created(
+                (string?)null, new PairingCreated(started.PairingId, started.Code.ToString(), started.ExpiresAt));
+        }).RequireRateLimiting(RateLimits.Pairing);
     }
 }

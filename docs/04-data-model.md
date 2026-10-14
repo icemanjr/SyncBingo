@@ -63,6 +63,7 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 | `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs of text (call face and card face, 24–500, each side unique) and optional named groups; the *Group items* setting decides whether dealing and the board use them. Text only: no images (ADR 0009, amended) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:lock` | string | the per-session lock: `SET NX` with a random owner value and a 10 s lease; released only by its owner (compare-and-delete); a command waits up to 5 s for it |
+| `pairing-code:{code}` · `pairing:{id}` · `pairing-result:{id}` | strings | TV pairing (ADR 0010): the code → its pairing id (`SET NX`, used with `GETDEL`, so once), the pairing while the TV waits (10 min), and an approved result for a TV that connects a moment later (2 min, taken with `GETDEL`; it holds the display token in clear for that short time). Global keys, not in any session's hash tag |
 | `schedule` | sorted set | session code → when its next tick is due (countdown end or next ball), or the end of the lease while an instance has claimed it (see 02 §5). One key for the whole app, outside any session's hash tag |
 | (pub/sub) | channels | SignalR backplane |
 

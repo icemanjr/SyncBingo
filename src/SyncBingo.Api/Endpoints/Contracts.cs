@@ -68,6 +68,11 @@ public sealed record VisibleRequest(bool Visible);
 
 public sealed record JoinNoteRequest(string? Note);
 
+/// <summary>A TV's pairing (ADR 0010): it listens on <c>/hubs/pairing?pairingId=</c> and shows <see cref="PairingCode"/>.</summary>
+public sealed record PairingCreated(string PairingId, string PairingCode, DateTimeOffset ExpiresAt);
+
+public sealed record PairingApproval(string PairingCode);
+
 /// <summary>A new display link (FR-28): the token is in the URL fragment, which browsers never send to a server.</summary>
 public sealed record DisplayLinkCreated(string DisplayId, Uri DisplayUrl);
 

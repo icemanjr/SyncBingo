@@ -41,7 +41,7 @@
 - Participant writes: a mark and a draw's auto-fill that overlap both survive (no lost update), against real Redis.
 - Redis store: sessions and participants round-trip; of many concurrent name reservations, card claims or saves from one participant version exactly one wins; every key carries the idle expiry; a session past 12 hours reads as gone; the lock admits one holder at a time, times out, frees itself after a crash and is never released by a former holder; removing a player revokes only their token.
 - Displays: a display link's token is in the URL fragment, never the query; a display sees public state and the join note but no claims, and can call no command; a disconnected display is told and its token stops working; at most 10 displays; players never get the join note.
-- TV pairing: a code works once and expires after 10 minutes; only a host can approve it; the TV receives a read-only display token and can call nothing but the snapshot; pairing creation and approval are rate-limited.
+- TV pairing: a code works once (even with hosts racing) and expires after 10 minutes; only a host can approve it, and a full game refuses without using up the code; the TV receives a read-only display token, also when it connects after the approval; an unknown pairing gets `PairingExpired`; pairing creation and approval are rate-limited.
 
 **End-to-end (Playwright)**
 1. Host creates a game, a participant joins via the join URL, and another via manual code entry.

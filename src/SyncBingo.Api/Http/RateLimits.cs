@@ -34,12 +34,20 @@ public sealed class RateLimitOptions
     public int MarkBurst { get; set; } = 10;
 
     public int MarksPerSecond { get; set; } = 5;
+
+    /// <summary>TV pairings one IP address may start per hour (ADR 0010).</summary>
+    public int PairingsPerHour { get; set; } = 30;
+
+    /// <summary>Pairing codes a host may try per minute, so a host token can't be used to guess codes.</summary>
+    public int ApprovalsPerMinute { get; set; } = 10;
 }
 
 internal static class RateLimits
 {
     public const string Create = "create";
     public const string Player = "player";
+    public const string Pairing = "pairing";
+    public const string Approve = "approve";
 
     public static IServiceCollection AddSyncBingoRateLimits(this IServiceCollection services, RateLimitOptions limits)
     {
@@ -53,6 +61,12 @@ internal static class RateLimits
             options.AddPolicy(Create, http => RateLimitPartition.GetFixedWindowLimiter(
                 ClientAddress(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.CreatesPerHour, Window = TimeSpan.FromHours(1) }));
+            options.AddPolicy(Pairing, http => RateLimitPartition.GetFixedWindowLimiter(
+                ClientAddress(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.PairingsPerHour, Window = TimeSpan.FromHours(1) }));
+            options.AddPolicy(Approve, http => RateLimitPartition.GetFixedWindowLimiter(
+                http.Request.Headers.Authorization.ToString(),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.ApprovalsPerMinute, Window = TimeSpan.FromMinutes(1) }));
             options.AddPolicy(Player, http => RateLimitPartition.GetTokenBucketLimiter(
                 http.Request.Headers.Authorization.ToString(),
                 _ => new TokenBucketRateLimiterOptions

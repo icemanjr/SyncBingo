@@ -90,6 +90,17 @@ public sealed class HardeningTests(RedisFixture redis)
     }
 
     [Fact]
+    public async Task Starting_tv_pairings_is_limited_per_address()
+    {
+        await using var factory = new ApiFactory(redis, new Dictionary<string, string> { ["RateLimits:PairingsPerHour"] = "2" });
+        using var client = factory.CreateClient();
+
+        (await client.SendAsync(HttpMethod.Post, "/api/tv/pairings")).StatusCode.ShouldBe(HttpStatusCode.Created);
+        (await client.SendAsync(HttpMethod.Post, "/api/tv/pairings")).StatusCode.ShouldBe(HttpStatusCode.Created);
+        (await client.SendAsync(HttpMethod.Post, "/api/tv/pairings")).StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
     public async Task Marking_is_limited_per_player()
     {
         await using var factory = new ApiFactory(redis, new Dictionary<string, string>

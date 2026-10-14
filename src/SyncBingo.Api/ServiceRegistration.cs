@@ -7,12 +7,14 @@ using SyncBingo.Api.Http;
 using SyncBingo.Api.Realtime;
 using SyncBingo.Application.Calling;
 using SyncBingo.Application.Displays;
+using SyncBingo.Application.Pairing;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
 using SyncBingo.Application.Queries;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
 using SyncBingo.Infrastructure;
+using SyncBingo.Infrastructure.Pairing;
 using SyncBingo.Infrastructure.Redis;
 using SyncBingo.Infrastructure.Scheduling;
 using SyncBingo.Infrastructure.Security;
@@ -66,6 +68,9 @@ internal static class ServiceRegistration
         services.AddSingleton<PlayerCommandHandler>();
         services.AddSingleton<PlayerManagementHandler>();
         services.AddSingleton<DisplayHandler>();
+        services.AddSingleton<IPairingStore, RedisPairingStore>();
+        services.AddSingleton<IPairingNotifier, SignalRPairingNotifier>();
+        services.AddSingleton<PairingHandler>();
         services.AddHostedService<CallSchedulerService>();
 
         services.AddAuthentication(SessionTokenAuthentication.SchemeName)

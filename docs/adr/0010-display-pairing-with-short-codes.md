@@ -18,3 +18,4 @@ Use a **device pairing** flow in the TV's own web browser, the same pattern as "
 - Pairing codes are short, so they are short-lived, single-use and rate-limited (per IP for creating pairings, per host for approving codes); about 887 million codes (31⁶) and a 10-minute life make guessing impractical.
 - Smart TV browsers are often old and slow: the display page must stay lightweight, and real TV browsers join the Phase 2 test list.
 - The HDMI route (opening the display view in a new tab on the host's computer) is unchanged.
+- *Implementation note (2026-10-14):* an approved result is also kept for up to 2 minutes and handed over when the TV connects, so a TV that lost its connection for a moment is not stranded. That briefly holds the display token in clear in Redis (otherwise tokens are stored only as hashes); it is read-only and deleted once taken.

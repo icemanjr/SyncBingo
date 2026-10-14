@@ -29,7 +29,8 @@
 - [ ] Accessibility pass, reduced motion, screen-reader labels
 - [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
 - [ ] Profanity filter, TTL/expiry handling
-- [ ] Playwright suite, OpenAPI-generated client
+- [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)
+- [ ] Playwright suite
 - [ ] **k6 WebSocket load test against the real Lean box** with `docker stats` (target ~10 sessions × 30 players); record the result in docs/10
 
 ## Phase 3 — Full AWS design (portfolio)

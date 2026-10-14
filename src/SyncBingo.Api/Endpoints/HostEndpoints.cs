@@ -16,7 +16,8 @@ internal static class HostEndpoints
         game.MapPut("/rules", (string code, RulesRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await host.ApplyRulesAsync(game, caller, settings => request.Settings?.ApplyTo(settings) ?? settings, request.WinCondition, ct))
-                    .ToHttp(rules => TypedResults.Ok(new RulesView(SettingsBody.From(rules.Settings), rules.WinConditionId)))));
+                    .ToHttp(rules => TypedResults.Ok(new RulesView(SettingsBody.From(rules.Settings), rules.WinConditionId)))))
+            .Produces<RulesView>().WithName("ApplyRules");
 
         game.MapPost("/rounds/countdown", (string code, CountdownRequest request, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
@@ -24,25 +25,32 @@ internal static class HostEndpoints
                 {
                     var started = outcome.Events.OfType<RoundCountdownStarted>().Single();
                     return TypedResults.Ok(new CountdownStarted(started.Round, started.EndsAt));
-                })));
+                })))
+            .Produces<CountdownStarted>().WithName("StartCountdown");
 
         game.MapDelete("/rounds/countdown", (string code, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await rounds.CancelCountdownAsync(game, caller, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await rounds.CancelCountdownAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("CancelCountdown");
 
         game.MapPost("/cards/clear", (string code, ClearCardsRequest request, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await rounds.ClearCardsAsync(game, caller, request.RedrawCards, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await rounds.ClearCardsAsync(game, caller, request.RedrawCards, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("ClearCards");
 
         game.MapPost("/rounds/current/end", (string code, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.EndRoundAsync(game, caller, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await host.EndRoundAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("EndRound");
 
         game.MapPost("/auto", (string code, ClaimsPrincipal user, DrawHandler draws, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await draws.StartAutoModeAsync(game, caller, ct)).ToHttp(Ball)));
+            Routes.ForCaller(code, user, async (game, caller) => (await draws.StartAutoModeAsync(game, caller, ct)).ToHttp(Ball)))
+            .Produces<BallBody>().WithName("StartAutoMode");
 
         game.MapPost("/pause", (string code, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.PauseAsync(game, caller, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await host.PauseAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("Pause");
 
         game.MapPost("/balls", (string code, ClaimsPrincipal user, DrawHandler draws, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await draws.GrabBallAsync(game, caller, ct)).ToHttp(Ball)));
+            Routes.ForCaller(code, user, async (game, caller) => (await draws.GrabBallAsync(game, caller, ct)).ToHttp(Ball)))
+            .Produces<BallBody>().WithName("GrabBall");
 
         game.MapPost("/wins", (
             string code,
@@ -54,19 +62,24 @@ internal static class HostEndpoints
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await manage.AwardWinAsync(
                     game, caller, new AwardWin(request.ParticipantId, request.CardId, request.Wins ?? 1, request.ClaimId, idempotencyKey), ct))
-                    .NoContent()));
+                    .NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("AwardWin");
 
         game.MapPost("/claims/{claimId:int}/dismiss", (string code, int claimId, ClaimsPrincipal user, PlayerManagementHandler manage, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await manage.DismissClaimAsync(game, caller, claimId, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await manage.DismissClaimAsync(game, caller, claimId, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("DismissClaim");
 
         game.MapDelete("/participants/{id}", (string code, string id, ClaimsPrincipal user, PlayerManagementHandler manage, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await manage.RemoveParticipantAsync(game, caller, id, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await manage.RemoveParticipantAsync(game, caller, id, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("RemovePlayer");
 
         game.MapPost("/leaderboard/show", (string code, VisibleRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.ShowLeaderboardAsync(game, caller, request.Visible, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await host.ShowLeaderboardAsync(game, caller, request.Visible, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("ShowLeaderboard");
 
         game.MapPost("/end", (string code, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.EndSessionAsync(game, caller, ct)).NoContent()));
+            Routes.ForCaller(code, user, async (game, caller) => (await host.EndSessionAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("EndGame");
     }
 
     private static IResult Ball(CommandOutcome outcome) =>

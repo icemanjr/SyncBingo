@@ -18,7 +18,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `GET /sessions/{code}/snapshot` | – | Full state for the caller (the call board as groups of items, docs/06; own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Used on load, reconnect and gap detection. |
+| `GET /sessions/{code}/snapshot` | – | Full state for the caller (the call board as groups of items, docs/06; own cards, settings visible to them, called balls if the participant may see them; see `BallCalled` below). Includes the variant's **patterns as data**, `{ id, name, masks[] }` with the card's rows and columns, so clients draw the *Patterns* tab (FR-48) from it. Used on load, reconnect and gap detection. |
 | `POST /sessions/{code}/marks` | `{ cardId, cell, marked }` | Rejects (422) marking an uncalled number when *Free marking* is off, and an unmark that *Unmarking* does not allow (off, or a called square under *Mismarks only*). Returns updated marks. |
 | `POST /sessions/{code}/cards/{cardId}/undo` | – | Undo (FR-25): resets the card to its marks when the last ball was called. Always allowed during a round. Returns updated marks. |
 | `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `202 { claimedAt }`: the claim always goes to the host (FR-37a); the player is not told whether it qualifies. |

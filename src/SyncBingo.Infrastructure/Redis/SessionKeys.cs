@@ -20,7 +20,8 @@ internal sealed class SessionKeys
         TokenOwners = root + "token-owners";
         Cards = root + "cards";
         Lock = root + "lock";
-        All = [Meta, Participants, Names, Tokens, TokenOwners, Cards];
+        Displays = root + "displays";
+        All = [Meta, Participants, Names, Tokens, TokenOwners, Cards, Displays];
     }
 
     /// <summary>Hash: <c>session</c> (snapshot JSON) and <c>password</c> (hash).</summary>
@@ -40,6 +41,9 @@ internal sealed class SessionKeys
 
     /// <summary>Set: fingerprints of every card in play (FR-39).</summary>
     public RedisKey Cards { get; }
+
+    /// <summary>Hash: display id → display JSON (FR-28); its token's hash is in <see cref="TokenOwners"/> under <c>display:{id}</c>.</summary>
+    public RedisKey Displays { get; }
 
     /// <summary>String: the per-session lock, holding its owner's random value.</summary>
     public RedisKey Lock { get; }

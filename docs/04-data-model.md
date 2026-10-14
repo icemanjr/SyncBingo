@@ -57,8 +57,9 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 | `s:{code}:meta` | hash | `session`: the session snapshot as JSON (state, version, settings, round number, calls, claims, wins, round summaries, alerts already raised); `password`: the password hash |
 | `s:{code}:participants` | hash | field = participantId → `{"v": version, "p": participant snapshot}` (cards, marks, Undo state, auto-fill switch); a save is a Lua compare-and-set on `v` (02 §6) |
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
-| `s:{code}:tokens` | hash | tokenHash → caller: `host`, `display` or `participant:{id}` |
-| `s:{code}:token-owners` | hash | participantId → their tokenHash, so removing a player revokes their token in the same script |
+| `s:{code}:tokens` | hash | tokenHash → caller: `host`, `display:{id}` or `participant:{id}` |
+| `s:{code}:token-owners` | hash | participantId (or `display:{id}`) → their tokenHash, so removing a player or display revokes the token in the same script |
+| `s:{code}:displays` | hash | display id → `{ displayId, kind (Link / Tv), createdAt }`; at most 10 (FR-28) |
 | `s:{code}:content` | hash | *(Phase 4)* the session's single custom set, if any: its ball/square pairs of text (call face and card face, 24–500, each side unique) and optional named groups; the *Group items* setting decides whether dealing and the board use them. Text only: no images (ADR 0009, amended) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:lock` | string | the per-session lock: `SET NX` with a random owner value and a 10 s lease; released only by its owner (compare-and-delete); a command waits up to 5 s for it |
@@ -80,7 +81,7 @@ Marks, Undo and the auto-fill switch update one `participants` field, checked ag
 - **Session token:** 256-bit random value (43 characters of URL-safe base64) returned once at join; only its SHA-256 is stored. A fast hash is enough because the token is already unguessable. The client keeps it in `localStorage` and sends it as a bearer token (and as `access_token` for the WebSocket).
 - **Host token:** same mechanism, stored separately from participants: the host runs the game and is not a participant (FR-15 removed).
 - **Pairing** (ADR 0010): `pairing:{code}` (string, 10-minute TTL, deleted when used) holds the waiting TV's pairing id until a host approves it; the code is 6 characters from the game-code alphabet.
-- **Display token:** same mechanism, role `display`: **read-only**, sees only public game state (FR-28), and the host can revoke it. Stored as hashes in `s:{code}:display-tokens`. The display link carries it in the URL **fragment** (`/display/{code}#t=…`), which browsers never send to the server, so it does not appear in server or CDN logs; the page moves it to `sessionStorage` and clears it from the address bar.
+- **Display token:** same mechanism, role `display`: **read-only**, sees only public game state (FR-28), and the host can revoke it. Stored as hashes in `s:{code}:tokens`, with the display itself in `s:{code}:displays`. The display link carries it in the URL **fragment** (`/display/{code}#t=…`), which browsers never send to the server, so it does not appear in server or CDN logs; the page moves it to `sessionStorage` and clears it from the address bar.
 - **Names** (`ParticipantName`):
   - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
   - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.

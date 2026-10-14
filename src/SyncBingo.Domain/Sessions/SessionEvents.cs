@@ -121,3 +121,6 @@ public sealed record RuleChange(string Rule, string Value);
 public sealed record RulesUpdated(IReadOnlyList<RuleChange> Changes, DateTimeOffset NextBallFrom) : SessionEvent;
 
 public sealed record SessionEnded : SessionEvent;
+
+/// <summary>The host's note shown with the join QR (FR-49), e.g. the password or a hint; <c>null</c> when cleared.</summary>
+public sealed record JoinNoteChanged(string? Note) : SessionEvent;

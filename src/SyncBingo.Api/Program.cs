@@ -27,6 +27,7 @@ var game = api.MapGroup("/sessions/{code}").RequireAuthorization();
 game.MapQueryEndpoints();
 game.MapPlayerEndpoints();
 game.MapHostEndpoints();
+game.MapDisplayEndpoints();
 
 app.MapHub<GameHub>("/hubs/game", hub => hub.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 

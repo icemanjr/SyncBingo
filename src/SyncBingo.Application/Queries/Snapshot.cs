@@ -12,7 +12,8 @@ namespace SyncBingo.Application.Queries;
 public sealed record GameSnapshot(GameView Game, PlayerView? You, HostView? Host);
 
 /// <summary>
-/// What everyone in the game may see (the display view sees exactly this). <see cref="Seq"/> is the
+/// What everyone in the game may see (the display view sees exactly this), except <see cref="JoinNote"/>
+/// (FR-49), which only the host and the display get. <see cref="Seq"/> is the
 /// caller's own stream position (ADR 0002): events in that stream with a higher seq come after this snapshot.
 /// </summary>
 public sealed record GameView(
@@ -31,7 +32,8 @@ public sealed record GameView(
     VisibleSettings Settings,
     IReadOnlyList<LeaderboardEntry>? Leaderboard,
     long Version,
-    long Seq);
+    long Seq,
+    string? JoinNote);
 
 /// <summary>A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.</summary>
 public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks);
@@ -188,7 +190,8 @@ public sealed class GameQueries(ISessionStore store)
             VisibleSettings.From(session.Settings),
             showLeaderboard ? session.Leaderboard() : null,
             session.Version,
-            session.StreamSeqs.For(stream));
+            session.StreamSeqs.For(stream),
+            stream == Audience.Players ? null : session.JoinNote);
     }
 
     private static PlayerView PlayerOf(Participant participant) => new(

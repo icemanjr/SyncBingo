@@ -44,10 +44,11 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `GET /sessions/{code}/leaderboard` | – | `{ entries, rounds }`: wins per participant and the round summaries. |
 | `POST /sessions/{code}/leaderboard/show` | `{ visible }` | Show or hide the leaderboard on participants' screens. |
 | `POST /sessions/{code}/end` | – | End the session; data discarded. |
-| `POST /sessions/{code}/display-links` | – | `201 { displayUrl }`: a read-only display link (FR-28), token in the URL fragment. |
-| `DELETE /sessions/{code}/display-links` | – | Revoke every display link; open display views disconnect. |
+| `POST /sessions/{code}/display-links` | – | `201 { displayId, displayUrl }`: a read-only display link (FR-28), `{origin}/display/{code}#t={token}`. The token is in the URL fragment, never the query, so it never reaches a server log. At most 10 displays per game (409 beyond). |
+| `DELETE /sessions/{code}/display-links` | – | Revoke every display link (paired TVs stay); each open display gets `DisplayDisconnected` and its token stops working. |
+| `PUT /sessions/{code}/join-note` | `{ note }` | The note shown with the join QR (FR-49), up to 80 characters; empty or `null` clears it. Any state but ended, even auto mode. |
 | `POST /sessions/{code}/display-pairings` | `{ pairingCode }` | **Connect a TV** (ADR 0010): approve the code shown on a TV. `204`; the TV receives its display token. `404` unknown or expired code. Rate-limited per host. |
-| `GET /sessions/{code}/displays` · `DELETE …/displays/{id}` | – | List connected displays (paired TVs and display links); disconnect one. |
+| `GET /sessions/{code}/displays` · `DELETE …/displays/{id}` | – | List the displays (`[{ displayId, kind: Link \| Tv, createdAt }]`); disconnect one (its token stops working and it gets `DisplayDisconnected`). |
 
 **TV pairing (anonymous, ADR 0010):** `POST /tv/pairings` → `201 { pairingId, pairingCode, expiresAt }` (rate-limited per IP). The TV then connects to `/hubs/pairing?pairingId=…`, which can only deliver `Paired { sessionCode, displayToken }` (or `PairingExpired`) for that pairing, and then closes.
 
@@ -59,7 +60,7 @@ Endpoint: `/hubs/game?code={code}&access_token={token}` (a browser can't set hea
 
 Two kinds of message (ADR 0002, amended):
 
-- **`event { type, seq, data }`**: a session event. `seq` counts within the receiver's own stream (players, host or display), so it never skips; a gap means a missed event, and the client refetches the snapshot, whose `game.seq` is the stream position to continue from.
+- **`event { type, seq, data }`**: a session event. `seq` counts within the receiver's own stream (players, host or display), so it never skips; a gap means a missed event, and the client refetches the snapshot, whose `game.seq` is the stream position to continue from. The host's and the display's snapshots also carry `game.joinNote` (FR-49).
 - **`notice { type, data }`**: a private message to one player or the host, unnumbered and safe to apply twice.
 
 In the table, "all" means all three streams.
@@ -83,6 +84,7 @@ In the table, "all" means all three streams.
 | `ParticipantRemoved` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam was removed from the game" |
 | `LeaderboardVisibilityChanged` | all | `{ visible }` (wins also change the leaderboard; clients update it from `WinAwarded` or the snapshot) |
 | `SessionEnded` | all | – |
+| `JoinNoteChanged` | host and display | `{ note }` (FR-49; `null` when cleared) |
 
 | Notice | To | Payload |
 |--------|----|---------|
@@ -90,6 +92,7 @@ In the table, "all" means all three streams.
 | `WrongPasswordsAlert` | host | `{ wrongInLastMinute, lockedFor }`: many wrong passwords (the shared password may be wrong), sent at the warning level (10) and again if joining from one address gets locked (`lockedFor`, e.g. `"00:10:00"`) |
 | `AutoFillApplied` | that player | `{ cells: [{ cardId, cell }] }` |
 | `CardReplaced` | that player | `{ cardId, cells }` |
+| `DisplayDisconnected` | that display | – (the host disconnected it; the page stops and returns to its start screen) |
 
 ## 5. Conventions
 

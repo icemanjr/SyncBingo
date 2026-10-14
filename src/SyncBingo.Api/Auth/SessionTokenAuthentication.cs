@@ -28,6 +28,7 @@ public sealed class SessionTokenAuthentication(
 
     private const string RoleClaim = "syncbingo:role";
     private const string CodeClaim = "syncbingo:code";
+    private const string DisplayClaim = "syncbingo:display";
     private const string ParticipantClaim = "syncbingo:participant";
 
     /// <summary>The caller an authenticated request signed in as.</summary>
@@ -36,7 +37,7 @@ public sealed class SessionTokenAuthentication(
         ArgumentNullException.ThrowIfNull(user);
 
         var role = Enum.Parse<CallerRole>(user.FindFirstValue(RoleClaim) ?? throw new InvalidOperationException("The request is not signed in."));
-        return new Caller(role, user.FindFirstValue(ParticipantClaim));
+        return new Caller(role, user.FindFirstValue(ParticipantClaim), user.FindFirstValue(DisplayClaim));
     }
 
     /// <summary>The game the caller signed in to.</summary>
@@ -76,6 +77,11 @@ public sealed class SessionTokenAuthentication(
         if (caller.ParticipantId is { } participantId)
         {
             claims.Add(new Claim(ParticipantClaim, participantId));
+        }
+
+        if (caller.DisplayId is { } displayId)
+        {
+            claims.Add(new Claim(DisplayClaim, displayId));
         }
 
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName));

@@ -45,6 +45,8 @@ public abstract record Recipient
     public sealed record Host : Recipient;
 
     public sealed record Participant(string ParticipantId) : Recipient;
+
+    public sealed record Display(string DisplayId) : Recipient;
 }
 
 /// <summary>Something only one connection should hear, unlike session events, which fan out by audience.</summary>
@@ -69,6 +71,21 @@ public sealed record CardReplaced(int CardId, IReadOnlyList<int> Cells) : Notifi
 /// that participant since (optimistic concurrency, docs/02 §6).
 /// </summary>
 public sealed record StoredParticipant(Participant Participant, long Version);
+
+/// <summary>This display was disconnected by the host; its token no longer works.</summary>
+public sealed record DisplayDisconnected : Notification;
+
+public enum DisplayKind
+{
+    /// <summary>Opened from a display link (a new tab, or a link sent to another device).</summary>
+    Link,
+
+    /// <summary>A smart TV or projector paired with a short code (ADR 0010).</summary>
+    Tv,
+}
+
+/// <summary>A display the host has connected, for the host's list (FR-28).</summary>
+public sealed record DisplayRecord(string DisplayId, DisplayKind Kind, DateTimeOffset CreatedAt);
 
 /// <summary>Pushes events to connected clients (SignalR in production).</summary>
 public interface IEventPublisher
@@ -136,4 +153,15 @@ public interface ISessionStore
     Task SaveTokenAsync(GameCode code, string tokenHash, Caller caller, CancellationToken cancellationToken);
 
     Task<Caller?> FindTokenAsync(GameCode code, string tokenHash, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Stores a display and its token (a display token resolves to <see cref="Caller.Display"/>);
+    /// <c>false</c> if the session already has <paramref name="maxDisplays"/> displays.
+    /// </summary>
+    Task<bool> TryAddDisplayAsync(GameCode code, DisplayRecord display, string tokenHash, int maxDisplays, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<DisplayRecord>> GetDisplaysAsync(GameCode code, CancellationToken cancellationToken);
+
+    /// <summary>Deletes a display and revokes its token; <c>false</c> if there was no such display.</summary>
+    Task<bool> RemoveDisplayAsync(GameCode code, string displayId, CancellationToken cancellationToken);
 }

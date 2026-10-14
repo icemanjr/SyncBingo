@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SyncBingo.Application;
+using SyncBingo.Application.Ports;
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Sessions;
 
@@ -31,10 +32,11 @@ internal static class StoreJson
         return (Participant.Restore(envelope.P), envelope.V);
     }
 
-    public static string Write(Caller caller) => caller.Role switch
+    public static string Write(Caller caller) => caller switch
     {
-        CallerRole.Participant => "participant:" + caller.ParticipantId,
-        var role => role.ToString().ToLowerInvariant(),
+        { Role: CallerRole.Participant } => "participant:" + caller.ParticipantId,
+        { Role: CallerRole.Display, DisplayId: { } id } => "display:" + id,
+        _ => caller.Role.ToString().ToLowerInvariant(),
     };
 
     public static Caller ReadCaller(string value) => value switch
@@ -43,8 +45,14 @@ internal static class StoreJson
         "system" => Caller.System,
         "display" => new Caller(CallerRole.Display),
         _ when value.StartsWith("participant:", StringComparison.Ordinal) => Caller.Participant(value["participant:".Length..]),
+        _ when value.StartsWith("display:", StringComparison.Ordinal) => Caller.Display(value["display:".Length..]),
         _ => throw new InvalidOperationException($"Stored token has an unknown caller '{value}'."),
     };
+
+    public static string Write(DisplayRecord display) => JsonSerializer.Serialize(display, Options);
+
+    public static DisplayRecord ReadDisplay(string json) =>
+        JsonSerializer.Deserialize<DisplayRecord>(json, Options) ?? throw new InvalidOperationException("Stored display is empty.");
 
     /// <summary>Short names: the Lua compare-and-set reads <c>v</c>.</summary>
     private sealed record ParticipantEnvelope(long V, ParticipantSnapshot P);

@@ -3,7 +3,7 @@ namespace SyncBingo.Infrastructure.Redis;
 /// <summary>
 /// Lua scripts, each atomic in Redis. Every one receives all of a session's keys
 /// (<see cref="SessionKeys.All"/>: 1 meta, 2 participants, 3 names, 4 tokens, 5 token-owners,
-/// 6 cards) and the idle expiry in ms as <c>ARGV[1]</c>, and refreshes every key's expiry
+/// 6 cards, 7 displays) and the idle expiry in ms as <c>ARGV[1]</c>, and refreshes every key's expiry
 /// after a write (then returns 1), so a session's keys always live and expire together.
 /// </summary>
 internal static class Scripts
@@ -62,6 +62,26 @@ internal static class Scripts
         redis.call('HSET', KEYS[4], ARGV[2], ARGV[3])
         if ARGV[4] ~= '' then redis.call('HSET', KEYS[5], ARGV[4], ARGV[2]) end
         """ + Touch;
+
+    /// <summary>
+    /// ARGV[2] display id, ARGV[3] display JSON, ARGV[4] token hash, ARGV[5] the most displays allowed.
+    /// 1 = added, 0 = the session already has that many.
+    /// </summary>
+    public const string AddDisplay = """
+        if redis.call('HLEN', KEYS[7]) >= tonumber(ARGV[5]) then return 0 end
+        redis.call('HSET', KEYS[7], ARGV[2], ARGV[3])
+        redis.call('HSET', KEYS[4], ARGV[4], 'display:' .. ARGV[2])
+        redis.call('HSET', KEYS[5], 'display:' .. ARGV[2], ARGV[4])
+        """ + Touch;
+
+    /// <summary>ARGV[2] display id. Deletes the display and revokes its token. 1 = removed, 0 = no such display.</summary>
+    public const string RemoveDisplay = """
+        if redis.call('HDEL', KEYS[7], ARGV[2]) == 0 then return 0 end
+        local token = redis.call('HGET', KEYS[5], 'display:' .. ARGV[2])
+        if token then redis.call('HDEL', KEYS[4], token) end
+        redis.call('HDEL', KEYS[5], 'display:' .. ARGV[2])
+        return 1
+        """;
 
     /// <summary>Releases a lock only if it is still ours. KEYS[1] the lock, ARGV[1] our value.</summary>
     public const string ReleaseLock = """

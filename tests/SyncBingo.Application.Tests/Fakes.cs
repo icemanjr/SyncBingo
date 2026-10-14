@@ -22,6 +22,7 @@ internal sealed class InMemorySessionStore : ISessionStore
     private readonly ConcurrentDictionary<(string Code, string Key), string> _names = new();
     private readonly ConcurrentDictionary<(string Code, string Fingerprint), byte> _cards = new();
     private readonly ConcurrentDictionary<(string Code, string Hash), Caller> _tokens = new();
+    private readonly Dictionary<(string Code, string Id), DisplayRecord> _displays = [];
 
     /// <summary>Codes <see cref="TryCreateAsync"/> pretends are taken, to test code clashes.</summary>
     public HashSet<string> TakenCodes { get; } = [];
@@ -186,6 +187,48 @@ internal sealed class InMemorySessionStore : ISessionStore
 
     public Task<Caller?> FindTokenAsync(GameCode code, string tokenHash, CancellationToken cancellationToken) =>
         Task.FromResult(_tokens.GetValueOrDefault((code.Value, tokenHash)));
+
+    public Task<bool> TryAddDisplayAsync(GameCode code, DisplayRecord display, string tokenHash, int maxDisplays, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            if (_displays.Keys.Count(k => k.Code == code.Value) >= maxDisplays)
+            {
+                return Task.FromResult(false);
+            }
+
+            _displays[(code.Value, display.DisplayId)] = display;
+            _tokens[(code.Value, tokenHash)] = Caller.Display(display.DisplayId);
+            return Task.FromResult(true);
+        }
+    }
+
+    public Task<IReadOnlyList<DisplayRecord>> GetDisplaysAsync(GameCode code, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            return Task.FromResult<IReadOnlyList<DisplayRecord>>(
+                [.. _displays.Where(d => d.Key.Code == code.Value).Select(d => d.Value).OrderBy(d => d.CreatedAt)]);
+        }
+    }
+
+    public Task<bool> RemoveDisplayAsync(GameCode code, string displayId, CancellationToken cancellationToken)
+    {
+        lock (_participantsGate)
+        {
+            if (!_displays.Remove((code.Value, displayId)))
+            {
+                return Task.FromResult(false);
+            }
+
+            foreach (var token in _tokens.Where(t => t.Key.Code == code.Value && t.Value.DisplayId == displayId))
+            {
+                _tokens.TryRemove(token.Key, out _);
+            }
+
+            return Task.FromResult(true);
+        }
+    }
 
     private static StoredParticipant Load((ParticipantSnapshot Snapshot, long Version) stored) =>
         new(Participant.Restore(stored.Snapshot), stored.Version);

@@ -34,6 +34,7 @@ public sealed class SessionCommandTableTests
         ["Claim Bingo"] = s => s.ClaimBingo(Player(s), 1, Now).IsSuccess,
         ["Award win"] = s => s.AwardWin(Player(s), 1, Now).IsSuccess,
         ["Show leaderboard"] = s => s.ShowLeaderboard(true, Now).IsSuccess,
+        ["Set join note"] = s => s.SetJoinNote("Hint", Now).IsSuccess,
         ["Remove participant"] = s => s.RemoveParticipant(Player(s), Now).IsSuccess,
         ["End session"] = s => s.End(Now).IsSuccess,
     };
@@ -55,6 +56,7 @@ public sealed class SessionCommandTableTests
         ["Claim Bingo"] = [Manual, Auto],
         ["Award win"] = [Manual, Auto],
         ["Show leaderboard"] = [Lobby, Starting, Manual, Auto],
+        ["Set join note"] = [Lobby, Starting, Manual, Auto],
         ["Remove participant"] = [Lobby, Starting, Manual, Auto],
         ["End session"] = [Lobby, Starting, Manual, Auto],
     };

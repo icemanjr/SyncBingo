@@ -6,6 +6,7 @@ using SyncBingo.Api.Endpoints;
 using SyncBingo.Api.Http;
 using SyncBingo.Api.Realtime;
 using SyncBingo.Application.Calling;
+using SyncBingo.Application.Displays;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
 using SyncBingo.Application.Queries;
@@ -64,6 +65,7 @@ internal static class ServiceRegistration
         services.AddSingleton<DrawHandler>();
         services.AddSingleton<PlayerCommandHandler>();
         services.AddSingleton<PlayerManagementHandler>();
+        services.AddSingleton<DisplayHandler>();
         services.AddHostedService<CallSchedulerService>();
 
         services.AddAuthentication(SessionTokenAuthentication.SchemeName)

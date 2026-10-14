@@ -168,6 +168,22 @@ public sealed class ApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task The_host_can_award_a_win_nobody_pressed_bingo_for()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (avaId, _) = await JoinAsync(code, "Ava");
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/rounds/countdown", hostToken, new { startInAuto = false })).Dispose();
+        await CountdownEndsAsync(code);
+
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/wins", hostToken, new { participantId = avaId }))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var session = (await _factory.Service<Application.Ports.ISessionStore>().GetAsync(GameCode.Parse(code), Ct))!;
+        session.Wins.ShouldHaveSingleItem().Source.ShouldBe(WinSource.Manual, "a shouted Bingo the host checked");
+        session.Claims.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task Apply_changes_only_the_settings_sent()
     {
         var (code, hostToken) = await NewGameAsync();

@@ -62,8 +62,6 @@ public sealed record SettingsBody
 
     public bool? AutoFillAvailable { get; init; }
 
-    public bool? BingoButton { get; init; }
-
     public bool? WinHighlight { get; init; }
 
     public WinDetection? WinDetection { get; init; }
@@ -93,7 +91,6 @@ public sealed record SettingsBody
             HighlightMatches = settings.HighlightMatches,
             ShowCallBoard = settings.ShowCallBoard,
             AutoFillAvailable = settings.AutoFillAvailable,
-            BingoButton = settings.BingoButton,
             WinHighlight = settings.WinHighlight,
             WinDetection = settings.WinDetection,
             RedrawPolicy = settings.RedrawPolicy,
@@ -118,7 +115,6 @@ public sealed record SettingsBody
             HighlightMatches = HighlightMatches ?? settings.HighlightMatches,
             ShowCallBoard = ShowCallBoard ?? settings.ShowCallBoard,
             AutoFillAvailable = AutoFillAvailable ?? settings.AutoFillAvailable,
-            BingoButton = BingoButton ?? settings.BingoButton,
             WinHighlight = WinHighlight ?? settings.WinHighlight,
             WinDetection = WinDetection ?? settings.WinDetection,
             RedrawPolicy = RedrawPolicy ?? settings.RedrawPolicy,

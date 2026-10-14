@@ -134,6 +134,20 @@ public sealed class SnapshotTests
     }
 
     [Fact]
+    public async Task Each_caller_gets_their_own_streams_position()
+    {
+        var code = await _app.NewGameAsync();
+        var ava = await _app.JoinAsync(code, "Ava");
+        await _app.StartRoundAsync(code);
+        (await _app.Players.ClaimBingoAsync(code, Caller.Participant(ava), 1, TestApp.Ct)).IsSuccess.ShouldBeTrue(); // host only
+
+        var host = (await Queries.SnapshotAsync(code, Caller.Host, TestApp.Ct)).Value.Game.Seq;
+        var player = (await Queries.SnapshotAsync(code, Caller.Participant(ava), TestApp.Ct)).Value.Game.Seq;
+
+        host.ShouldBe(player + 1, "the claim is in the host's stream only");
+    }
+
+    [Fact]
     public async Task An_unknown_game_is_not_found()
     {
         (await Queries.SnapshotAsync(GameCode.Parse("9ve4-shp3-k7mw-a2qx"), Caller.Host, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.NotFound);

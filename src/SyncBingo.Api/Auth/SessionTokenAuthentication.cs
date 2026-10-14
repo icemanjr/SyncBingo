@@ -27,6 +27,7 @@ public sealed class SessionTokenAuthentication(
     public const string SchemeName = "SessionToken";
 
     private const string RoleClaim = "syncbingo:role";
+    private const string CodeClaim = "syncbingo:code";
     private const string ParticipantClaim = "syncbingo:participant";
 
     /// <summary>The caller an authenticated request signed in as.</summary>
@@ -38,27 +39,40 @@ public sealed class SessionTokenAuthentication(
         return new Caller(role, user.FindFirstValue(ParticipantClaim));
     }
 
+    /// <summary>The game the caller signed in to.</summary>
+    public static GameCode CodeOf(ClaimsPrincipal user)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        return GameCode.Parse(user.FindFirstValue(CodeClaim) ?? throw new InvalidOperationException("The request is not signed in."));
+    }
+
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var header)
-            || !string.Equals(header.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
-            || string.IsNullOrWhiteSpace(header.Parameter))
+        // Browsers can't set headers on a WebSocket, so the hub alone also takes ?access_token= (and ?code=).
+        var isHub = Request.Path.StartsWithSegments("/hubs", StringComparison.OrdinalIgnoreCase);
+        var token = AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var header)
+            && string.Equals(header.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
+                ? header.Parameter
+                : isHub ? Request.Query["access_token"].ToString() : null;
+        if (string.IsNullOrWhiteSpace(token))
         {
             return AuthenticateResult.NoResult();
         }
 
-        if (Context.GetRouteValue("code") is not string raw || !GameCode.TryParse(raw, out var code))
+        var raw = Context.GetRouteValue("code") as string ?? (isHub ? Request.Query["code"].ToString() : null);
+        if (raw is null || !GameCode.TryParse(raw, out var code))
         {
             return AuthenticateResult.Fail("Session tokens are only valid on a game's routes.");
         }
 
-        var caller = await store.FindTokenAsync(code, tokens.Hash(header.Parameter), Context.RequestAborted).ConfigureAwait(false);
+        var caller = await store.FindTokenAsync(code, tokens.Hash(token), Context.RequestAborted).ConfigureAwait(false);
         if (caller is null)
         {
             return AuthenticateResult.Fail("Unknown or revoked token.");
         }
 
-        List<Claim> claims = [new(RoleClaim, caller.Role.ToString())];
+        List<Claim> claims = [new(RoleClaim, caller.Role.ToString()), new(CodeClaim, code.Value)];
         if (caller.ParticipantId is { } participantId)
         {
             claims.Add(new Claim(ParticipantClaim, participantId));

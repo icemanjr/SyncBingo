@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SyncBingo.Api;
 using SyncBingo.Api.Endpoints;
+using SyncBingo.Api.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ var game = api.MapGroup("/sessions/{code}").RequireAuthorization();
 game.MapQueryEndpoints();
 game.MapPlayerEndpoints();
 game.MapHostEndpoints();
+
+app.MapHub<GameHub>("/hubs/game", hub => hub.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 
 app.Run();
 

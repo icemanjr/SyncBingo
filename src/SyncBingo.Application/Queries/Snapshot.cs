@@ -11,7 +11,10 @@ namespace SyncBingo.Application.Queries;
 /// </summary>
 public sealed record GameSnapshot(GameView Game, PlayerView? You, HostView? Host);
 
-/// <summary>What everyone in the game may see (the display view sees exactly this).</summary>
+/// <summary>
+/// What everyone in the game may see (the display view sees exactly this). <see cref="Seq"/> is the
+/// caller's own stream position (ADR 0002): events in that stream with a higher seq come after this snapshot.
+/// </summary>
 public sealed record GameView(
     string Code,
     SessionState State,
@@ -52,7 +55,27 @@ public sealed record VisibleSettings(
     FreeSpace FreeSpace,
     RedrawPolicy RedrawPolicy,
     MultipleWins MultipleWins,
-    bool ShowRoundNumbers);
+    bool ShowRoundNumbers)
+{
+    public static VisibleSettings From(SessionSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new VisibleSettings(
+            settings.ShowBallToPlayers,
+            settings.HighlightMatches,
+            settings.ShowCallBoard,
+            settings.AutoFillAvailable,
+            settings.WinHighlight,
+            settings.FreeMarking,
+            settings.RequireMarksForClaims,
+            settings.Unmarking,
+            settings.FreeSpace,
+            settings.RedrawPolicy,
+            settings.MultipleWins,
+            settings.ShowRoundNumbers);
+    }
+}
 
 /// <summary>A participant's own view: only ever their own cards (ADR 0001, CLAUDE.md rule 7).</summary>
 public sealed record PlayerView(string ParticipantId, string Name, bool AutoFillOn, IReadOnlyList<CardView> Cards);
@@ -93,7 +116,8 @@ public sealed class GameQueries(ISessionStore store)
         {
             case CallerRole.Host:
                 var participants = await store.GetParticipantsAsync(code, cancellationToken).ConfigureAwait(false);
-                return Result.Success(new GameSnapshot(Public(session, showCalls: true, showLeaderboard: true), null, HostOf(session, participants)));
+                return Result.Success(new GameSnapshot(
+                    Public(session, showCalls: true, showLeaderboard: true, Audience.Host), null, HostOf(session, participants)));
             case CallerRole.Participant:
                 var stored = await store.GetParticipantAsync(code, caller.ParticipantId!, cancellationToken).ConfigureAwait(false);
                 if (stored is null)
@@ -103,9 +127,10 @@ public sealed class GameQueries(ISessionStore store)
 
                 var settings = session.Settings;
                 var seesCalls = settings.ShowBallToPlayers || settings.HighlightMatches || settings.ShowCallBoard;
-                return Result.Success(new GameSnapshot(Public(session, seesCalls, session.LeaderboardVisible), PlayerOf(stored.Participant), null));
+                return Result.Success(new GameSnapshot(
+                    Public(session, seesCalls, session.LeaderboardVisible, Audience.Players), PlayerOf(stored.Participant), null));
             case CallerRole.Display:
-                return Result.Success(new GameSnapshot(Public(session, showCalls: true, session.LeaderboardVisible), null, null));
+                return Result.Success(new GameSnapshot(Public(session, showCalls: true, session.LeaderboardVisible, Audience.Display), null, null));
             default:
                 return new DomainError(DomainErrorCode.Forbidden, "Only people in the game can see it.");
         }
@@ -144,10 +169,9 @@ public sealed class GameQueries(ISessionStore store)
         return session is null ? Errors.SessionNotFound() : Result.Success(new LeaderboardView(session.Leaderboard(), session.Rounds));
     }
 
-    private static GameView Public(Session session, bool showCalls, bool showLeaderboard)
+    private static GameView Public(Session session, bool showCalls, bool showLeaderboard, Audience stream)
     {
         var variant = session.Variant;
-        var settings = session.Settings;
         return new GameView(
             session.Code.ToString(),
             session.State,
@@ -161,22 +185,10 @@ public sealed class GameQueries(ISessionStore store)
             showCalls ? [.. session.Calls] : null,
             session.BallsRemaining,
             session.NextBallFrom,
-            new VisibleSettings(
-                settings.ShowBallToPlayers,
-                settings.HighlightMatches,
-                settings.ShowCallBoard,
-                settings.AutoFillAvailable,
-                settings.WinHighlight,
-                settings.FreeMarking,
-                settings.RequireMarksForClaims,
-                settings.Unmarking,
-                settings.FreeSpace,
-                settings.RedrawPolicy,
-                settings.MultipleWins,
-                settings.ShowRoundNumbers),
+            VisibleSettings.From(session.Settings),
             showLeaderboard ? session.Leaderboard() : null,
             session.Version,
-            session.LastEventSeq);
+            session.StreamSeqs.For(stream));
     }
 
     private static PlayerView PlayerOf(Participant participant) => new(

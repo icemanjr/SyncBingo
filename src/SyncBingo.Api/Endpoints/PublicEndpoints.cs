@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 using SyncBingo.Api.Http;
+using SyncBingo.Application;
+using SyncBingo.Application.Queries;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain.Sessions;
 
@@ -10,21 +12,38 @@ internal static class PublicEndpoints
 {
     public static void MapPublicEndpoints(this RouteGroupBuilder api)
     {
-        api.MapPost("/sessions", async (CreateGameRequest request, CreateSessionHandler create, IOptions<WebOptions> web, CancellationToken ct) =>
+        api.MapPost("/sessions", async (
+            CreateGameRequest request, CreateSessionHandler create, GameQueries queries, IOptions<WebOptions> web, CancellationToken ct) =>
         {
             var created = await create.HandleAsync(
                 new CreateSession(request.Password, request.Settings?.ApplyTo(SessionSettings.Default), request.WinCondition ?? "normal"), ct);
-            return created.ToHttp(game => TypedResults.Created(
+            if (created.Error is { } error)
+            {
+                return Problems.From(error);
+            }
+
+            var game = created.Value;
+            return (await queries.SnapshotAsync(game.Code, Caller.Host, ct)).ToHttp(snapshot => TypedResults.Created(
                 $"/api/sessions/{game.Code.Value}",
-                new GameCreated(game.Code.ToString(), new Uri(web.Value.PublicOrigin, $"/join/{game.Code.Value}"), game.HostToken)));
+                new GameCreated(
+                    game.Code.ToString(), new Uri(web.Value.PublicOrigin, $"/join/{game.Code.Value}"), game.HostToken, SnapshotBody.From(snapshot))));
         });
 
         api.MapGet("/sessions/{code}/join-info", async (string code, JoinInfoQuery query, CancellationToken ct) =>
             (await query.GetAsync(code, ct)).ToHttp(info => TypedResults.Ok(info)));
 
-        api.MapPost("/sessions/{code}/join", async (string code, JoinRequest request, JoinSessionHandler join, CancellationToken ct) =>
-            (await join.HandleAsync(new JoinSession(code, request.Password, request.Name), ct))
-                .ToHttp(joined => TypedResults.Ok(new Joined(joined.ParticipantId, joined.Token))));
+        api.MapPost("/sessions/{code}/join", async (string code, JoinRequest request, JoinSessionHandler join, GameQueries queries, CancellationToken ct) =>
+        {
+            var joined = await join.HandleAsync(new JoinSession(code, request.Password, request.Name), ct);
+            if (joined.Error is { } error)
+            {
+                return Problems.From(error);
+            }
+
+            var player = joined.Value;
+            return (await queries.SnapshotAsync(player.Code, Caller.Participant(player.ParticipantId), ct))
+                .ToHttp(snapshot => TypedResults.Ok(new Joined(player.ParticipantId, player.Token, SnapshotBody.From(snapshot))));
+        });
     }
 }
 

@@ -19,6 +19,7 @@ var api = app.MapGroup("/api");
 api.MapPublicEndpoints();
 
 var game = api.MapGroup("/sessions/{code}").RequireAuthorization();
+game.MapQueryEndpoints();
 game.MapPlayerEndpoints();
 game.MapHostEndpoints();
 

@@ -73,15 +73,14 @@ public sealed record BallCalled(BallCall Call, int? PreviousNumber) : SessionEve
 
 public sealed record WinConditionChanged(string WinConditionId) : SessionEvent;
 
-public sealed record SettingsChanged(SessionSettings Settings, SessionSettings? NextRoundSettings) : SessionEvent;
+public sealed record SettingsChanged(SessionSettings Settings) : SessionEvent;
 
 /// <summary>
 /// One rule that changed, for the "Rules updated" notice (FR-47): <see cref="Rule"/> is the
 /// setting's wire name (<c>winCondition</c>, <c>freeMarking</c>, …) and <see cref="Value"/> its new
-/// value (<c>blackout</c>, <c>false</c>, <c>MismarksOnly</c>). <see cref="FromNextRound"/> marks a
-/// round-scoped setting that waits for the next round.
+/// value (<c>blackout</c>, <c>false</c>, <c>MismarksOnly</c>). Every change listed is in force at once.
 /// </summary>
-public sealed record RuleChange(string Rule, string Value, bool FromNextRound = false);
+public sealed record RuleChange(string Rule, string Value);
 
 /// <summary>
 /// Rules that matter to players changed mid-round (FR-47). Every screen shows the list until

@@ -22,14 +22,13 @@ public sealed class RulesUpdatedTests
     }
 
     [Fact]
-    public void Settings_waiting_for_the_next_round_say_so()
+    public void A_refused_lobby_only_change_raises_no_notice_and_no_wait()
     {
         var session = InState(SessionState.Manual);
 
-        var notice = session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now)
-            .Value.OfType<RulesUpdated>().ShouldHaveSingleItem();
+        session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeFalse();
 
-        notice.Changes.ShouldBe([new RuleChange("freeSpace", "Earned", FromNextRound: true)]);
+        session.NextBallFrom.ShouldBeNull();
     }
 
     [Fact]

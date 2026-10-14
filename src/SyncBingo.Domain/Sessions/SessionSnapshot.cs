@@ -12,7 +12,6 @@ public sealed record SessionSnapshot(
     DateTimeOffset? CountdownEndsAt,
     bool StartInAuto,
     SessionSettings Settings,
-    SessionSettings? NextRoundSettings,
     string WinConditionId,
     int RoundNumber,
     IReadOnlyList<BallCall> Calls,

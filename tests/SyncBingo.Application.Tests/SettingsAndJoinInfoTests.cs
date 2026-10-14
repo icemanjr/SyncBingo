@@ -21,15 +21,15 @@ public sealed class SettingsAndJoinInfoTests
     }
 
     [Fact]
-    public async Task A_change_during_a_round_builds_on_settings_waiting_for_the_next_round()
+    public async Task A_second_apply_builds_on_the_first()
     {
         var code = await _app.NewGameAsync();
         await _app.StartRoundAsync(code);
-        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeMarking = false }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
         (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { ShowCallBoard = false }, null, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        (await _app.SessionAsync(code)).NextRoundSettings!.FreeSpace.ShouldBe(FreeSpace.Earned, "the earlier change still waits");
+        (await _app.SessionAsync(code)).Settings.FreeMarking.ShouldBeFalse("the earlier change is kept");
     }
 
     [Fact]
@@ -38,11 +38,10 @@ public sealed class SettingsAndJoinInfoTests
         var code = await _app.NewGameAsync();
         await _app.StartRoundAsync(code);
 
-        var applied = (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.Earned }, "blackout", TestApp.Ct)).Value;
+        var applied = (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeMarking = false }, "blackout", TestApp.Ct)).Value;
 
         applied.WinConditionId.ShouldBe("blackout");
-        applied.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked);
-        applied.NextRoundSettings!.FreeSpace.ShouldBe(FreeSpace.Earned);
+        applied.Settings.FreeMarking.ShouldBeFalse();
         _app.Publisher.Events.OfType<WinConditionChanged>().ShouldHaveSingleItem();
     }
 

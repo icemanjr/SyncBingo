@@ -74,7 +74,7 @@ public sealed class SessionSnapshotTests
         kit.Session.ClaimBingo(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
         kit.Session.AwardWin(kit.Player, 1, Now, claimId: 1).IsSuccess.ShouldBeTrue();
         kit.Session.ChangePattern("blackout", Now).IsSuccess.ShouldBeTrue();
-        kit.Session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeSettings(SessionSettings.Default with { FreeMarking = false }, Now).IsSuccess.ShouldBeTrue();
         kit.Session.ShowLeaderboard(true, Now).IsSuccess.ShouldBeTrue();
         return kit;
     }

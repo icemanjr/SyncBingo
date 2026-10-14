@@ -59,12 +59,6 @@ public sealed class Session
     /// <summary>Settings in force now.</summary>
     public SessionSettings Settings { get; private set; }
 
-    /// <summary>
-    /// Settings saved during a round whose round-scoped values (<see cref="SessionSettings.FreeSpace"/>,
-    /// <see cref="SessionSettings.RedrawPolicy"/>) wait for the next round; <c>null</c> when nothing waits.
-    /// </summary>
-    public SessionSettings? NextRoundSettings { get; private set; }
-
     /// <summary>Id of the current <see cref="WinPattern"/>, e.g. <c>normal</c>.</summary>
     public string WinConditionId { get; private set; }
 
@@ -138,7 +132,6 @@ public sealed class Session
         CountdownEndsAt,
         StartInAuto,
         Settings,
-        NextRoundSettings,
         WinConditionId,
         RoundNumber,
         [.. _calls],
@@ -176,7 +169,6 @@ public sealed class Session
             State = snapshot.State,
             CountdownEndsAt = snapshot.CountdownEndsAt,
             StartInAuto = snapshot.StartInAuto,
-            NextRoundSettings = snapshot.NextRoundSettings,
             RoundNumber = snapshot.RoundNumber,
             LastEventSeq = snapshot.LastEventSeq,
             Version = snapshot.Version,
@@ -246,12 +238,6 @@ public sealed class Session
         if (now < CountdownEndsAt)
         {
             return Failure(DomainErrorCode.NotAllowed, "The countdown is still running.");
-        }
-
-        if (NextRoundSettings is { } next)
-        {
-            Settings = next;
-            NextRoundSettings = null;
         }
 
         ClearCalls();
@@ -380,9 +366,9 @@ public sealed class Session
     /// The host's <b>Apply</b> in Options (docs/06): the settings and the win pattern, changed
     /// together in one step. Allowed only in the lobby and in manual mode: in auto mode balls keep
     /// coming and during the countdown the round is about to start, so there is no quiet moment
-    /// to announce new rules (FR-32). Between rounds every setting applies at once; during a round
-    /// the round-scoped ones wait for the next round (<see cref="NextRoundSettings"/>). Raises
-    /// <see cref="SettingsChanged"/> and <see cref="WinConditionChanged"/> only for what changed.
+    /// to announce new rules (FR-32). The round-scoped settings (<see cref="SessionSettings.RoundScopedChanges"/>)
+    /// can change only in the lobby. Raises <see cref="SettingsChanged"/> and <see cref="WinConditionChanged"/>
+    /// only for what changed, and mid-round a <see cref="RulesUpdated"/> notice (FR-47).
     /// </summary>
     public Result<IReadOnlyList<SessionEvent>> ApplyRules(SessionSettings settings, string winConditionId, DateTimeOffset now)
     {
@@ -409,17 +395,19 @@ public sealed class Session
             return UnknownWinCondition(Variant, winConditionId);
         }
 
-        var events = new List<SessionEvent>();
-        var (oldNow, oldNext, oldPattern) = (Settings, NextRoundSettings, WinConditionId);
-        var (current, next) = IsInRound
-            ? (settings.KeepRoundScopedFrom(Settings), settings)
-            : (settings, settings);
-        var waiting = next == current ? null : next;
-        if (current != Settings || waiting != NextRoundSettings)
+        if (IsInRound && Settings.RoundScopedChanges(settings) is [_, ..] lobbyOnly)
         {
-            Settings = current;
-            NextRoundSettings = waiting;
-            events.Add(new SettingsChanged(Settings, NextRoundSettings));
+            var names = lobbyOnly.Count == 1 ? lobbyOnly[0] : $"{string.Join(", ", lobbyOnly[..^1])} and {lobbyOnly[^1]}";
+            return Failure(DomainErrorCode.NotAllowed, $"{char.ToUpperInvariant(names[0])}{names[1..]} can only be changed between rounds.");
+        }
+
+        var events = new List<SessionEvent>();
+        List<RuleChange> noticed = winConditionId != WinConditionId ? [new RuleChange("winCondition", winConditionId)] : [];
+        noticed.AddRange(SessionSettings.PlayerFacingChanges(Settings, settings));
+        if (settings != Settings)
+        {
+            Settings = settings;
+            events.Add(new SettingsChanged(Settings));
         }
 
         if (winConditionId != WinConditionId)
@@ -434,8 +422,6 @@ public sealed class Session
         }
 
         // Mid-round, everyone is told what changed, and gets a moment to read it before the next ball (FR-47).
-        List<RuleChange> noticed = winConditionId != oldPattern ? [new RuleChange("winCondition", winConditionId)] : [];
-        noticed.AddRange(SessionSettings.PlayerFacingChanges(oldNow, oldNext, Settings, NextRoundSettings));
         if (IsInRound && noticed.Count > 0)
         {
             NextBallFrom = now + RulesReadingTime;

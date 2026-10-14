@@ -49,7 +49,7 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 - Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
 - **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.
 - After Apply the button shows **Applied ✓** and stays disabled for about 1.5 s, so a double-click can't send the batch twice. There is no server-side lockout: nothing can be half-applied.
-- Mid-round, a setting that only takes effect next round (free space, redraw policy, multiple wins) is labelled **from next round** before it is applied.
+- Settings that shape a whole round (free space, redraw policy, multiple wins) sit in a separate **Between rounds** section. During a round it is locked, with the note "Change these in the lobby", so everything Apply sends mid-round takes effect at once.
 - Closing Options with unapplied changes asks **Discard changes?**
 - Options is **not available in auto mode**: the host presses **Pause** first, so no ball is called while new rules are announced. During the round countdown Options can be opened but **Apply** is disabled ("Cancel the countdown to change the rules").
 
@@ -80,8 +80,8 @@ A panel over the top of the card or board, on participants' screens, the display
 ┌───────────────────────────────┐
 │ Rules updated              [X]│
 │ • Pattern changed to Blackout │
-│ • Free space must be earned   │
-│   (from next round)           │
+│ • Squares can only be marked  │
+│   once their number is called │
 └───────────────────────────────┘
 ```
 

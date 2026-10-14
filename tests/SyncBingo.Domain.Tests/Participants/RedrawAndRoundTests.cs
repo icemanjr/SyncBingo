@@ -72,6 +72,7 @@ public sealed class RedrawAndRoundTests
         var kit = new PlayerTestKit();
         kit.Call(1);
         kit.Mark(0);
+        kit.Session.ClearCards(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
         kit.Session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
         kit.Session.NextRound(Now);
 

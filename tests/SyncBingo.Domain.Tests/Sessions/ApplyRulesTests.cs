@@ -77,14 +77,15 @@ public sealed class ApplyRulesTests
     }
 
     [Fact]
-    public void Round_scoped_settings_applied_mid_round_wait_for_the_next_round_while_the_rest_apply_now()
+    public void Round_scoped_settings_change_only_in_the_lobby()
     {
         var session = InState(SessionState.Manual);
 
-        session.ApplyRules(NoBoard with { FreeSpace = FreeSpace.Earned }, "normal", Now).IsSuccess.ShouldBeTrue();
+        session.ApplyRules(NoBoard with { FreeSpace = FreeSpace.Earned }, "blackout", Now)
+            .Error!.Message.ShouldBe("Free space can only be changed between rounds.");
 
-        session.Settings.ShowCallBoard.ShouldBeFalse();
-        session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked);
-        session.NextRoundSettings!.FreeSpace.ShouldBe(FreeSpace.Earned);
+        session.Settings.ShouldBe(SessionSettings.Default);
+        session.WinConditionId.ShouldBe("normal", "nothing else in the same Apply changes either");
+        NewSession().ApplyRules(NoBoard with { FreeSpace = FreeSpace.Earned }, "normal", Now).IsSuccess.ShouldBeTrue();
     }
 }

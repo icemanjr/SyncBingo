@@ -23,15 +23,13 @@ public sealed class SessionSettingsTests
         var session = NewSession();
         var changed = SessionSettings.Default with { FreeSpace = FreeSpace.Earned, ShowCallBoard = false };
 
-        var settingsChanged = session.ChangeSettings(changed, Now).Single<SettingsChanged>();
+        session.ChangeSettings(changed, Now).Single<SettingsChanged>().Settings.ShouldBe(changed);
 
         session.Settings.ShouldBe(changed);
-        session.NextRoundSettings.ShouldBeNull();
-        settingsChanged.NextRoundSettings.ShouldBeNull();
     }
 
     [Fact]
-    public void During_a_round_round_scoped_settings_wait_for_the_next_round()
+    public void During_a_round_round_scoped_settings_are_refused_and_nothing_changes()
     {
         var session = InState(SessionState.Manual);
         var changed = SessionSettings.Default with
@@ -41,27 +39,18 @@ public sealed class SessionSettingsTests
             ShowCallBoard = false,
         };
 
-        session.ChangeSettings(changed, Now).IsSuccess.ShouldBeTrue();
+        session.ChangeSettings(changed, Now).Error!.Message.ShouldBe("Free space and redraw policy can only be changed between rounds.");
 
-        session.Settings.ShowCallBoard.ShouldBeFalse(); // applies now
-        session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked); // waits
-        session.Settings.RedrawPolicy.ShouldBe(RedrawPolicy.HostControls); // waits
-        session.NextRoundSettings.ShouldBe(changed);
-
-        session.NextRound(Now);
-
-        session.Settings.ShouldBe(changed);
-        session.NextRoundSettings.ShouldBeNull();
+        session.Settings.ShouldBe(SessionSettings.Default, "Apply is all or nothing");
     }
 
     [Fact]
-    public void Nothing_waits_when_only_immediate_settings_change_mid_round()
+    public void Other_settings_apply_at_once_mid_round()
     {
         var session = InState(SessionState.Manual);
 
         session.ChangeSettings(SessionSettings.Default with { HighlightMatches = true }, Now).IsSuccess.ShouldBeTrue();
 
-        session.NextRoundSettings.ShouldBeNull();
         session.Settings.HighlightMatches.ShouldBeTrue();
     }
 

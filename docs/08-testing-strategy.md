@@ -36,6 +36,7 @@
 - Rounds start in manual mode; Auto mode draws at once and then on the timer; Pause stops auto-calls; Grab ball works only in manual mode.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.
 - Participants never receive other participants' cards; host-only events never reach participants.
+- Realtime: each stream's `seq` is unbroken (players don't see claims, so their numbers don't skip); the snapshot's `seq` is where the caller's stream continues; wins and removals reach everyone by name, without ids; private notices reach only their player; only a token for that game can connect, by header or `access_token` query.
 - Authorisation: a participant token gets 403 on every host endpoint; host and display tokens get 403 on player commands; a player can only reach their own cards; a removed player's token stops working.
 - Participant writes: a mark and a draw's auto-fill that overlap both survive (no lost update), against real Redis.
 - Redis store: sessions and participants round-trip; of many concurrent name reservations, card claims or saves from one participant version exactly one wins; every key carries the idle expiry; a session past 12 hours reads as gone; the lock admits one holder at a time, times out, frees itself after a crash and is never released by a former holder; removing a player revokes only their token.

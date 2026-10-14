@@ -33,13 +33,45 @@ public enum DrawSource
 /// <summary>One called ball. <see cref="Sequence"/> counts calls within the round, from 1.</summary>
 public sealed record BallCall(int Sequence, int Number, string Letter, DateTimeOffset CalledAt, DrawSource Source);
 
+/// <summary>Who an event is for (docs/05 §4). Private messages to one player are notifications, not events.</summary>
+[Flags]
+public enum Audience
+{
+    None = 0,
+    Players = 1,
+    Host = 2,
+    Display = 4,
+    Everyone = Players | Host | Display,
+}
+
+/// <summary>
+/// An event's position in each stream it belongs to (ADR 0002, amended): every audience counts
+/// only the events it receives, so a gap in a client's numbers always means a missed event.
+/// 0 means "not in that stream".
+/// </summary>
+public readonly record struct StreamSeqs(long Players, long Host, long Display)
+{
+    public long For(Audience stream) => stream switch
+    {
+        Audience.Players => Players,
+        Audience.Host => Host,
+        Audience.Display => Display,
+        _ => throw new ArgumentOutOfRangeException(nameof(stream), stream, "Pick one stream."),
+    };
+}
+
 /// <summary>
 /// Something that happened to a session, published to clients over SignalR.
-/// <see cref="Seq"/> increases by one per event across the whole session (ADR 0002).
+/// <see cref="Seq"/> increases by one per event across the whole session; <see cref="Streams"/>
+/// numbers it within each <see cref="Audience"/> it is sent to (ADR 0002).
 /// </summary>
 public abstract record SessionEvent
 {
     public long Seq { get; init; }
+
+    public Audience Audience { get; init; }
+
+    public StreamSeqs Streams { get; init; }
 }
 
 /// <summary>

@@ -55,37 +55,44 @@ Future (Serious Bingo): `POST /sessions/{code}/cards/generate` → `{ claimId, c
 
 ## 4. SignalR hub
 
-Endpoint: `/hubs/game?access_token={token}`. WebSockets only. On connect the server adds the caller to the group for its role: `s:{code}:players`, `s:{code}:host` or `s:{code}:display`. In the table below, "all" means all three groups. A display token may call only the snapshot endpoint, which returns public state (board, last ball, win condition, round, state; the leaderboard when shown).
+Endpoint: `/hubs/game?code={code}&access_token={token}` (a browser can't set headers on a WebSocket; other clients may send `Authorization: Bearer` instead). WebSockets only, with the Redis (Valkey) backplane. The hub is **server to client only**: clients can call nothing on it. On connect the server adds the caller to the group for its role, `s:{code}:players`, `s:{code}:host` or `s:{code}:display`, and a player also to their own group, `s:{code}:p:{participantId}`, for private notices. A token for another game, a made-up token or a revoked one cannot connect.
 
-Every event includes `seq` (session event counter). Events are hints; the snapshot endpoint is authoritative.
+Two kinds of message (ADR 0002, amended):
+
+- **`event { type, seq, data }`**: a session event. `seq` counts within the receiver's own stream (players, host or display), so it never skips; a gap means a missed event, and the client refetches the snapshot, whose `game.seq` is the stream position to continue from.
+- **`notice { type, data }`**: a private message to one player or the host, unnumbered and safe to apply twice.
+
+In the table, "all" means all three streams.
 
 | Event | Audience | Payload |
 |-------|----------|---------|
-| `SessionStateChanged` | all | `{ state, round, version }` |
-| `SettingsChanged` | all | settings visible to participants |
-| `WinConditionChanged` | all | `{ condition }` |
+| `SettingsChanged` | all | host: every setting (as in `PUT /rules`); players and the display: only the settings they notice |
+| `WinConditionChanged` | all | `{ winConditionId }` |
 | `RulesUpdated` | all | `{ changes: [{ rule, value }], nextBallFrom }`: the "Rules updated" notice (FR-47). `rule` is a settings wire name or `winCondition`; clients word it ("Pattern changed to Blackout"). Raised only mid-round, and only for changes players notice. *Grab ball* and *Auto mode* answer 409 until `nextBallFrom` |
-| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto, winCondition }`: clients count down locally to `endsAt` in the last-ball slot and show the round-start notice with the pattern (FR-47) |
+| `RoundCountdownStarted` | all | `{ round, endsAt, startInAuto, winConditionId }`: clients count down locally to `endsAt` in the last-ball slot and show the round-start notice with the pattern (FR-47) |
 | `RoundCountdownCancelled` | all | `{ round }` |
 | `RoundStarted` | all | `{ round }` |
-| `CardsCleared` | all | `{ redraw }` (players with new cards also get `CardReplaced`) |
-| `RoundEnded` | all | `{ round, winners[] }` |
-| `BallCalled` | host and display always; participants if *Show ball*, *Highlight matching square* or *Show recent calls* is on | `{ number, letter, sequence }` |
-| `AutoFillApplied` | affected participant | `{ cardId, cells[] }` |
+| `CardsCleared` | all | `{ redraw }` (players with new cards also get the `CardReplaced` notice) |
+| `RoundEnded` | all | `{ round }` |
+| `BallCalled` | host and display always; players if *Show ball*, *Highlight matching square* or *Show call board* is on | `{ call: { sequence, number, letter, calledAt, source }, previousNumber }` |
 | `AutoCallingStarted` / `AutoCallingPaused` | host | – (the room sees no difference; there is no paused banner) |
-| `ParticipantJoined` / `ParticipantLeft` / `ParticipantRemoved` | host (removed: also that participant) | `{ id, name }` |
+| `WinClaimed` | host | `{ claim: { id, participantId, name, cardId, winConditionId, claimedAt, matches, alreadyAwarded, awardable, status } }` |
 | `ClaimDismissed` | host | `{ claimId }` |
-| `WinDetected` | host | `{ participantId, name, cardId, condition, matches }` |
-| `WinClaimed` | host | `{ claimId, participantId, name, cardId, condition, claimedAt, matches, alreadyAwarded, awardable }` |
-| `WinAwarded` | all if *Win highlight* is on, otherwise host and winner | `{ participantId, name, condition, wins }` |
-| `LeaderboardUpdated` | host; all when shown | `{ entries[] }` |
-| `LeaderboardVisibilityChanged` | all | `{ visible }` |
-| `CardReplaced` | that participant | `{ card }` |
+| `WinDetected` | host | `{ participantId, name, cardId, winConditionId, matches }` |
+| `WinAwarded` | all | host: `{ win }` in full; players and the display: `{ name, winCondition, wins }`, shown as "Sam had Bingo!" |
+| `ParticipantRemoved` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam was removed from the game" |
+| `LeaderboardVisibilityChanged` | all | `{ visible }` (wins also change the leaderboard; clients update it from `WinAwarded` or the snapshot) |
 | `SessionEnded` | all | – |
+
+| Notice | To | Payload |
+|--------|----|---------|
+| `ParticipantJoined` | host | `{ participantId, name }` |
+| `AutoFillApplied` | that player | `{ cells: [{ cardId, cell }] }` |
+| `CardReplaced` | that player | `{ cardId, cells }` |
 
 ## 5. Conventions
 
-- `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied.
+- `Idempotency`: draw responses include `sequence`; clients ignore events with a `seq` they have already applied in their stream.
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - Rate limits: join endpoint per code + IP; marks per participant.

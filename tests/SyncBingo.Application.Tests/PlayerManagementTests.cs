@@ -42,6 +42,21 @@ public sealed class PlayerManagementTests
     }
 
     [Fact]
+    public async Task Everyone_hears_about_wins_and_removals()
+    {
+        var code = await _app.NewGameAsync(SessionSettings.Default with { WinHighlight = false });
+        var ava = await _app.JoinAsync(code, "Ava");
+        var ben = await _app.JoinAsync(code, "Ben");
+        await _app.StartRoundAsync(code);
+
+        (await _app.Manage.AwardWinAsync(code, Caller.Host, new AwardWin(ava), TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        (await _app.Manage.RemoveParticipantAsync(code, Caller.Host, ben, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+
+        _app.Publisher.Events.OfType<WinAwarded>().Single().Audience.ShouldBe(Audience.Everyone, "\"Ava had Bingo!\"");
+        _app.Publisher.Events.OfType<ParticipantRemoved>().Single().Audience.ShouldBe(Audience.Everyone, "\"Ben was removed from the game\"");
+    }
+
+    [Fact]
     public async Task Awarding_the_same_claim_twice_counts_once()
     {
         var (code, ava) = await RoundWithPlayerAsync();

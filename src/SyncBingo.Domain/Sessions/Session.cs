@@ -78,6 +78,9 @@ public sealed class Session
     /// <summary>Number of the last event raised; clients use it to spot gaps (ADR 0002).</summary>
     public long LastEventSeq { get; private set; }
 
+    /// <summary>How many events each audience has received; the snapshot gives a client its own stream's count.</summary>
+    public StreamSeqs StreamSeqs { get; private set; }
+
     /// <summary>Bumped by every successful command, for optimistic checks in storage.</summary>
     public long Version { get; private set; }
 
@@ -144,7 +147,8 @@ public sealed class Session
         [.. _rounds],
         LeaderboardVisible,
         [.. _alerted.Select(alert => new WinAlert(alert.Key.ParticipantId, alert.Key.CardId, alert.Key.WinConditionId, alert.Value))],
-        NextBallFrom);
+        NextBallFrom,
+        StreamSeqs);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
@@ -175,6 +179,7 @@ public sealed class Session
             LastActivityAt = snapshot.LastActivityAt,
             LeaderboardVisible = snapshot.LeaderboardVisible,
             NextBallFrom = snapshot.NextBallFrom,
+            StreamSeqs = snapshot.StreamSeqs,
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
@@ -785,11 +790,45 @@ public sealed class Session
 
     private Result<IReadOnlyList<SessionEvent>> Commit(DateTimeOffset now, params IEnumerable<SessionEvent> events)
     {
-        var numbered = events.Select(e => e with { Seq = ++LastEventSeq }).ToList();
+        var numbered = new List<SessionEvent>();
+        foreach (var e in events)
+        {
+            var audience = AudienceOf(e);
+            var streams = StreamSeqs;
+            StreamSeqs = new StreamSeqs(
+                audience.HasFlag(Audience.Players) ? streams.Players + 1 : streams.Players,
+                audience.HasFlag(Audience.Host) ? streams.Host + 1 : streams.Host,
+                audience.HasFlag(Audience.Display) ? streams.Display + 1 : streams.Display);
+            numbered.Add(e with
+            {
+                Seq = ++LastEventSeq,
+                Audience = audience,
+                Streams = new StreamSeqs(
+                    audience.HasFlag(Audience.Players) ? StreamSeqs.Players : 0,
+                    audience.HasFlag(Audience.Host) ? StreamSeqs.Host : 0,
+                    audience.HasFlag(Audience.Display) ? StreamSeqs.Display : 0),
+            });
+        }
+
         Version++;
         LastActivityAt = now;
         return Result.Success<IReadOnlyList<SessionEvent>>(numbered);
     }
+
+    /// <summary>
+    /// Who receives an event (docs/05 §4), decided here so that it is counted in the same step as
+    /// the change. The host hears everything; the display and players never hear claims, alerts or
+    /// the auto/manual switch, and players hear the balls only when a setting shows them. Wins and
+    /// removals reach everyone ("Sam had Bingo!", "Sam was removed from the game").
+    /// </summary>
+    private Audience AudienceOf(SessionEvent e) => e switch
+    {
+        BallCalled => Settings.ShowBallToPlayers || Settings.HighlightMatches || Settings.ShowCallBoard
+            ? Audience.Everyone
+            : Audience.Host | Audience.Display,
+        AutoCallingStarted or AutoCallingPaused or WinClaimed or ClaimDismissed or WinDetected => Audience.Host,
+        _ => Audience.Everyone,
+    };
 
     /// <summary>Refuses a ball while players still have time to read new rules (FR-47).</summary>
     private DomainError? StillReadingRules(DateTimeOffset now) =>

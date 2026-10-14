@@ -15,7 +15,7 @@ public sealed class RoundCountdownTests
 
         var countdown = session.StartCountdown(startInAuto: false, Now).Single<RoundCountdownStarted>();
 
-        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false, "normal") { Seq = countdown.Seq });
+        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false, "normal") { Seq = countdown.Seq, Audience = Audience.Everyone, Streams = countdown.Streams });
         session.State.ShouldBe(SessionState.Starting);
         session.IsInRound.ShouldBeFalse();
         session.UpcomingRound.ShouldBe(1);

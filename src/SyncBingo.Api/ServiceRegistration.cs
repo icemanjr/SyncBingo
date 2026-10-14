@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using SyncBingo.Api.Auth;
 using SyncBingo.Api.Endpoints;
 using SyncBingo.Api.Http;
+using SyncBingo.Api.Realtime;
 using SyncBingo.Application.Calling;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
@@ -43,7 +44,15 @@ internal static class ServiceRegistration
         services.AddSingleton<ISessionStore, RedisSessionStore>();
         services.AddSingleton<RedisCallScheduler>();
         services.AddSingleton<ICallScheduler>(sp => sp.GetRequiredService<RedisCallScheduler>());
-        services.AddSingleton<IEventPublisher, NoEventPublisher>();
+        services.AddSingleton<IEventPublisher, SignalREventPublisher>();
+        services.AddSignalR()
+            .AddJsonProtocol(json => json.PayloadSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()))
+            .AddStackExchangeRedis(redisConnection, backplane =>
+            {
+                // Its own connection and channel prefix; one instance or many, events reach every connection (docs/02).
+                backplane.Configuration.ChannelPrefix = RedisChannel.Literal("bingo:signalr");
+                backplane.Configuration.AbortOnConnectFail = false;
+            });
 
         services.AddSingleton<SessionCommandRunner>();
         services.AddSingleton<CreateSessionHandler>();
@@ -86,14 +95,4 @@ internal static class ServiceRegistration
             }
         }
     }
-}
-
-/// <summary>Drops events until the SignalR hub arrives (next PR); clients can't connect yet anyway.</summary>
-internal sealed class NoEventPublisher : IEventPublisher
-{
-    public Task PublishAsync(Domain.Sessions.GameCode code, IReadOnlyList<Domain.Sessions.SessionEvent> events, CancellationToken cancellationToken) =>
-        Task.CompletedTask;
-
-    public Task NotifyAsync(Domain.Sessions.GameCode code, Recipient recipient, Notification notification, CancellationToken cancellationToken) =>
-        Task.CompletedTask;
 }

@@ -72,6 +72,15 @@ public sealed class RulesUpdatedTests
     }
 
     [Fact]
+    public void Players_can_still_call_bingo_while_the_next_ball_waits()
+    {
+        var kit = new Participants.PlayerTestKit();
+        kit.Session.ChangePattern("blackout", Now).IsSuccess.ShouldBeTrue();
+
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>();
+    }
+
+    [Fact]
     public void Clearing_the_cards_ends_the_wait()
     {
         var session = InState(SessionState.Manual);

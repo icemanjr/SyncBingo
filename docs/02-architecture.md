@@ -29,12 +29,14 @@ Locally, the same shape runs in Docker Compose: `web`, `api`, `redis`.
 |---------|----------|-----|
 | Source of truth | Server-authoritative game state | 0001 |
 | Transport | REST for commands, SignalR for server→client events | 0002 |
-| Persistence | Redis with TTL; no relational database | 0003 |
+| Persistence | Redis-compatible store (Valkey) with TTL; no relational database | 0003, 0011 |
 | Rules | Variants and win patterns as data (bitmasks) | 0004 |
 | Identity | No accounts; opaque session tokens | 0005 |
 | Game code | 16 chars, ambiguity-free alphabet, CSPRNG | 0006 |
-| Hosting/IaC | ECS Fargate, AWS CDK in C# | 0007 |
+| Hosting/IaC | AWS CDK in C#: **Lean** live site on one instance (Compose: Caddy, API, Valkey); **Full** design on ECS Fargate (arm64) for the portfolio | 0007, 0011 |
 | Wins | Host-credited | 0008 |
+| Custom content | Callable items with call and card faces; text-only sets with limits | 0009 |
+| Displays | TV pairing with a short code | 0010 |
 
 ## 3. Backend
 

@@ -30,7 +30,7 @@ There are no accounts, no downloads and no personal data. A session lives only a
 - **Ephemeral Redis state.** All session data lives in Redis with a TTL. Shared mutations take a short per-session lock; marks only touch the player's own hash field, saved with a versioned compare-and-set, so 100 players tapping at once don't contend with the host and a draw's auto-fill never overwrites a tap.
 - **Leaderless auto-calling.** A Redis sorted set plus an atomic Lua claim with a lease means exactly one instance draws each ball, even across multiple containers, and a crashed instance hands over automatically.
 - **Security without accounts.** 16-character game codes from a CSPRNG, hashed passwords and session tokens, rate-limited joins, and a player only ever receives their own card.
-- **Infrastructure as code.** AWS CDK in C# provisions ECS Fargate, ElastiCache, S3 + CloudFront, Route 53 and ACM; GitHub Actions deploys using OIDC, with no long-lived keys.
+- **Infrastructure as code, two profiles.** AWS CDK in C# defines the full design (ECS Fargate on arm64, ElastiCache Valkey, S3 + CloudFront, ACM) and a lean one, a single small instance running the same containers, which is what runs the live site cheaply ([cost and hosting](docs/10-cost-and-hosting.md)). GitHub Actions deploys using OIDC, with no long-lived keys.
 
 ## Architecture
 
@@ -46,14 +46,14 @@ flowchart LR
     A1["API + SignalR"]
     A2["API + SignalR"]
   end
-  R[("ElastiCache Redis<br/>state, backplane, scheduler")]
+  R[("ElastiCache Valkey<br/>state, backplane, scheduler")]
   H & P --> CF
   H & P -- "REST + WebSocket" --> ALB
   ALB --> A1 & A2
   A1 & A2 --> R
 ```
 
-Locally, the same shape runs in Docker Compose as `web`, `api` and `redis`. More detail is in [02 — Architecture](docs/02-architecture.md).
+This is the full reference design. The live site at syncbingo.com runs the same containers on one small instance (Caddy, the API and Valkey), and locally the same shape runs in Docker Compose as `web`, `api` and `redis` (Valkey soon). More detail is in [02 — Architecture](docs/02-architecture.md) and [10 — Cost and hosting](docs/10-cost-and-hosting.md).
 
 ## Tech stack
 
@@ -63,7 +63,7 @@ Locally, the same shape runs in Docker Compose as `web`, `api` and `redis`. More
 | Frontend | React 19, TypeScript (strict), Vite, React Router, Zustand, Tailwind CSS |
 | State | Redis (ephemeral, TTL); no relational database |
 | Local and test | Docker Compose, Testcontainers |
-| Cloud | AWS ECS Fargate, ElastiCache, S3 + CloudFront, Route 53, ACM, provisioned with AWS CDK in C# |
+| Cloud | AWS, provisioned with AWS CDK in C#: Lean (one instance: Caddy, API, Valkey) for the live site; Full (ECS Fargate arm64, ElastiCache Valkey, S3 + CloudFront, ACM) for the reference design. Domain and DNS on Cloudflare |
 | CI/CD | GitHub Actions with OIDC |
 
 ## Project layout

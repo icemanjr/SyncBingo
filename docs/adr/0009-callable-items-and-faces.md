@@ -29,17 +29,25 @@ Decided by the owner (2026-10-13):
   - the call board rebuilds from the new set's pairs;
   - the leaderboard keeps counting across the whole session, and each round's summary records which set it used.
 
+## Text only for now; building and growing a set
+Decided by the owner (2026-10-14):
+- **Faces are text.** Images on balls or squares are **deferred**: storage, data transfer and moderation would raise the running cost of a personal project (docs/10). Item ids and faces stay as designed, so images can be added later without a model change.
+- **The set editor** (lobby only, since any change redeals every card): add entries one by one, with a **Ball and square match** checkbox that uses one text for both sides; **add from file**, merging another set file into the current one (a teacher uploads *Week 1 vocabulary*, adds week 2's new words, and downloads the cumulative list); **edit** and **delete** entries; or **upload** a file that replaces the set. Groups in a merged file combine with existing groups of the same name.
+- **Each side is unique within a set**, so a call can only ever match one square and a card never shows the same square twice. Added entries (typed or merged) that duplicate an existing pair, or reuse one side with a different partner, are **skipped and reported** to the host, never overwritten; the host can re-add them with different wording.
+- **Limits**, checked by the server before anything changes (a cost and abuse guard): 24–500 pairs, ball text ≤ 120 characters, square text ≤ 30 (a matched entry is therefore ≤ 30), ≤ 10 groups with names ≤ 20 characters, set file ≤ 64 KB.
+- **The set file** is versioned JSON: `format`, a name, the pairs (`ball`, and `square` only when it differs, so a one-sided entry means both sides match) and optional groups.
+
 ## Responsibility for content
 Decided by the owner (2026-10-12):
 - **SyncBingo is responsible for** the ads it shows and any **built-in content sets** it ships (pre-created card sets). Those are reviewed as suitable for children.
-- **Hosts are responsible for their own content.** A host's custom set (words or uploaded images) is usable **only in that host's games**: it is never listed, shared or shown to other hosts. Whoever uploads it is responsible for it being appropriate for their audience.
+- **Hosts are responsible for their own content.** A host's custom set (its words) is usable **only in that host's games**: it is never listed, shared or shown to other hosts. Whoever uploads it is responsible for it being appropriate for their audience.
 - This is stated in the site's **Terms of Use** and on the **upload page** itself, which the host must acknowledge before uploading.
 
 ## Consequences
 - New content types need a content set and possibly a generator, but no changes to marking, winning or the state machine.
 - Domain, API and UI code must not assume that the ball and the card show the same thing, or that columns are always B-I-N-G-O; they display faces and labels from the content set. The call board can show either side (FR-29): the ball side by default, or the square side when the balls are large, such as pictures or definitions.
 - **Open questions** for when this is built:
-  - Card faces should be unique within a content set (if "2 + 5" and "10 − 3" both answer "7", a card could show two identical "7" cells). Lean: require unique card faces.
-  - Uploaded images need storage (S3) and size and type limits. Moderation is the host's responsibility (see above). A disclaimer does not remove legal duties for clearly illegal material or copyright takedown requests, so uploads should stay private to the host, expire with the session where possible, and there should be a contact for reports. Get legal review before launch.
+  - ~~Card faces should be unique within a content set.~~ Decided: both faces are unique (see above).
+  - *(When images return)* Uploaded images need storage (S3) and size and type limits. Moderation is the host's responsibility (see above). A disclaimer does not remove legal duties for clearly illegal material or copyright takedown requests, so uploads should stay private to the host, expire with the session where possible, and there should be a contact for reports. Get legal review before launch.
   - ~~Reuse across sessions without accounts.~~ Decided: sets are files the host downloads and re-uploads (see above).
-  - The set file format: a versioned archive (`set.json` with `format`, a name, the pairs, each with a call face and a card face, and optional groups, plus an `images/` folder), validated on upload (format version, at least 24 pairs and enough for the current card, unique card faces, every grouped pair belonging to exactly one group, image types and sizes, total size). Cell shape is not part of the set: it follows the content (text or image).
+  - ~~The set file format.~~ Decided: versioned JSON (see above), validated on upload (format version, the limits, enough pairs for the current card, unique faces, every grouped pair in exactly one group). An `images/` folder can be added in a later format version.

@@ -12,3 +12,4 @@
 | [0008](0008-host-credited-wins.md) | Host credits wins | Accepted |
 | [0009](0009-callable-items-and-faces.md) | Callable items with call and card faces | Proposed |
 | [0010](0010-display-pairing-with-short-codes.md) | Pairing display screens with a short code | Accepted |
+| [0011](0011-lean-hosting-on-one-instance.md) | Lean hosting on one instance; Valkey; Full design kept in CDK | Accepted |

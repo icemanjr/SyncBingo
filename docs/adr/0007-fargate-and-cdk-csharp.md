@@ -12,3 +12,4 @@ Run the API on ECS Fargate behind an ALB, with ElastiCache Redis, an S3 + CloudF
 - One language across API, tests and infrastructure.
 - Long-lived WebSocket connections fit containers better than Lambda.
 - Fargate and ElastiCache have a baseline running cost; a teardown path and a minimal "demo mode" are documented.
+- *Amended 2026-10-14 (ADR 0011):* this is the **Full** profile, deployed once for the portfolio and torn down. The live site runs the **Lean** profile on one instance (docs/10).

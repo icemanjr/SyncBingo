@@ -12,3 +12,4 @@ Live state is stored in Redis with idle expiry and a hard lifetime cap, behind a
 - Simple operations and a good privacy story: data disappears with the session.
 - Per-session locks and atomic field updates replace transactions.
 - If history or accounts are ever wanted, a durable store can be added behind the same interface.
+- *Amended 2026-10-14 (ADR 0011):* the engine is **Valkey**, the Redis-compatible fork, in every environment; the design above is unchanged.

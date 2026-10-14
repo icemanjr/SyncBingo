@@ -36,12 +36,21 @@ export const colours: { value: string; label: string }[] = [
   { value: 'var(--ink)', label: 'High contrast' },
 ]
 
-export const textSizes: { value: TextSize; label: string; className: string }[] = [
-  { value: 'small', label: 'Small', className: 'text-base' },
-  { value: 'medium', label: 'Medium', className: 'text-xl' },
-  { value: 'large', label: 'Large', className: 'text-3xl' },
-  /** Fitted to the square for the longest face in the set (fitText.ts); text-4xl until measured. */
-  { value: 'max', label: 'Max', className: 'text-4xl' },
+/**
+ * Text sizes (FR-51): each starts at `start` px and may shrink to fit a square, never below `min` (8, 12 and
+ * 16 pt, in 4 pt steps). Max is fitted to the set's hardest face and never goes below 20 pt.
+ */
+export const textSizes: {
+  value: TextSize
+  label: string
+  className: string
+  start: number
+  min: number
+}[] = [
+  { value: 'small', label: 'Small', className: 'text-base', start: 16, min: (8 * 4) / 3 },
+  { value: 'medium', label: 'Medium', className: 'text-xl', start: 20, min: (12 * 4) / 3 },
+  { value: 'large', label: 'Large', className: 'text-3xl', start: 30, min: (16 * 4) / 3 },
+  { value: 'max', label: 'Max', className: 'text-4xl', start: 36, min: (20 * 4) / 3 },
 ]
 
 export const defaultMarkStyle: MarkStyle = {

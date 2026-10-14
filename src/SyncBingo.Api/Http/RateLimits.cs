@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using SyncBingo.Application.Ports;
 
 namespace SyncBingo.Api.Http;
 
@@ -25,6 +26,9 @@ public sealed class RateLimitOptions
     public TimeSpan WrongPasswordWindow { get; set; } = TimeSpan.FromMinutes(1);
 
     public TimeSpan WrongPasswordLockout { get; set; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>Wrong passwords within the window after which the host is warned (the shared password may be wrong).</summary>
+    public int WrongPasswordWarning { get; set; } = 10;
 
     /// <summary>Marks a player may send in a burst; the bucket refills at <see cref="MarksPerSecond"/>.</summary>
     public int MarkBurst { get; set; } = 10;
@@ -116,13 +120,22 @@ internal static class RateLimits
             return null;
         }
 
-        public void Record(string key)
+        /// <summary>
+        /// Counts a wrong password. Returns an alert for the host when this one reaches the warning level,
+        /// or locks joining from here; otherwise <c>null</c>, so the host is told once, not on every typo.
+        /// </summary>
+        public WrongPasswordsAlert? Record(string key)
         {
             using var lease = _failures.AttemptAcquire(key);
-            if (!lease.IsAcquired || _failures.GetStatistics(key)?.CurrentAvailablePermits == 0)
+            var wrong = limits.WrongPasswords - (int)(_failures.GetStatistics(key)?.CurrentAvailablePermits ?? 0);
+            if (!lease.IsAcquired || wrong >= limits.WrongPasswords)
             {
+                var newlyLocked = !_lockedUntil.ContainsKey(key);
                 _lockedUntil[key] = time.GetUtcNow() + limits.WrongPasswordLockout;
+                return newlyLocked ? new WrongPasswordsAlert(limits.WrongPasswords, limits.WrongPasswordLockout) : null;
             }
+
+            return wrong == limits.WrongPasswordWarning ? new WrongPasswordsAlert(wrong, null) : null;
         }
 
         public void Dispose() => _failures.Dispose();

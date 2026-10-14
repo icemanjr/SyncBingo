@@ -146,6 +146,10 @@ Every Bingo press appears as an alert with the player's name, the time, the line
 
 Every button keeps the 48 px tap target. An award sends the claim's id, so a double tap counts once.
 
+### Wrong-password alert (host only)
+
+When many people type a wrong game password (10 within a minute), the host console shows an alert, because the password shared with the room is often not the one the game was created with: **"10 wrong passwords in the last minute. Check the password you shared."** If joining from one address gets locked (docs/05 §5), the alert says so: **"Joining is locked for 10 minutes from one network after 60 wrong passwords."** Players see nothing; each alert shows once, not on every typo.
+
 ### Call board (FR-27)
 
 All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The board knows nothing about B-I-N-G-O. It draws whatever **groups of items** the server sends (see *Board data* below). For standard Bingo those are the five letters, which sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:

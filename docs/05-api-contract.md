@@ -87,6 +87,7 @@ In the table, "all" means all three streams.
 | Notice | To | Payload |
 |--------|----|---------|
 | `ParticipantJoined` | host | `{ participantId, name }` |
+| `WrongPasswordsAlert` | host | `{ wrongInLastMinute, lockedFor }`: many wrong passwords (the shared password may be wrong), sent at the warning level (10) and again if joining from one address gets locked (`lockedFor`, e.g. `"00:10:00"`) |
 | `AutoFillApplied` | that player | `{ cells: [{ cardId, cell }] }` |
 | `CardReplaced` | that player | `{ cardId, cells }` |
 
@@ -96,7 +97,7 @@ In the table, "all" means all three streams.
 - Validation failures: 400 (shape) or 422 (rule violation, e.g. marking an uncalled number with *Free marking* off); state violations: 409.
 - Domain commands return a `Result` rather than throwing for expected refusals; each `DomainErrorCode` maps to one status: `Unauthorized` → 401, `Forbidden` → 403, `NotFound` → 404, `WrongState` → 409, `HopperEmpty` → 409, `SessionFull` → 409, `Conflict` → 409 (a name already taken, or a player's change that kept losing a race with other writes: "please try again"), `NotAllowed` → 422, `Invalid` → 422. The `message` is safe to show to players.
 - **Rate limits** (config section `RateLimits`; counted per API instance), answered with 429, `Retry-After` where known, and a problem with `code: "TooManyRequests"`:
-  - **Wrong game passwords:** reaching 60 within a minute, per game and IP address, **locks joining that game from that address for 10 minutes** (the right password too, or guessing could continue; `Retry-After` says how long). Only *wrong* passwords count, and the limit is high, because a whole event (up to 100 people) or class can share one WiFi address and children mistype; going past it means a bot or something broken.
+  - **Wrong game passwords:** reaching 60 within a minute, per game and IP address, **locks joining that game from that address for 10 minutes** (the right password too, or guessing could continue; `Retry-After` says how long). Only *wrong* passwords count, and the limit is high, because a whole event (up to 100 people) or class can share one WiFi address and children mistype; going past it means a bot or something broken. The host is alerted at 10 wrong passwords within a minute and again on a lockout (`WrongPasswordsAlert`, §4), since the password shared with the room may not be the game's.
   - **Creating games:** 30 per IP address per hour.
   - **Marks, Undo and Bingo presses:** per player token, bursts of 10, refilling at 5 a second.
   - Behind a reverse proxy (Caddy, CloudFront) the client address must come from forwarded headers, configured with the trusted proxies (roadmap Phase 1b); until then every caller shares the proxy's address.

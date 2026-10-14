@@ -12,7 +12,7 @@ Phone-first, drop-in party Bingo web app. A host creates a session; participants
 - Frontend: React 19 + TypeScript (strict), Vite, React Router, Zustand, Tailwind, `@microsoft/signalr`
 - State: Redis-compatible store only (ephemeral, TTL), moving to **Valkey** (ADR 0011). No relational database, no accounts.
 - Local/test: Docker Compose (`web`, `api`, `redis`), Testcontainers for integration tests
-- Cloud: AWS provisioned with **AWS CDK in C#**, two profiles (ADR 0011, docs/10): **Lean**, the live site at SyncBingo.com on one small instance (Compose: Caddy + API + Valkey, target ≤ $7/month); **Full**, the portfolio design (ECS Fargate arm64, ALB, ElastiCache Valkey, S3 + CloudFront, Route 53, ACM), deployed once on free credits then torn down. CI/CD with GitHub Actions + OIDC
+- Cloud: AWS provisioned with **AWS CDK in C#**, two profiles (ADR 0011, docs/10): **Lean**, the live site at syncbingo.com (registered and DNS on Cloudflare) on one small instance (Compose: Caddy + API + Valkey, target ≤ $7/month); **Full**, the portfolio design (ECS Fargate arm64, ALB, ElastiCache Valkey, S3 + CloudFront, ACM; DNS on Cloudflare), deployed once on free credits then torn down. CI/CD with GitHub Actions + OIDC
 - Tests: xUnit (+ FsCheck), WebApplicationFactory, Vitest, Playwright, k6
 
 ## Planned layout

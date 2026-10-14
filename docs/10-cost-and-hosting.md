@@ -10,7 +10,7 @@ SyncBingo is a personal project paid for out of pocket; banner ads are only a ho
 |------|-----------|--------------|----------|------------|
 | **Lean** (the live site) | One small instance running Docker Compose: Caddy (TLS + static SPA + reverse proxy), the API, and a **Valkey** container | ~$5–7 + domain *(unverified)* | A real, always-on site; the same code and store as Full | One instance, no high availability. A deploy or restart briefly drops connections, but **games survive**: state is in Valkey, and clients reconnect and resync from the snapshot. A box failure ends live games |
 | **Middle** | One Fargate ARM task behind an ALB, ElastiCache Valkey (t4g.micro), S3 + CloudFront | ~$35–45 *(unverified)* | Managed containers and cache, TLS at the edge | The ALB's fixed hourly charge dominates; little gained over Lean for this traffic |
-| **Full** (the reference design, docs/07) | 2 Fargate ARM tasks across AZs, ALB, ElastiCache Valkey, S3 + CloudFront, Route 53, CloudWatch | ~$50–60 *(unverified)* | High availability, autoscaling, the complete portfolio architecture | Mostly fixed hourly charges whatever the traffic |
+| **Full** (the reference design, docs/07) | 2 Fargate ARM tasks across AZs, ALB, ElastiCache Valkey, S3 + CloudFront, CloudWatch (DNS on Cloudflare) | ~$50–60 *(unverified)* | High availability, autoscaling, the complete portfolio architecture | Mostly fixed hourly charges whatever the traffic |
 
 Middle is documented for comparison; it is not planned.
 
@@ -22,12 +22,20 @@ Middle is documented for comparison; it is not planned.
 | Fargate ARM (Graviton) | $0.03238 per vCPU-h, $0.00356 per GB-h | ~20% cheaper than x86 ($0.04048 / $0.004446). A 0.25 vCPU / 0.5 GB task ≈ $7/mo |
 | Public IPv4 | ~$0.005/h (~$3.60/mo) each | Per task or ALB subnet; the alternative, a NAT gateway (~$32/mo), is worse |
 | ElastiCache Valkey cache.t4g.micro | ~$0.0128/h (~$9.34/mo) | Redis OSS is ~$0.016/h. Serverless Valkey floor ~$6/mo; serverless Redis OSS ~$91/mo floor. **Use Valkey** |
-| Route 53 hosted zone | $0.50/mo | Avoidable with the registrar's free DNS |
-| Domain (.com) | ~$10–15/yr | Check the **renewal** price, not only the first year |
+| Route 53 hosted zone | $0.50/mo | **Not needed for Lean**: DNS is on Cloudflare, free |
+| Domain | `syncbingo.com`, **registered on Cloudflare** (2026-10-14) | Cloudflare charges the registry's price on renewal too, with no markup |
 | CloudFront | Always-free 1 TB egress and 10 M requests/mo | ACM certificates are free |
 | Data transfer | Expected small | Text-only play; estimated a few tens of MB per 30-player game, mostly the first SPA load. **To be measured** (§5) |
 
 Text-only custom sets (ADR 0009, amended) keep data transfer and storage out of the cost picture: no S3 uploads and no image egress.
+
+## 2a. Domain and DNS
+
+`syncbingo.com` is registered with **Cloudflare Registrar**, and its DNS is managed there for free.
+
+- **Lean:** an `A` record (and `AAAA`, if the instance has IPv6) for `syncbingo.com` and `www` points at the instance's static IP. Start **DNS only** (grey cloud), so Caddy gets Let's Encrypt certificates directly. Turning on Cloudflare's proxy later (free TLS at the edge, caching, DDoS protection; WebSockets are supported) means switching Caddy to a DNS-01 challenge with a Cloudflare API token, or to a Cloudflare origin certificate. That decision belongs to Phase 1b.
+- **Full:** CloudFront's alias (`CNAME`) and the ACM validation record go in Cloudflare too, so the Full profile needs no Route 53 zone. CDK outputs the records to add; they are added by hand or through the Cloudflare API.
+- **Account hygiene:** two-factor authentication on the Cloudflare account, registrar lock on, and auto-renew on (an expired domain can be taken by someone else).
 
 ## 3. Free credits (new account)
 

@@ -22,7 +22,7 @@ One small instance (AWS Lightsail; size to be verified, docs/10) runs a producti
 
 | Service | Role |
 |---------|------|
-| `caddy` | Let's Encrypt TLS for SyncBingo.com, serves the SPA build, proxies `/api` and `/hubs` (WebSockets) to `api` |
+| `caddy` | Let's Encrypt TLS for `syncbingo.com` (DNS on Cloudflare, docs/10 §2a), serves the SPA build, proxies `/api` and `/hubs` (WebSockets) to `api` |
 | `api` | The same image as everywhere else |
 | `valkey` | Append-only persistence on a volume, so live games survive API restarts, deploys and reboots |
 
@@ -32,8 +32,8 @@ Deploys: CI builds and pushes the images, then the instance pulls and restarts `
 
 ```mermaid
 flowchart TB
-  U["Users"] --> R53["Route 53"]
-  R53 --> CF["CloudFront"]
+  U["Users"] --> DNS["Cloudflare DNS"]
+  DNS --> CF["CloudFront"]
   CF -- "static" --> S3["S3 (SPA)"]
   CF -- "/api/*, /hubs/*" --> ALB["ALB"]
   subgraph VPC
@@ -51,7 +51,7 @@ flowchart TB
 | State | ElastiCache for **Valkey** (single node for demo, replicated for production) |
 | Static site | S3 + CloudFront with SPA fallback to `index.html` |
 | Edge routing | CloudFront behaviours: default → S3; `/api/*` and `/hubs/*` → ALB with caching disabled and WebSocket support |
-| TLS and DNS | ACM certificates, Route 53 records |
+| TLS and DNS | ACM certificates; DNS records in Cloudflare, where `syncbingo.com` is registered (no Route 53 zone needed; docs/10 §2a) |
 | Secrets/config | SSM Parameter Store / Secrets Manager injected into tasks |
 | Network | Private subnets for tasks and Redis; consider VPC endpoints versus NAT cost for a demo |
 | Protection | AWS WAF rate rules in front of CloudFront (optional), security groups scoped tightly |

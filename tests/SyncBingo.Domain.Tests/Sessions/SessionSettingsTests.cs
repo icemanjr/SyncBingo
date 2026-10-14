@@ -23,7 +23,7 @@ public sealed class SessionSettingsTests
         var session = NewSession();
         var changed = SessionSettings.Default with { FreeSpace = FreeSpace.Earned, ShowCallBoard = false };
 
-        var settingsChanged = session.UpdateSettings(changed, Now).Single<SettingsChanged>();
+        var settingsChanged = session.ChangeSettings(changed, Now).Single<SettingsChanged>();
 
         session.Settings.ShouldBe(changed);
         session.NextRoundSettings.ShouldBeNull();
@@ -41,7 +41,7 @@ public sealed class SessionSettingsTests
             ShowCallBoard = false,
         };
 
-        session.UpdateSettings(changed, Now).IsSuccess.ShouldBeTrue();
+        session.ChangeSettings(changed, Now).IsSuccess.ShouldBeTrue();
 
         session.Settings.ShowCallBoard.ShouldBeFalse(); // applies now
         session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked); // waits
@@ -59,7 +59,7 @@ public sealed class SessionSettingsTests
     {
         var session = InState(SessionState.Manual);
 
-        session.UpdateSettings(SessionSettings.Default with { HighlightMatches = true }, Now).IsSuccess.ShouldBeTrue();
+        session.ChangeSettings(SessionSettings.Default with { HighlightMatches = true }, Now).IsSuccess.ShouldBeTrue();
 
         session.NextRoundSettings.ShouldBeNull();
         session.Settings.HighlightMatches.ShouldBeTrue();
@@ -73,7 +73,7 @@ public sealed class SessionSettingsTests
         var session = NewSession();
         var settings = SessionSettings.Default with { AutoCallInterval = TimeSpan.FromSeconds(seconds) };
 
-        session.UpdateSettings(settings, Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
+        session.ChangeSettings(settings, Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
         session.Settings.ShouldBe(SessionSettings.Default);
     }
 
@@ -82,6 +82,6 @@ public sealed class SessionSettingsTests
     {
         var settings = SessionSettings.Default with { Unmarking = (Unmarking)42 };
 
-        NewSession().UpdateSettings(settings, Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
+        NewSession().ChangeSettings(settings, Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
     }
 }

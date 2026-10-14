@@ -89,7 +89,7 @@ public sealed class WinTests
     {
         var kit = new PlayerTestKit();
         kit.Session.AwardWin(kit.Player, null, Now).IsSuccess.ShouldBeTrue();
-        kit.Session.ChangeWinCondition("blackout", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("blackout", Now).IsSuccess.ShouldBeTrue();
 
         kit.Session.AwardWin(kit.Player, null, Now).Single<WinAwarded>().Win.WinConditionId.ShouldBe("blackout");
 
@@ -139,7 +139,7 @@ public sealed class WinTests
         CallAll(kit, TopRow);
         kit.Session.DetectWins([kit.Player], Now).Value.ShouldNotBeEmpty();
 
-        kit.Session.ChangeWinCondition("corners", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("corners", Now).IsSuccess.ShouldBeTrue();
         CallAll(kit, [5, 65]); // bottom corners; the top two came with the top row
         kit.Session.DetectWins([kit.Player], Now).Single<WinDetected>().WinConditionId.ShouldBe("corners");
     }

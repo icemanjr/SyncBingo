@@ -28,6 +28,8 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 
 ### 3.2 Host settings (changeable between rounds; most also mid-round)
 
+The host changes settings and the win pattern in **Options**, as a draft, and presses **Apply** to change them all at once. Options is available only in the lobby and in manual mode: never in auto mode or during the round countdown, so no ball is called and no round starts while the host announces new rules.
+
 | ID | Setting | Options |
 |----|---------|---------|
 | FR-10 | **Calling: manual and auto** | Every round starts in **manual** mode: the host presses **Grab ball** for each ball and calls it aloud. Pressing **Auto mode** draws a ball **immediately**, then the app draws one every *auto-call interval* (a setting, 3–120 s). In auto mode the host's only calling button is **Pause**, which returns to manual mode; to speed up or slow down, the host pauses, changes the interval, and presses Auto mode again. When auto mode calls the **last ball**, it returns to manual mode by itself: nothing is left to call. |
@@ -64,7 +66,7 @@ Nobody brings bingo cards or balls to a family party, but everyone has a phone. 
 |----|-------------|
 | FR-30 | The host can **pause** auto mode at any time (e.g. a winner walks to the front for a prize), which simply returns to manual mode: no more automatic calls, participants keep marking, and no "paused" banner is shown to anyone. **Auto mode** resumes, drawing the next ball at once. |
 | FR-31 | The game **never stops automatically** just because someone may have won, unless the host enabled *Alert host and pause*. |
-| FR-32 | The host can **change the win condition mid-round** (e.g. Normal → Blackout) and continue calling with the same balls and marks. |
+| FR-32 | The host can **change the win condition mid-round** (e.g. Normal → Blackout) and continue calling with the same balls and marks. The pattern is changed in Options with the other rules, in manual mode only (pause auto mode first), so the host can announce it ("Now we're playing Blackout!") before the next ball. |
 | FR-33 | After a win the host can: continue for more winners, change the win condition, or **Clear cards** to start a new round. |
 | FR-34 | **Clear cards** ends the round (if one is running), clears all marks, returns all balls to the hopper, optionally redraws every card, and returns to the lobby. It does not start the next round: late arrivals can join, then the host presses *Start Round N* (FR-45). |
 | FR-35 | The host can **end a round early** (*End round*): calling stops and the cards and calls stay on screen. Between rounds, joining and (per FR-20) card redraw are available. |

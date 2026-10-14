@@ -29,7 +29,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `PUT /sessions/{code}/settings` | partial settings | Validates per state (§ 03). |
+| `PUT /sessions/{code}/rules` | `{ settings?, winCondition? }` | **Apply** in Options: the settings sent (only those fields change) and the pattern, in one step. `200 { settings, nextRound, winCondition }`. 409 in auto mode ("Pause before changing the rules.") and during the countdown. |
 | `POST /sessions/{code}/rounds/countdown` | `{ startInAuto: bool }` | *Start Round N*: begins the 10 s countdown (FR-45); 409 unless in the lobby. |
 | `DELETE /sessions/{code}/rounds/countdown` | – | Cancel the countdown; back to the lobby. |
 | `POST /sessions/{code}/cards/clear` | `{ redrawCards: bool }` | *Clear cards*: ends any running round, clears marks and calls, optional redraw, back to the lobby (FR-34); 409 during a countdown. |
@@ -37,7 +37,6 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/auto` | – | Auto mode: draws a ball at once and starts the timer (409 unless in manual mode). |
 | `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |
 | `POST /sessions/{code}/balls` | – | "Grab ball" (manual mode only; 409 in auto mode). Returns the ball and `sequence`. |
-| `PUT /sessions/{code}/win-condition` | `{ condition }` | `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`. |
 | `POST /sessions/{code}/wins` | `{ participantId, cardId?, wins?, claimId? }` | Award a win for the current win condition, as *Multiple wins* allows (FR-43). `wins` > 1 only with *every declared win*. Passing the `claimId` makes repeats harmless; awards without a claim (a shouted Bingo) should send an `Idempotency-Key` header so a double click counts once. |
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
 | `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim. |
@@ -91,6 +90,6 @@ Every event includes `seq` (session event counter). Events are hints; the snapsh
 - Rate limits: join endpoint per code + IP; marks per participant.
 - Authentication: a missing, unknown or revoked token, or a token for a different game, is 401; a valid token without the right role is 403 (the application layer decides roles). A game whose lock stays taken longer than 5 s answers 503 "The game is busy. Please try again."
 - Problem bodies carry `detail` (the message to show) and `code` (the `DomainErrorCode` name) for clients to branch on.
-- Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, settings `{ settings, nextRound }`.
-- Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `bingoButton`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /settings` every field is optional and only those sent change, applied under the session lock to the newest settings (those waiting for the next round, if any).
+- Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, rules `{ settings, nextRound, winCondition }`.
+- Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `bingoButton`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /rules` every settings field is optional and only those sent change, applied under the session lock to the newest settings (those waiting for the next round, if any). `winCondition` is one of `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`; left out, the pattern stays.
 - OpenAPI is generated from the API project and used to produce the typed TypeScript client.

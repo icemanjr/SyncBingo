@@ -358,11 +358,32 @@ public sealed class Session
         return Commit(now, CallNext(source, random, now));
     }
 
-    public Result<IReadOnlyList<SessionEvent>> ChangeWinCondition(string winConditionId, DateTimeOffset now)
+    /// <summary>
+    /// The host's <b>Apply</b> in Options (docs/06): the settings and the win pattern, changed
+    /// together in one step. Allowed only in the lobby and in manual mode: in auto mode balls keep
+    /// coming and during the countdown the round is about to start, so there is no quiet moment
+    /// to announce new rules (FR-32). Between rounds every setting applies at once; during a round
+    /// the round-scoped ones wait for the next round (<see cref="NextRoundSettings"/>). Raises
+    /// <see cref="SettingsChanged"/> and <see cref="WinConditionChanged"/> only for what changed.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> ApplyRules(SessionSettings settings, string winConditionId, DateTimeOffset now)
     {
-        if (State == SessionState.Ended)
+        ArgumentNullException.ThrowIfNull(settings);
+
+        switch (State)
         {
-            return WrongState("change the win condition");
+            case SessionState.Auto:
+                return Failure(DomainErrorCode.WrongState, "Pause before changing the rules.");
+            case SessionState.Starting:
+                return Failure(DomainErrorCode.WrongState, "The round is about to start. Cancel the countdown to change the rules.");
+            case SessionState.Ended:
+                return WrongState("change the rules");
+        }
+
+        // Check everything before changing anything, so a refusal leaves the session as it was.
+        if (settings.Validate() is { } invalid)
+        {
+            return invalid;
         }
 
         if (!Variant.TryGetPattern(winConditionId, out _))
@@ -370,46 +391,30 @@ public sealed class Session
             return UnknownWinCondition(Variant, winConditionId);
         }
 
-        WinConditionId = winConditionId;
-        if (IsInRound && !CurrentRound!.WinConditionsUsed.Contains(winConditionId))
+        var events = new List<SessionEvent>();
+        var (current, next) = IsInRound
+            ? (settings.KeepRoundScopedFrom(Settings), settings)
+            : (settings, settings);
+        var waiting = next == current ? null : next;
+        if (current != Settings || waiting != NextRoundSettings)
         {
-            ReplaceCurrentRound(CurrentRound with { WinConditionsUsed = [.. CurrentRound.WinConditionsUsed, winConditionId] });
-        }
-
-        return Commit(now, new WinConditionChanged(winConditionId));
-    }
-
-    /// <summary>
-    /// Replace the settings. Between rounds everything applies at once; during a round
-    /// the round-scoped settings wait for the next round (<see cref="NextRoundSettings"/>).
-    /// </summary>
-    public Result<IReadOnlyList<SessionEvent>> UpdateSettings(SessionSettings settings, DateTimeOffset now)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-
-        if (State == SessionState.Ended)
-        {
-            return WrongState("change settings");
-        }
-
-        if (settings.Validate() is { } invalid)
-        {
-            return invalid;
-        }
-
-        if (IsInRound)
-        {
-            var current = settings.KeepRoundScopedFrom(Settings);
-            NextRoundSettings = current == settings ? null : settings;
             Settings = current;
-        }
-        else
-        {
-            Settings = settings;
-            NextRoundSettings = null;
+            NextRoundSettings = waiting;
+            events.Add(new SettingsChanged(Settings, NextRoundSettings));
         }
 
-        return Commit(now, new SettingsChanged(Settings, NextRoundSettings));
+        if (winConditionId != WinConditionId)
+        {
+            WinConditionId = winConditionId;
+            if (IsInRound && !CurrentRound!.WinConditionsUsed.Contains(winConditionId))
+            {
+                ReplaceCurrentRound(CurrentRound with { WinConditionsUsed = [.. CurrentRound.WinConditionsUsed, winConditionId] });
+            }
+
+            events.Add(new WinConditionChanged(winConditionId));
+        }
+
+        return events.Count == 0 ? Result.Success<IReadOnlyList<SessionEvent>>([]) : Commit(now, events);
     }
 
     /// <summary>Whether one more participant may join now (FR-5, A3, A7).</summary>

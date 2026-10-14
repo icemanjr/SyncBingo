@@ -12,14 +12,13 @@ internal static class HostEndpoints
 {
     public static void MapHostEndpoints(this RouteGroupBuilder game)
     {
-        game.MapPut("/settings", (string code, SettingsBody request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
+        game.MapPut("/rules", (string code, RulesRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await host.ChangeSettingsAsync(game, caller, request.ApplyTo, ct)).ToHttp(outcome =>
-                {
-                    var changed = outcome.Events.OfType<SettingsChanged>().Single();
-                    return TypedResults.Ok(new SettingsView(
-                        SettingsBody.From(changed.Settings), changed.NextRoundSettings is { } next ? SettingsBody.From(next) : null));
-                })));
+                (await host.ApplyRulesAsync(game, caller, settings => request.Settings?.ApplyTo(settings) ?? settings, request.WinCondition, ct))
+                    .ToHttp(rules => TypedResults.Ok(new RulesView(
+                        SettingsBody.From(rules.Settings),
+                        rules.NextRoundSettings is { } next ? SettingsBody.From(next) : null,
+                        rules.WinConditionId)))));
 
         game.MapPost("/rounds/countdown", (string code, CountdownRequest request, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
@@ -46,9 +45,6 @@ internal static class HostEndpoints
 
         game.MapPost("/balls", (string code, ClaimsPrincipal user, DrawHandler draws, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await draws.GrabBallAsync(game, caller, ct)).ToHttp(Ball)));
-
-        game.MapPut("/win-condition", (string code, WinConditionRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
-            Routes.ForCaller(code, user, async (game, caller) => (await host.ChangeWinConditionAsync(game, caller, request.Condition, ct)).NoContent()));
 
         game.MapPost("/wins", (string code, AwardRequest request, ClaimsPrincipal user, PlayerManagementHandler manage, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>

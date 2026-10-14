@@ -29,7 +29,7 @@ public sealed class MultipleWinsTests
 
         kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
         kit.Session.AwardWin(kit.Player, 1, Now).Value.ShouldBeEmpty("a second award for the same pattern changes nothing");
-        kit.Session.ChangeWinCondition("corners", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("corners", Now).IsSuccess.ShouldBeTrue();
         kit.Session.AwardWin(kit.Player, 1, Now).Single<WinAwarded>();
 
         kit.Session.Leaderboard().Single().Wins.ShouldBe(2);
@@ -40,7 +40,7 @@ public sealed class MultipleWinsTests
     {
         var kit = DoubleBingo(MultipleWins.OncePerRound);
         kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
-        kit.Session.ChangeWinCondition("corners", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("corners", Now).IsSuccess.ShouldBeTrue();
 
         kit.Session.AwardWin(kit.Player, 1, Now).Error!.Message.ShouldContain("already won this round");
         kit.Call(65); // with 1, 61 and 5 called, Four Corners is complete
@@ -128,7 +128,7 @@ public sealed class MultipleWinsTests
     {
         var kit = DoubleBingo(MultipleWins.OncePerRound);
         kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
-        kit.Session.ChangeWinCondition("corners", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangePattern("corners", Now).IsSuccess.ShouldBeTrue();
         kit.Call(65);
 
         kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(0);
@@ -171,7 +171,7 @@ public sealed class MultipleWinsTests
     {
         var kit = DoubleBingo(MultipleWins.OncePerPattern);
 
-        kit.Session.UpdateSettings(SessionSettings.Default with { MultipleWins = MultipleWins.EveryDeclaredWin }, Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ChangeSettings(SessionSettings.Default with { MultipleWins = MultipleWins.EveryDeclaredWin }, Now).IsSuccess.ShouldBeTrue();
 
         kit.Session.Settings.MultipleWins.ShouldBe(MultipleWins.OncePerPattern);
         kit.Session.NextRoundSettings!.MultipleWins.ShouldBe(MultipleWins.EveryDeclaredWin);

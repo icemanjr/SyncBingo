@@ -71,7 +71,7 @@ public sealed class RoundCountdownTests
     public void Settings_waiting_for_the_next_round_apply_when_it_starts()
     {
         var session = InState(SessionState.Manual);
-        session.UpdateSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
+        session.ChangeSettings(SessionSettings.Default with { FreeSpace = FreeSpace.Earned }, Now).IsSuccess.ShouldBeTrue();
         session.ClearCards(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
         session.Settings.FreeSpace.ShouldBe(FreeSpace.AlwaysMarked, "still waiting: the next round has not started");
 
@@ -82,14 +82,12 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public void The_host_can_still_choose_the_pattern_during_the_countdown()
+    public void The_rules_cannot_change_during_the_countdown()
     {
         var session = InState(SessionState.Starting);
 
-        session.ChangeWinCondition("blackout", Now).IsSuccess.ShouldBeTrue();
-        session.StartRound(new SeededRandom(1), Now.AddSeconds(10)).IsSuccess.ShouldBeTrue();
-
-        session.Rounds[^1].WinConditionsUsed.ShouldBe(["blackout"]);
+        session.ChangePattern("blackout", Now).Error!.Message.ShouldBe("The round is about to start. Cancel the countdown to change the rules.");
+        session.WinConditionId.ShouldBe("normal");
     }
 
     [Fact]

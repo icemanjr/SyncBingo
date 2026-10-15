@@ -1,4 +1,5 @@
 import type { BallCall } from './gameEvents'
+import { LastBall } from './LastBall'
 import { letterBackground } from './letters'
 import type { Schemas } from '../../api/client'
 
@@ -15,45 +16,39 @@ export function CallBoard({
   board,
   calls,
   big = false,
+  showLastBall = true,
 }: {
   board: Schemas['BoardGroup'][]
   calls: BallCall[]
   /** For the display view across a room (FR-28): larger balls and a much larger last ball. */
   big?: boolean
+  /** Off where the screen shows the last ball elsewhere (the host's calling card). */
+  showLastBall?: boolean
 }) {
   const called = new Set(calls.map((call) => call.number))
   const last = calls.at(-1)
   return (
     <div className="flex flex-col items-center gap-4">
-      <div aria-live="polite" className="flex flex-col items-center gap-1.5">
-        <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Last Ball</p>
-        <p
-          className={`flex flex-col items-center justify-center rounded-full bg-ball font-display leading-none font-extrabold text-ball-ink tabular-nums shadow-[inset_0_-6px_0_rgb(0_0_0/0.08)] ${big ? 'h-56 w-56 text-8xl' : 'h-32 w-32 text-5xl'}`}
-          data-testid="last-ball"
-        >
-          {last ? (
-            <>
-              <span className={big ? 'text-4xl' : 'text-xl'}>{last.letter}</span>{' '}
-              <span className="tracking-tight">{last.number}</span>
-            </>
-          ) : (
-            '–'
-          )}
-        </p>
-      </div>
-      <div className="flex flex-wrap justify-center gap-3">
+      {showLastBall && (
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Last Ball</p>
+          <LastBall last={last} size={big ? 'large' : 'medium'} />
+        </div>
+      )}
+      {/* One row of groups, spread across the width; balls shrink on phones so five groups fit. */}
+      <div className={`flex w-full justify-between ${big ? 'gap-3' : 'gap-1 sm:gap-2'}`}>
         {board.map((group) => (
           <div
             key={group.label}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-group p-1.5 pb-2"
+            className={`flex flex-col items-center rounded-2xl bg-group ${big ? 'gap-3 p-2 pb-3' : 'gap-1.5 p-0.5 pb-1.5 sm:gap-2 sm:p-1.5 sm:pb-2'}`}
           >
             <span
-              className={`flex items-center justify-center rounded-full font-display font-extrabold text-white ${letterBackground(group.label)} ${big ? 'h-14 w-14 text-3xl' : 'h-9 w-9 text-lg'}`}
+              className={`flex items-center justify-center rounded-full font-display font-extrabold text-white ${letterBackground(group.label)} ${big ? 'h-14 w-14 text-3xl' : 'h-7 w-7 text-base sm:h-9 sm:w-9 sm:text-lg'}`}
             >
               {group.label}
             </span>
             <ol
-              className="grid grid-flow-col gap-1"
+              className={`grid grid-flow-col ${big ? 'gap-1.5' : 'gap-0.5 sm:gap-1'}`}
               style={{ gridTemplateRows: `repeat(${String(rowsFor(group.balls.length))}, auto)` }}
               aria-label={`Balls ${group.label}`}
             >
@@ -63,7 +58,7 @@ export function CallBoard({
                   <li
                     key={ball}
                     aria-label={`${group.label} ${String(ball)}${isCalled ? ', called' : ''}`}
-                    className={`flex items-center justify-center rounded-full tabular-nums ${big ? 'h-12 w-12 text-xl' : 'h-8 w-8 text-sm'} ${
+                    className={`flex items-center justify-center rounded-full tabular-nums ${big ? 'h-12 w-12 text-xl' : 'h-[18px] w-[18px] text-[10px] sm:h-[30px] sm:w-[30px] sm:text-[13px]'} ${
                       ball === last?.number
                         ? 'bg-ball font-extrabold text-ball-ink ring-2 ring-[#f0a800]'
                         : isCalled

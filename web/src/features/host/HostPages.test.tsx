@@ -260,7 +260,7 @@ describe('the host console', () => {
     })
   })
 
-  it('asks twice before removing a player', async () => {
+  it("asks twice before removing a player, from the player's menu", async () => {
     const api = fakeApi({
       [snapshotPath]: {
         body: aHostSnapshot(
@@ -273,7 +273,8 @@ describe('the host console', () => {
     })
     renderConsole()
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'More for Ava' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Ava' }))
     expect(api.sent.some((s) => s.method === 'DELETE')).toBe(false)
     await userEvent.click(screen.getByRole('button', { name: 'Remove Ava?' }))
 
@@ -282,6 +283,46 @@ describe('the host console', () => {
         api.sent.some((s) => s.method === 'DELETE' && s.path.endsWith('/participants/p1')),
       ).toBe(true)
     })
+  })
+
+  it('counts Bingo calls on the phone tab, so the host sees one waiting', async () => {
+    fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot({ state: 'Manual', round: 1 }, { pendingClaims: [aClaim({})] }),
+      },
+    })
+    renderConsole()
+
+    expect(await screen.findByRole('tab', { name: 'Bingo!, 1 waiting' })).toBeInTheDocument()
+  })
+
+  it("adds a join note from the lobby's join panel", async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Add' }))
+    await userEvent.type(screen.getByLabelText('Join note'), "The password is the dog's name")
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/join-note'))?.body).toEqual({
+        note: "The password is the dog's name",
+      })
+    })
+  })
+
+  it('opens Display as a dialog that Escape closes', async () => {
+    fakeApi({
+      [snapshotPath]: { body: aHostSnapshot() },
+      [`GET /api/sessions/${code}/displays`]: { body: [] },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Display' }))
+    expect(screen.getByRole('dialog', { name: 'Displays' })).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: 'Displays' })).not.toBeInTheDocument()
   })
 
   it('tells a browser that is not the host', () => {

@@ -113,6 +113,17 @@ describe('Options (FR-32)', () => {
     expect(screen.getByRole('checkbox', { name: /Four Corners/ })).toBeDisabled()
   })
 
+  it('keeps Options open on Escape, so unapplied changes are not lost', async () => {
+    fakeApi({ [snapshotPath]: { body: aHostSnapshot({}, { settings: hostSettings }) } })
+    renderConsole()
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Four Corners' }))
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.getByRole('dialog', { name: 'Options' })).toBeInTheDocument()
+  })
+
   it('locks the between-rounds settings during a round', async () => {
     fakeApi({
       [snapshotPath]: {
@@ -173,7 +184,7 @@ describe('Options (FR-32)', () => {
   })
 })
 
-describe('Open display ⧉', () => {
+describe('Display', () => {
   beforeEach(() => {
     seats.save(code, { role: 'host', token: 'host-token' })
   })
@@ -194,7 +205,7 @@ describe('Open display ⧉', () => {
     })
     renderConsole()
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Open display ⧉' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Display' }))
     const menu = screen.getByRole('region', { name: 'Displays' })
     await userEvent.type(within(menu).getByLabelText('Connect a TV'), 'k7m-2qx')
     await userEvent.click(within(menu).getByRole('button', { name: 'Connect' }))
@@ -237,7 +248,8 @@ describe('the leaderboard', () => {
     })
     renderConsole()
 
-    expect(await screen.findByText('2 wins')).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Leaderboard' }))
+    expect(screen.getByRole('dialog', { name: 'Leaderboard' })).toHaveTextContent('2 wins')
     await userEvent.click(screen.getByRole('button', { name: 'Show to everyone' }))
 
     await waitFor(() => {

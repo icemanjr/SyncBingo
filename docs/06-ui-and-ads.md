@@ -6,7 +6,7 @@
 |--------|-------|---------|
 | Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
-| Host console | `/host/:code` | **Call board by default** (FR-27), with QR + game code, last ball, draw/pause/round controls, claims and alerts, participant list, leaderboard. Rules and settings sit behind an **Options** button. **Open display** pops out the display view |
+| Host console | `/host/:code` | **Lobby:** how to join (QR, game code, join note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
@@ -15,32 +15,46 @@
 
 ### Host console (sketch)
 
+The design reference (Visual design, below) has the finished look. The layout:
+
 ```
-┌─────────────────────────────────────────────┐
-│ [Ad: top banner]                            │
-├─────────────────────────────────────────────┤
-│ 9ve4-shp3-k7mw-a2qx  [QR]   [Open display ⧉]│
-│ Round 3 · Normal Bingo · ▶ Auto             │
-├─────────────────────────────────────────────┤
-│  Auto: [ Pause ]  Manual: [Grab][Auto mode] │
-│  ── call board (FR-27) ──                   │
-│               ┌──────┐                      │
-│               │ N 37 │ last ball            │
-│               └──────┘                      │
-│    B       I       N       G       O        │
-│  1 ■ 11  16 21 26  ...                      │
-│  2 7 12  17 ■ 27                            │
-│  ...                                        │
-├─────────────────────────────────────────────┤
-│ 🔔 Sam: BINGO ✓ 2 lines · 2 awardable       │
-│  [Inspect] [Award 1] [Award 2] [Dismiss] [⋯]│
-│ Players (14) ▸   [ Clear cards ] [Leaderbd] │
-├─────────────────────────────────────────────┤
-│ [Ad: bottom banner]                         │
-└─────────────────────────────────────────────┘
+Laptop, during a round (everything on one screen, ad rails either side)
+┌───────────────────────────────────────────────────────────────┐
+│ [Round 3] [Normal Bingo ✎]  6 players · joining closed        │
+│                                [Display] [Options] [⋯]        │
+├──────────────────────────────────────┬────────────────────────┤
+│ LAST BALL  Before: O74 G60 G55 N40   │ ╔ Sam pressed Bingo ═╗ │
+│  (N 37)    [ Grab ball ] [Auto mode] │ ║ ✓ 1 line: Rows     ║ │
+│                         57 balls left│ ║[Inspect][Award][Dis]║ │
+├──────────────────────────────────────┤ ╚════════════════════╝ │
+│ Call board              18 of 75     │ Players 6  Leaderboard │
+│ (B) (I) (N) (G) (O)  tinted tiles,   │ (A) Ava        ▦  ⋯    │
+│ 3 columns of 5 each, down then across│ (B) Ben        ▦  ⋯    │
+│                                      │ [End round][Clear cards]│
+└──────────────────────────────────────┴────────────────────────┘
+
+Phone, during a round
+┌───────────────────────┐
+│ [Ad: top banner]      │
+│ [Round 3] [Normal ✎]  │
+│ [Display][Options][⋯] │
+│ [Board][Bingo! 1][Players]  ← tabs: one view at a time
+│  …the chosen view…    │
+│ ┌───────────────────┐ │  ← the calling bar, pinned to the bottom
+│ │(N 37) 57 balls left│ │     of the screen while the view scrolls,
+│ │[  Grab ball  ][▶] │ │     and never over the ad below it
+│ └───────────────────┘ │
+│ [Ad: bottom banner]   │
+└───────────────────────┘
 ```
 
-In auto mode the **Options** button is hidden, as above; in the lobby and in manual mode it sits at the end of the status line. Displays are not rules, so they live under **Open display ⧉** rather than in Options and stay available in auto mode.
+- **Lobby:** a dark **Join Now!** panel, with "Scan or visit syncbingo.com", the QR code (with room around it for phone cameras) and the game code under it. The join note (FR-49) is edited in place. Beside it are the next-round card (patterns with **Change**, Manual or Auto, **Start Round N**, **Deal New Cards**; during the countdown, the seconds left and **Cancel**) and the players.
+- **Each player row** has their card (▦) and a ⋯ menu: **Award a win** during a round, and **Remove**, which asks again.
+- **In auto mode,** **Options** and the pattern button are not offered (FR-32); **Pause** replaces Grab ball and Auto mode. Displays are not rules, so **Display** stays available.
+- **Dialogs:**
+  - **Options** doesn't close on Escape or the backdrop, because it asks first about unapplied changes.
+  - The others close with Escape, the backdrop or **Close**.
+  - Focus moves into the dialog and back afterwards.
 
 ### Options and Apply (FR-32)
 

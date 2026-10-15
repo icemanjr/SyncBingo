@@ -5,9 +5,10 @@ import { ThemeToggle } from './ThemeToggle'
 
 /**
  * The page frame (docs/06 §2): banners top and bottom on phones, left and right on desktops, each in a
- * fixed reserved slot, so the play area is never covered and never jumps.
+ * fixed reserved slot, so the play area is never covered and never jumps. `wide` is for the host console's
+ * dashboard; other pages keep a reading width.
  */
-export function Layout({ children }: { children: ReactNode }) {
+export function Layout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   return (
     <div className="flex min-h-dvh flex-col bg-page text-ink lg:flex-row lg:items-start lg:justify-center lg:gap-4 lg:p-4">
       <div className="flex justify-center lg:hidden">
@@ -16,7 +17,9 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="hidden lg:block">
         <AdSlot position="left" />
       </div>
-      <main className="flex w-full max-w-3xl flex-1 flex-col gap-4 p-4">
+      <main
+        className={`flex w-full flex-1 flex-col gap-4 p-4 ${wide ? 'max-w-[1100px]' : 'max-w-3xl'}`}
+      >
         <header className="flex items-center justify-between gap-3">
           <Link
             to="/"

@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
 import { selectionName, winMessage } from '../game/patterns'
 import { SelectionGrids } from '../game/SelectionGrids'
+import { LastBall } from '../game/LastBall'
+import { Menu } from '../game/Menu'
 import { RulesNotice } from '../game/RulesNotice'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
@@ -30,6 +32,27 @@ function columnLabels(board: { label: string }[], columns: number): string[] | n
   const labels = board.map((group) => group.label)
   return labels.length === columns && labels.every((label) => label !== '') ? labels : null
 }
+
+/** The card tools row's buttons: an icon over a short label, a full tap target each. */
+const toolClass =
+  'flex min-h-15 w-full flex-col items-center justify-center gap-1 rounded-2xl bg-surface text-[13px] font-bold text-ink shadow-card focus-visible:outline-4 focus-visible:outline-accent disabled:opacity-50'
+
+const toolIcon = (path: ReactNode) => (
+  <svg
+    aria-hidden="true"
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="text-accent-text"
+  >
+    {path}
+  </svg>
+)
 
 /** How long "Sent to the host!" shows after a Bingo press. */
 const SentForMs = 4000
@@ -114,6 +137,7 @@ export function PlayScreen() {
   const calls = view.calls
   const last = calls?.at(-1)
   const patternName = selectionName(view.winCondition, view)
+  const roundLabel = view.settings.showRoundNumbers ? `Round ${String(view.round)}` : 'This round'
   const roundName = view.settings.showRoundNumbers
     ? `Round ${String(view.upcomingRound)}`
     : 'The next round'
@@ -147,19 +171,35 @@ export function PlayScreen() {
             setOpen(open === 'rules' ? undefined : 'rules')
           }}
           aria-expanded={open === 'rules'}
-          className="flex min-h-12 items-center gap-1 rounded-xl px-2 font-semibold underline-offset-4 hover:underline focus-visible:outline-4 focus-visible:outline-accent"
+          className="flex min-h-12 flex-col items-start rounded-xl text-left focus-visible:outline-4 focus-visible:outline-accent"
         >
-          {patternName} <span aria-hidden="true">ⓘ</span>
+          <span
+            aria-hidden="true"
+            className="text-xs font-bold tracking-widest text-ink-muted uppercase"
+          >
+            {inRound ? `${roundLabel} · how to win` : 'How to win'}
+          </span>
+          <span className="flex items-center gap-1.5 font-display text-xl font-bold">
+            {patternName}
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-accent-text"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+          </span>
           <span className="sr-only">: patterns and current rules</span>
         </button>
-        {view.settings.showBallToPlayers && last && (
-          <p
-            aria-live="polite"
-            className="rounded-xl bg-accent px-3 py-1 text-2xl font-bold text-accent-ink tabular-nums"
-          >
-            {last.letter} {last.number}
-          </p>
-        )}
+        {view.settings.showBallToPlayers && last && <LastBall last={last} size="small" />}
       </div>
 
       {wins.map((message) => {
@@ -169,7 +209,7 @@ export function PlayScreen() {
           <div
             key={message.at}
             role="status"
-            className={`flex items-center justify-between gap-2 rounded-2xl p-3 font-semibold ${mine ? 'bg-accent text-accent-ink' : 'bg-notice'}`}
+            className={`flex items-center justify-between gap-2 rounded-2xl p-3 pl-4 font-semibold ${mine ? 'bg-accent font-display text-lg text-accent-ink' : 'border-2 border-notice-line bg-notice text-notice-ink'}`}
           >
             <span>
               {message.type === 'ParticipantRemoved'
@@ -223,18 +263,20 @@ export function PlayScreen() {
       )}
 
       {card && (
-        <Card
-          card={card}
-          columns={view.card.columns}
-          columnLabels={columnLabels(view.board, view.card.columns)}
-          freeCell={view.card.freeCell}
-          called={calls ? new Set(calls.map((c) => c.number)) : null}
-          highlightMatches={view.settings.highlightMatches}
-          markStyle={markStyle}
-          setFaces={setFaces(view.board)}
-          disabled={!inRound || marking.busy}
-          onToggle={toggle}
-        />
+        <div className="rounded-3xl bg-surface p-3 shadow-card">
+          <Card
+            card={card}
+            columns={view.card.columns}
+            columnLabels={columnLabels(view.board, view.card.columns)}
+            freeCell={view.card.freeCell}
+            called={calls ? new Set(calls.map((c) => c.number)) : null}
+            highlightMatches={view.settings.highlightMatches}
+            markStyle={markStyle}
+            setFaces={setFaces(view.board)}
+            disabled={!inRound || marking.busy}
+            onToggle={toggle}
+          />
+        </div>
       )}
       {marking.error && <ErrorText>{marking.error}</ErrorText>}
 
@@ -249,7 +291,7 @@ export function PlayScreen() {
                 setSent(true)
               })
             }
-            className="min-h-16 w-full max-w-xs rounded-2xl bg-accent text-3xl font-black tracking-wide text-accent-ink focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+            className="min-h-18 w-full rounded-[22px] bg-accent font-display text-4xl font-extrabold tracking-wide text-accent-ink shadow-[0_6px_0_var(--accent-strong)] transition-transform focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent active:translate-y-1 active:shadow-[0_2px_0_var(--accent-strong)] disabled:opacity-50"
           >
             BINGO!
           </button>
@@ -260,18 +302,102 @@ export function PlayScreen() {
         </div>
       )}
 
-      <div className="flex flex-wrap justify-center gap-2">
+      <nav aria-label="Card tools" className="grid auto-cols-fr grid-flow-col gap-1.5">
         {view.settings.showCallBoard && calls && (
-          <Button
-            look="secondary"
+          <button
+            type="button"
             aria-expanded={open === 'board'}
             onClick={() => {
               setOpen(open === 'board' ? undefined : 'board')
             }}
+            className={toolClass}
           >
+            {toolIcon(
+              <>
+                <circle cx="6" cy="6" r="2.5" />
+                <circle cx="18" cy="6" r="2.5" />
+                <circle cx="6" cy="18" r="2.5" />
+                <circle cx="18" cy="18" r="2.5" />
+                <circle cx="12" cy="12" r="2.5" />
+              </>,
+            )}
             Call board
-          </Button>
+          </button>
         )}
+        {inRound && card && (
+          <button
+            type="button"
+            disabled={marking.busy}
+            onClick={() =>
+              void marking.run(async () => {
+                const result = await player.undo(card.cardId)
+                game.patch((s) => ({
+                  ...s,
+                  you: s.you && {
+                    ...s.you,
+                    cards: s.you.cards.map((c) =>
+                      c.cardId === card.cardId ? { ...c, marks: result.marks } : c,
+                    ),
+                  },
+                }))
+              })
+            }
+            className={toolClass}
+          >
+            {toolIcon(
+              <>
+                <path d="M9 14L4 9l5-5" />
+                <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
+              </>,
+            )}
+            Undo
+          </button>
+        )}
+        <button
+          type="button"
+          aria-expanded={styling}
+          onClick={() => {
+            setStyling(!styling)
+          }}
+          className={toolClass}
+        >
+          {toolIcon(
+            <>
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="4" fill="currentColor" />
+            </>,
+          )}
+          My marks
+        </button>
+        <Menu
+          label="More"
+          above
+          triggerClassName={toolClass}
+          icon={
+            <>
+              {toolIcon(
+                <>
+                  <circle cx="5" cy="12" r="1.5" fill="currentColor" />
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                  <circle cx="19" cy="12" r="1.5" fill="currentColor" />
+                </>,
+              )}
+              More
+            </>
+          }
+          items={[
+            {
+              label: 'Leave game',
+              danger: true,
+              onSelect: () => {
+                setLeaving(true)
+              },
+            },
+          ]}
+        />
+      </nav>
+
+      <div className="flex flex-wrap justify-center gap-2">
         {view.settings.autoFillAvailable && you && (
           <label className="flex min-h-12 items-center gap-2 rounded-xl border-2 border-line-soft px-3 font-medium">
             <input
@@ -339,39 +465,6 @@ export function PlayScreen() {
         </Panel>
       )}
 
-      <div className="flex flex-wrap justify-center gap-2">
-        {inRound && card && (
-          <Button
-            look="secondary"
-            disabled={marking.busy}
-            onClick={() =>
-              void marking.run(async () => {
-                const result = await player.undo(card.cardId)
-                game.patch((s) => ({
-                  ...s,
-                  you: s.you && {
-                    ...s.you,
-                    cards: s.you.cards.map((c) =>
-                      c.cardId === card.cardId ? { ...c, marks: result.marks } : c,
-                    ),
-                  },
-                }))
-              })
-            }
-          >
-            Undo
-          </Button>
-        )}
-        <Button
-          look="quiet"
-          onClick={() => {
-            setStyling(!styling)
-          }}
-        >
-          ⚙ My marks
-        </Button>
-      </div>
-
       {styling && (
         <MarkStylePanel
           style={markStyle}
@@ -382,7 +475,7 @@ export function PlayScreen() {
         />
       )}
 
-      {leaving ? (
+      {leaving && (
         <div role="alertdialog" aria-label="Leave the game" className="flex flex-col gap-2">
           <p className="font-semibold">
             {inRound || view.state === 'Starting'
@@ -414,15 +507,6 @@ export function PlayScreen() {
           </div>
           {leave.error && <ErrorText>{leave.error}</ErrorText>}
         </div>
-      ) : (
-        <Button
-          look="quiet"
-          onClick={() => {
-            setLeaving(true)
-          }}
-        >
-          Leave game
-        </Button>
       )}
     </div>
   )

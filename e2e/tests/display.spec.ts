@@ -1,23 +1,23 @@
-import { expect, test } from "@playwright/test";
-import { grabBall, hostGame, startRound } from "./game";
+import { expect, test } from '@playwright/test'
+import { grabBall, hostGame, startRound } from './game'
 
-test("the display opened from the host console follows the calls", async ({
-  browser,
-}) => {
-  const { host, code } = await hostGame(browser);
+test('the display opened from the host console follows the calls', async ({ browser }) => {
+  const { host, code } = await hostGame(browser)
 
-  await host.getByRole("button", { name: "Display", exact: true }).click();
+  await host.getByRole('button', { name: 'Display', exact: true }).click()
   const [display] = await Promise.all([
-    host.context().waitForEvent("page"),
-    host.getByRole("button", { name: "Open in a new tab" }).click(),
-  ]);
-  await expect(display).toHaveURL(new RegExp(`/display/${code}`));
-  await expect(display.getByRole("list", { name: "Balls B" })).toBeVisible();
-  await host.keyboard.press("Escape"); // close the Displays dialog
-  await expect(host.getByRole("dialog", { name: "Displays" })).toBeHidden();
+    host.context().waitForEvent('page'),
+    host.getByRole('button', { name: 'Open in a new tab' }).click(),
+  ])
+  await expect(display).toHaveURL(new RegExp(`/display/${code}`))
+  // In the lobby the TV shows how to join; the board comes with the round.
+  await expect(display.getByRole('region', { name: 'How to join' })).toBeVisible()
+  await host.keyboard.press('Escape') // close the Displays dialog
+  await expect(host.getByRole('dialog', { name: 'Displays' })).toBeHidden()
 
-  await startRound(host);
-  const ball = await grabBall(host);
+  await startRound(host)
+  const ball = await grabBall(host)
+  await expect(display.getByRole('list', { name: 'Balls B' })).toBeVisible()
 
-  await expect(display.getByTestId("last-ball")).toContainText(String(ball));
-});
+  await expect(display.getByTestId('last-ball')).toContainText(String(ball))
+})

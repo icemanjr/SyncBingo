@@ -6,7 +6,7 @@
 |--------|-------|---------|
 | Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
-| Host console | `/host/:code` | **Lobby:** how to join (QR, game code, join note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
+| Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
@@ -48,7 +48,7 @@ Phone, during a round
 └───────────────────────┘
 ```
 
-- **Lobby:** a dark **Join Now!** panel, with "Scan or visit syncbingo.com", the QR code (with room around it for phone cameras) and the game code under it. The join note (FR-49) is edited in place. Beside it are the next-round card (patterns with **Change**, Manual or Auto, **Start Round N**, **Deal New Cards**; during the countdown, the seconds left and **Cancel**) and the players.
+- **Lobby:** a dark **Join Now!** panel, with "Scan or visit syncbingo.com", the QR code (with room around it for phone cameras) and the game code under it. The password note (FR-49) is edited in place; on the TV it shows exactly as typed, with no label, or not at all when empty. Beside it are the next-round card (patterns with **Change**, Manual or Auto, **Start Round N**, **Deal New Cards**; during the countdown, the seconds left and **Cancel**) and the players.
 - **Each player row** has their card (▦) and a ⋯ menu: **Award a win** during a round, and **Remove**, which asks again.
 - **In auto mode,** **Options** and the pattern button are not offered (FR-32); **Pause** replaces Grab ball and Auto mode. Displays are not rules, so **Display** stays available.
 - **Dialogs:**
@@ -251,19 +251,20 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 Opened from the host console with **Open display**, in a new tab or on another device via its link or QR. It has its own read-only **display token** and its own connection, so popping it out never disconnects the host console. It shows only what the room should see:
 
 ```
+During a round (16:9; left column 300 px, the board fills the rest)
 ┌──────────────────────────────────────────────────────────────┐
-│  Round 3 · Normal Bingo [pattern]                            │
-│                         ┌────────┐                           │
-│                         │  N 37  │  last ball                │
-│                         └────────┘                           │
-│        B          I          N          G          O         │
-│      1  6 11   16 21 26   31 36 41   46 51 56   61 66 71     │
-│      2  7 12   17 22 27   32 ■ 42    47 52 57   62 67 72     │
-│      …                                                       │
-│                                                              │
-│   Between rounds: [QR] Join at syncbingo… code 9ve4-shp3-…   │
-│                   Password: harvest2026   ← join note (FR-49)│
+│ [Round 3]          ┌──────────────────────────────────────┐  │
+│ Normal Bingo       │  (B)    (I)    (N)    (G)    (O)      │  │
+│ ▦ ▦ ▦ pattern grids│  1 6 11 16 21 26 31 ■ 41 46 51 56 ... │  │
+│   LAST BALL        │  2 ■ 12 17 22 27 32 37 42 47 52 57    │  │
+│    ( N 37 )        │  … tinted tiles, down then across     │  │
+│ Leaderboard (if    └──────────────────────────────────────┘  │
+│  the host shows it)                                          │
+│ [ Ava had a Bingo! ]  ← the latest win                       │
 └──────────────────────────────────────────────────────────────┘
+
+Between rounds: the board's place shows the Join Now! panel: the QR, the game code under it,
+and the password note exactly as the host typed it ("Password: harvest2026"), or nothing if empty.
 ```
 
 Never shown: settings, claims, alerts, the participant list, inspect and award controls, or any ads.

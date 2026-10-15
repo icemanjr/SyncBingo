@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { api, unwrap } from '../../api/client'
 import { buildPairingHub, type PairingHub } from '../../realtime/pairingConnection'
 import { useSecondsLeft } from '../game/Countdown'
+import { BrandMark } from '../../app/Layout'
 import { Button } from '../game/ui'
 
 /**
@@ -66,12 +67,15 @@ export function TvPage({
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="text-4xl font-bold">SyncBingo display</h1>
+      <h1 className="flex items-center gap-3 font-display text-4xl font-extrabold tracking-tight">
+        <BrandMark />
+        SyncBingo display
+      </h1>
       {pairing && !expired ? (
         <>
           <p className="text-2xl">Enter this code on the host:</p>
           <p
-            className="font-mono text-7xl font-black tracking-widest"
+            className="rounded-3xl bg-surface px-10 py-6 font-display text-8xl font-extrabold tracking-widest shadow-card"
             aria-label={`Code ${pairing.pairingCode.split('').join(' ')}`}
           >
             {pairing.pairingCode}
@@ -80,7 +84,7 @@ export function TvPage({
             <img
               src={qr}
               alt="QR code to connect this TV from the host's phone"
-              className="h-40 w-40 bg-white p-2"
+              className="h-44 w-44 rounded-2xl bg-white p-3"
             />
           )}
           <p className="text-xl text-ink-muted">

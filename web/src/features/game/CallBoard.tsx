@@ -40,15 +40,15 @@ export function CallBoard({
         {board.map((group) => (
           <div
             key={group.label}
-            className={`flex flex-col items-center rounded-2xl bg-group ${big ? 'gap-3 p-2 pb-3' : 'gap-1.5 p-0.5 pb-1.5 sm:gap-2 sm:p-1.5 sm:pb-2'}`}
+            className={`flex flex-col items-center rounded-2xl bg-group ${big ? 'gap-3 p-1.5 pb-3' : 'gap-1.5 p-0.5 pb-1.5 sm:gap-2 sm:p-1.5 sm:pb-2'}`}
           >
             <span
-              className={`flex items-center justify-center rounded-full font-display font-extrabold text-white ${letterBackground(group.label)} ${big ? 'h-14 w-14 text-3xl' : 'h-7 w-7 text-base sm:h-9 sm:w-9 sm:text-lg'}`}
+              className={`flex items-center justify-center rounded-full font-display font-extrabold text-white ${letterBackground(group.label)} ${big ? 'h-12 w-12 text-2xl min-[1800px]:h-16 min-[1800px]:w-16 min-[1800px]:text-4xl' : 'h-7 w-7 text-base sm:h-9 sm:w-9 sm:text-lg'}`}
             >
               {group.label}
             </span>
             <ol
-              className={`grid grid-flow-col ${big ? 'gap-1.5' : 'gap-0.5 sm:gap-1'}`}
+              className={`grid grid-flow-col ${big ? 'gap-x-1 gap-y-1.5 min-[1800px]:gap-x-2' : 'gap-0.5 sm:gap-1'}`}
               style={{ gridTemplateRows: `repeat(${String(rowsFor(group.balls.length))}, auto)` }}
               aria-label={`Balls ${group.label}`}
             >
@@ -58,7 +58,7 @@ export function CallBoard({
                   <li
                     key={ball}
                     aria-label={`${group.label} ${String(ball)}${isCalled ? ', called' : ''}`}
-                    className={`flex items-center justify-center rounded-full tabular-nums ${big ? 'h-12 w-12 text-xl' : 'h-[18px] w-[18px] text-[10px] sm:h-[30px] sm:w-[30px] sm:text-[13px]'} ${
+                    className={`flex items-center justify-center rounded-full tabular-nums ${big ? 'h-11 w-11 font-display text-lg min-[1800px]:h-16 min-[1800px]:w-16 min-[1800px]:text-2xl' : 'h-[18px] w-[18px] text-[10px] sm:h-[30px] sm:w-[30px] sm:text-[13px]'} ${
                       ball === last?.number
                         ? 'bg-ball font-extrabold text-ball-ink ring-2 ring-[#f0a800]'
                         : isCalled

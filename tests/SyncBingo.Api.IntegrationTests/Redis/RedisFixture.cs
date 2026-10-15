@@ -10,10 +10,13 @@ using Testcontainers.Redis;
 
 namespace SyncBingo.Api.IntegrationTests.Redis;
 
-/// <summary>One real Redis (the same image as Compose) for the whole test run.</summary>
+/// <summary>
+/// One real Valkey (the same image as Compose; ADR 0011) for the whole test run. Valkey speaks the Redis
+/// protocol, so the Redis Testcontainers module and every store, lock, scheduler and backplane test apply as is.
+/// </summary>
 public sealed class RedisFixture : IAsyncLifetime
 {
-    private readonly RedisContainer _container = new RedisBuilder("redis:7.4-alpine").Build();
+    private readonly RedisContainer _container = new RedisBuilder("valkey/valkey:8.1-alpine").Build();
 
     public IConnectionMultiplexer Connection { get; private set; } = null!;
 

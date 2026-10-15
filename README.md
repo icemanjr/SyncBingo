@@ -53,7 +53,7 @@ flowchart LR
   A1 & A2 --> R
 ```
 
-This is the full reference design. The live site at syncbingo.com runs the same containers on one small instance (Caddy, the API and Valkey), and locally the same shape runs in Docker Compose as `web`, `api` and `redis` (Valkey soon). More detail is in [02 — Architecture](docs/02-architecture.md) and [10 — Cost and hosting](docs/10-cost-and-hosting.md).
+This is the full reference design. The live site at syncbingo.com runs the same containers on one small instance (Caddy, the API and Valkey), and locally the same shape runs in Docker Compose as `web`, `api` and `valkey`. More detail is in [02 — Architecture](docs/02-architecture.md) and [10 — Cost and hosting](docs/10-cost-and-hosting.md).
 
 ## Tech stack
 
@@ -81,14 +81,14 @@ docs/                          design documents and ADRs
 
 ## Run it locally
 
-Build and test the backend (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download), plus Docker or Podman for the integration tests, which start a real Redis with Testcontainers):
+Build and test the backend (requires the [.NET 10 SDK](https://dotnet.microsoft.com/download), plus Docker or Podman for the integration tests, which start a real Valkey with Testcontainers):
 
 ```bash
 dotnet build
 dotnet test
 ```
 
-Run and test the web app (requires [Node.js](https://nodejs.org/) 24 or later). In development the app proxies `/api` and `/hubs` to the API on port 5080, so start that first (`docker compose up api redis`):
+Run and test the web app (requires [Node.js](https://nodejs.org/) 24 or later). In development the app proxies `/api` and `/hubs` to the API on port 5080, so start that first (`docker compose up api valkey`):
 
 ```bash
 cd web
@@ -101,7 +101,7 @@ npm run api:generate   # after changing the API: regenerates the OpenAPI documen
 
 The web app's API types are generated from the API's own OpenAPI description, and CI fails if either is out of date, so the client can't drift from the server.
 
-Run the full stack in containers (web, api and redis):
+Run the full stack in containers (web, api and valkey):
 
 ```bash
 docker compose up --build         # then open http://localhost:8080

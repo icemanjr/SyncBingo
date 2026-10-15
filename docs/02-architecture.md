@@ -21,7 +21,7 @@ flowchart LR
   A1 & A2 --> R
 ```
 
-Locally, the same shape runs in Docker Compose: `web`, `api`, `redis`.
+Locally, the same shape runs in Docker Compose: `web`, `api`, `valkey`.
 
 ## 2. Design decisions at a glance
 

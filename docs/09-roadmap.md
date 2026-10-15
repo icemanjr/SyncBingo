@@ -21,7 +21,7 @@
 - [x] Players: patterns and current rules (FR-48), call board, auto-fill switch, card swaps, leaderboard
 
 ## Phase 1b — Lean launch (live at SyncBingo.com, ADR 0011, docs/10)
-- [ ] Switch Redis to **Valkey** (Compose, Testcontainers); the integration tests prove compatibility
+- [x] Switch Redis to **Valkey** (Compose, Testcontainers); the integration tests prove compatibility
 - [ ] **arm64 + amd64** images, cross-compiled (keep the CI image job under 2 minutes)
 - [ ] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)

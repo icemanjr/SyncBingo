@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Schemas } from '../../api/client'
 import { useAction } from '../game/useAction'
 import { Button, ErrorText, Panel } from '../game/ui'
@@ -14,7 +15,9 @@ interface Detection {
 /**
  * Every Bingo press, valid or not (FR-37a), and every detected win (FR-19), for the host to decide.
  * Award buttons follow *Multiple wins* (FR-43, docs/06): "Award 1" … "Award n" when the player may be
- * credited several lines; awards send the claim's id, so a double tap counts once.
+ * credited several lines; awards send the claim's id, so a double tap counts once. A card that already won
+ * (in the "once" modes) gets no Award button; a Bingo not on called numbers asks first, since the host has
+ * the last word (ADR 0008) but may have tapped by mistake.
  */
 export function ClaimsPanel({
   claims,
@@ -32,7 +35,11 @@ export function ClaimsPanel({
   onDismissDetection: (at: number) => void
 }) {
   const { busy, error, run } = useAction()
+  const [confirming, setConfirming] = useState<{ claimId: number; wins: number }>()
   if (claims.length === 0 && detections.length === 0) return null
+
+  const award = (claim: Claim, wins: number) =>
+    host.award(claim.participantId, claim.id, everyDeclaredWin ? wins : undefined)
 
   return (
     <Panel title="Bingo!">
@@ -44,7 +51,9 @@ export function ClaimsPanel({
               {claim.matches > 0
                 ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}`
                 : '✗ not on called numbers'}
-              {claim.awardable === 0 && claim.matches > 0 && ' · no awardable matches'}
+              {claim.alreadyWon
+                ? ' · already won, nothing more to award'
+                : claim.awardable === 0 && claim.matches > 0 && ' · no awardable matches'}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -55,26 +64,27 @@ export function ClaimsPanel({
               >
                 Inspect
               </Button>
-              {(everyDeclaredWin
-                ? Array.from({ length: Math.max(1, claim.awardable) }, (_, i) => i + 1)
-                : [1]
-              ).map((wins) => (
-                <Button
-                  key={wins}
-                  disabled={busy}
-                  onClick={() =>
-                    void run(() =>
-                      host.award(
-                        claim.participantId,
-                        claim.id,
-                        everyDeclaredWin ? wins : undefined,
-                      ),
-                    )
-                  }
-                >
-                  {everyDeclaredWin ? `Award ${String(wins)}` : 'Award'}
-                </Button>
-              ))}
+              {!claim.alreadyWon &&
+                confirming?.claimId !== claim.id &&
+                (everyDeclaredWin
+                  ? Array.from({ length: Math.max(1, claim.awardable) }, (_, i) => i + 1)
+                  : [1]
+                ).map((wins) => (
+                  <Button
+                    key={wins}
+                    disabled={busy}
+                    onClick={() => {
+                      if (claim.matches === 0) {
+                        setConfirming({ claimId: claim.id, wins })
+                        return
+                      }
+
+                      void run(() => award(claim, wins))
+                    }}
+                  >
+                    {everyDeclaredWin ? `Award ${String(wins)}` : 'Award'}
+                  </Button>
+                ))}
               <Button
                 look="quiet"
                 disabled={busy}
@@ -83,6 +93,31 @@ export function ClaimsPanel({
                 Dismiss
               </Button>
             </div>
+            {confirming?.claimId === claim.id && (
+              <div role="alertdialog" aria-label="Confirm award" className="flex flex-col gap-2">
+                <p>Award a Bingo that isn&apos;t on the called numbers?</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      const { wins } = confirming
+                      setConfirming(undefined)
+                      void run(() => award(claim, wins))
+                    }}
+                  >
+                    Award anyway
+                  </Button>
+                  <Button
+                    look="secondary"
+                    onClick={() => {
+                      setConfirming(undefined)
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </li>
         ))}
         {detections.map(({ at, data }) => (

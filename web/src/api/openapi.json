@@ -3346,6 +3346,10 @@
           "status": {
             "$ref": "#/components/schemas/ClaimStatus"
           },
+          "alreadyWon": {
+            "type": "boolean",
+            "default": false
+          },
           "qualified": {
             "type": "boolean"
           }

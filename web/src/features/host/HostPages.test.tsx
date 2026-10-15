@@ -1,3 +1,4 @@
+import type { Schemas } from '../../api/client'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
@@ -157,6 +158,7 @@ describe('the host console', () => {
       alreadyAwarded: 0,
       awardable: 1,
       status: 'Pending' as const,
+      alreadyWon: false,
     }
     const api = fakeApi({
       [snapshotPath]: {
@@ -172,6 +174,60 @@ describe('the host console', () => {
       const award = api.sent.find((s) => s.path.endsWith('/wins'))
       expect(award?.body).toMatchObject({ participantId: 'p1', claimId: 4 })
       expect(award?.headers.get('Idempotency-Key')).toBeTruthy()
+    })
+  })
+
+  const aClaim = (changes: Partial<Schemas['Claim']>) => ({
+    id: 5,
+    round: 1,
+    participantId: 'p1',
+    name: 'Ava',
+    cardId: 1,
+    winConditionId: 'normal',
+    claimedAt: '2026-10-14T19:00:00Z',
+    matches: 0,
+    alreadyAwarded: 0,
+    awardable: 0,
+    status: 'Pending' as const,
+    alreadyWon: false,
+    ...changes,
+  })
+
+  it('offers no Award for a card that already won, only Inspect and Dismiss', async () => {
+    fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot(
+          { state: 'Manual', round: 1 },
+          { pendingClaims: [aClaim({ matches: 1, alreadyAwarded: 1, alreadyWon: true })] },
+        ),
+      },
+    })
+    renderConsole()
+
+    expect(await screen.findByText(/Ava pressed Bingo/)).toHaveTextContent(
+      'already won, nothing more to award',
+    )
+    expect(screen.queryByRole('button', { name: 'Award' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument()
+  })
+
+  it('asks before awarding a Bingo that is not on the called numbers', async () => {
+    const api = fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot({ state: 'Manual', round: 1 }, { pendingClaims: [aClaim({})] }),
+      },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Award' }))
+    expect(screen.getByText("Award a Bingo that isn't on the called numbers?")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(api.sent.some((s) => s.path.endsWith('/wins'))).toBe(false)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Award' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Award anyway' }))
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/wins'))?.body).toMatchObject({ claimId: 5 })
     })
   })
 

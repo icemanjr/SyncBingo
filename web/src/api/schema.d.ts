@@ -548,6 +548,8 @@ export interface components {
             /** Format: int32 */
             awardable: number;
             status: components["schemas"]["ClaimStatus"];
+            /** @default false */
+            alreadyWon: boolean;
             qualified?: boolean;
         };
         ClaimAccepted: {

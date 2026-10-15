@@ -15,6 +15,8 @@ public enum ClaimStatus
 /// declaration, including a second line the player only noticed later.
 /// <see cref="Awardable"/> is how many more wins the card could be awarded under the
 /// <see cref="MultipleWins"/> setting; 0 shows the host "no awardable matches".
+/// <see cref="AlreadyWon"/> means the card can't be awarded again: in the "once" modes it has
+/// already won this pattern (or, once per round, anything) this round, so the host gets no Award button.
 /// </summary>
 public sealed record Claim(
     int Id,
@@ -27,7 +29,8 @@ public sealed record Claim(
     int Matches,
     int AlreadyAwarded,
     int Awardable,
-    ClaimStatus Status)
+    ClaimStatus Status,
+    bool AlreadyWon = false)
 {
     public bool Qualified => Matches > 0;
 }

@@ -78,6 +78,10 @@ describe('applyEvent', () => {
     const before = aHostSnapshot({ state: 'Manual' })
 
     expect(applyEvent(before, event('WinClaimed')).refetch).toBe(true)
+    expect(applyEvent(before, event('ParticipantLeft', { name: 'Ben' })).alert).toEqual({
+      type: 'ParticipantLeft',
+      data: { name: 'Ben' },
+    })
     expect(applyEvent(before, event('ParticipantRemoved', { name: 'Ben' })).alert).toEqual({
       type: 'ParticipantRemoved',
       data: { name: 'Ben' },

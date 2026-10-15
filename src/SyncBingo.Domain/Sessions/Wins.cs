@@ -87,3 +87,6 @@ public sealed record LeaderboardVisibilityChanged(bool Visible) : SessionEvent;
 
 /// <summary>The host removed a participant (FR-7); their pending claims are dismissed.</summary>
 public sealed record ParticipantRemoved(string ParticipantId, string Name) : SessionEvent;
+
+/// <summary>A participant left on their own; their pending claims are dismissed.</summary>
+public sealed record ParticipantLeft(string ParticipantId, string Name) : SessionEvent;

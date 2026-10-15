@@ -67,6 +67,8 @@ Options holds every rule: the settings and the win pattern. Changes there are a 
 │ 15 30 33 47 75        │
 │ 09 16 44 60 68        │
 │      [ BINGO! ]       │  ← during a round
+│ Undo  ⚙ My marks      │
+│ Leave game            │  ← asks first (FR-53)
 ├───────────────────────┤
 │ [Ad: bottom banner]   │
 └───────────────────────┘

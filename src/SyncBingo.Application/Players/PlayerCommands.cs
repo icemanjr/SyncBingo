@@ -118,4 +118,41 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
             cancellationToken,
             hostOnly: false);
     }
+
+    /// <summary>
+    /// The player leaves the game (FR-53): as if the host had removed them, but announced as
+    /// "Ava left the game". Their token stops working; they can join again between rounds.
+    /// </summary>
+    public Task<Result<CommandOutcome>> LeaveAsync(GameCode code, Caller caller, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(caller);
+
+        if (caller.RequireParticipant() is { } forbidden)
+        {
+            return Task.FromResult<Result<CommandOutcome>>(forbidden);
+        }
+
+        return runner.RunAsync(
+            code,
+            caller,
+            async (session, now, ct) =>
+            {
+                var stored = await Store.GetParticipantAsync(code, caller.ParticipantId!, ct).ConfigureAwait(false);
+                if (stored is null)
+                {
+                    return Errors.NotInGame();
+                }
+
+                var left = session.Leave(stored.Participant, now);
+                if (!left.IsSuccess)
+                {
+                    return left.Error!;
+                }
+
+                await PlayerManagementHandler.DeleteAsync(Store, code, stored, ct).ConfigureAwait(false);
+                return Result.Success(CommandOutcome.Of(left.Value));
+            },
+            cancellationToken,
+            hostOnly: false);
+    }
 }

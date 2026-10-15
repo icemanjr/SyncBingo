@@ -30,6 +30,11 @@ internal static class PlayerEndpoints
                     TypedResults.Accepted((string?)null, new ClaimAccepted(outcome.Events.OfType<WinClaimed>().Single().Claim.ClaimedAt))))).RequireRateLimiting(RateLimits.Player)
             .Produces<ClaimAccepted>(StatusCodes.Status202Accepted).WithName("ClaimBingo");
 
+        game.MapDelete("/me", (string code, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) =>
+                (await players.LeaveAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("LeaveGame");
+
         game.MapPut("/me/auto-fill", (string code, AutoFillBody request, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await players.SetAutoFillAsync(game, caller, request.On, ct)).ToHttp(on => TypedResults.Ok(new AutoFillBody(on)))))

@@ -28,6 +28,7 @@ function renderAt(path: string) {
         <Route path="/join" element={<JoinPage />} />
         <Route path="/join/:code" element={<JoinPage />} />
         <Route path="/play/:code" element={<PlayScreen />} />
+        <Route path="/" element={<p>home page</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -173,6 +174,50 @@ describe('the play screen', () => {
 
     expect(await screen.findByText('This round: Blackout')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Blackout pattern' })).toBeInTheDocument()
+  })
+
+  it('leaves the game after a warning that mid-round they can only rejoin between rounds', async () => {
+    const api = fakeApi({
+      [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) },
+    })
+    renderAt(`/play/${code}`)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Leave game' }))
+    expect(
+      screen.getByText(
+        'Leave the game? A round is in progress, so you can only join again between rounds.',
+      ),
+    ).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Stay' }))
+    expect(api.sent.some((s) => s.method === 'DELETE')).toBe(false)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Leave game' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Leave' }))
+
+    expect(await screen.findByText('home page')).toBeInTheDocument()
+    expect(api.sent.some((s) => s.method === 'DELETE' && s.path.endsWith('/me'))).toBe(true)
+    expect(seats.load(code)).toBeUndefined()
+  })
+
+  it('in the lobby, just asks "Leave the game?"', async () => {
+    fakeApi({ [snapshotPath]: { body: aPlayerSnapshot() } })
+    renderAt(`/play/${code}`)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Leave game' }))
+
+    expect(screen.getByText('Leave the game?')).toBeInTheDocument()
+  })
+
+  it('tells everyone when someone leaves', async () => {
+    fakeApi({ [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) } })
+    renderAt(`/play/${code}`)
+    await screen.findByRole('grid', { name: 'Your card' })
+
+    act(() => {
+      connection?.onEvent({ type: 'ParticipantLeft', seq: 1, data: { name: 'Ben' } })
+    })
+
+    expect(await screen.findByText('Ben left the game')).toBeInTheDocument()
   })
 
   it('shows the last ball when the host shows it', async () => {

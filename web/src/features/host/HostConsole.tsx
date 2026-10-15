@@ -81,6 +81,7 @@ export function HostConsole() {
       },
     }))
   const passwordAlerts = game.messages.filter((m) => m.type === 'WrongPasswordsAlert')
+  const departures = game.messages.filter((m) => m.type === 'ParticipantLeft')
 
   return (
     <div className="flex flex-col gap-4">
@@ -167,6 +168,24 @@ export function HostConsole() {
           </div>
         )
       })}
+
+      {departures.map((note) => (
+        <div
+          key={note.at}
+          role="status"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-notice p-3"
+        >
+          <p>{(note.data as { name: string }).name} left the game</p>
+          <Button
+            look="quiet"
+            onClick={() => {
+              game.dismissMessage(note.at)
+            }}
+          >
+            OK
+          </Button>
+        </div>
+      ))}
 
       <ClaimsPanel
         claims={hostView?.pendingClaims ?? []}

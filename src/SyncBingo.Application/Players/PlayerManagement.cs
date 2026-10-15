@@ -1,3 +1,4 @@
+using SyncBingo.Application.Ports;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Sessions;
@@ -62,14 +63,19 @@ public sealed class PlayerManagementHandler(SessionCommandRunner runner)
                     return removed.Error!;
                 }
 
-                await store.DeleteParticipantAsync(code, participantId, ct).ConfigureAwait(false);
-                await store.ReleaseNameAsync(code, stored.Participant.Name.Key, ct).ConfigureAwait(false);
-                foreach (var card in stored.Participant.Cards)
-                {
-                    await store.ReleaseCardAsync(code, card.Card.Fingerprint, ct).ConfigureAwait(false);
-                }
-
+                await DeleteAsync(store, code, stored, ct).ConfigureAwait(false);
                 return Result.Success(CommandOutcome.Of(removed.Value));
             },
             cancellationToken);
+
+    /// <summary>Deletes a departing participant's record and tokens, and releases their name and cards for others.</summary>
+    internal static async Task DeleteAsync(ISessionStore store, GameCode code, StoredParticipant stored, CancellationToken cancellationToken)
+    {
+        await store.DeleteParticipantAsync(code, stored.Participant.Id, cancellationToken).ConfigureAwait(false);
+        await store.ReleaseNameAsync(code, stored.Participant.Name.Key, cancellationToken).ConfigureAwait(false);
+        foreach (var card in stored.Participant.Cards)
+        {
+            await store.ReleaseCardAsync(code, card.Card.Fingerprint, cancellationToken).ConfigureAwait(false);
+        }
+    }
 }

@@ -33,7 +33,7 @@ export function AppRoutes() {
       <Route
         path="/host/:code"
         element={
-          <Layout>
+          <Layout wide>
             <HostConsole />
           </Layout>
         }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Schemas } from '../../api/client'
 import { patternNames, type PatternData } from '../game/patterns'
 import { useAction } from '../game/useAction'
-import { Button, ErrorText, Panel } from '../game/ui'
+import { Button, ErrorText } from '../game/ui'
 import type { HostApi } from './hostApi'
 
 type Claim = Schemas['Claim']
@@ -47,20 +47,44 @@ export function ClaimsPanel({
     host.award(claim.participantId, claim.id, everyDeclaredWin ? wins : undefined)
 
   return (
-    <Panel title="Bingo!">
+    <section aria-label="Bingo!" className="flex flex-col gap-3">
+      <h2 className="sr-only">Bingo!</h2>
       <ul className="flex flex-col gap-3">
         {claims.map((claim) => (
-          <li key={claim.id} className="flex flex-col gap-2 rounded-xl bg-notice p-3">
-            <p className="font-semibold">
-              🔔 {claim.name} pressed Bingo ·{' '}
-              {claim.matches > 0
-                ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}: ${patternNames(claim.completed, patterns)}`
-                : '✗ not on called numbers'}
-              {claim.alreadyWon
-                ? ' · already won, nothing more to award'
-                : claim.awardable === 0 && claim.matches > 0 && ' · no awardable matches'}
+          <li
+            key={claim.id}
+            className="flex flex-col gap-3 rounded-[20px] border-2 border-notice-line bg-notice p-4 text-ink"
+          >
+            <p className="flex items-start gap-3 font-semibold">
+              <span
+                aria-hidden="true"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-ball"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+              </span>
+              <span>
+                {claim.name} pressed Bingo ·{' '}
+                {claim.matches > 0
+                  ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}: ${patternNames(claim.completed, patterns)}`
+                  : '✗ not on called numbers'}
+                {claim.alreadyWon
+                  ? ' · already won, nothing more to award'
+                  : claim.awardable === 0 && claim.matches > 0 && ' · no awardable matches'}
+              </span>
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 [&>button]:flex-1 [&>button]:px-3">
               <Button
                 look="secondary"
                 onClick={() => {
@@ -126,7 +150,7 @@ export function ClaimsPanel({
           </li>
         ))}
         {detections.map(({ at, data }) => (
-          <li key={at} className="flex flex-col gap-2 rounded-xl bg-info p-3">
+          <li key={at} className="flex flex-col gap-3 rounded-[20px] bg-info p-4 shadow-card">
             <p className="font-semibold">
               Detected: {data.name} has {patternNames(data.completed, patterns)} ({data.matches}{' '}
               line
@@ -164,6 +188,6 @@ export function ClaimsPanel({
         ))}
       </ul>
       {error && <ErrorText>{error}</ErrorText>}
-    </Panel>
+    </section>
   )
 }

@@ -50,7 +50,8 @@ test('the host calls balls, a player marks one, and a real Bingo is claimed, awa
   await expect(otherPage.getByText(`${winner} had a Bingo!`)).toBeVisible()
   expect(other).not.toBe(winner)
 
-  const leaderboard = host.getByRole('region', { name: 'Leaderboard' })
+  await host.getByRole('button', { name: 'Leaderboard', exact: true }).click()
+  const leaderboard = host.getByRole('dialog', { name: 'Leaderboard' })
   await expect(leaderboard.getByRole('listitem').filter({ hasText: winner })).toContainText('1 win')
 })
 

@@ -139,8 +139,11 @@ Between rounds the host console's main control is the round button, with the sta
 ┌─────────────────────────────────────────────┐
 │ Players (14) ▸                [Options]     │
 │      [ Start Round 4 ]   Manual ◉ ○ Auto    │
+│ [ Clear cards ]  [ Deal New Cards ]         │
 └─────────────────────────────────────────────┘
 ```
+
+**Deal New Cards** gives every player a fresh card (FR-34). It appears only in the lobby, and after a tap it reads **Dealt ✓** for about 1.5 s, so a double tap can't deal twice.
 
 With *Show round numbers* off the button reads **Start New Round**. Pressing it starts a 10-second countdown on every screen, shown where the last ball normally sits:
 

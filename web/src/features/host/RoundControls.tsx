@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Game } from '../game/gameEvents'
 import { useSecondsLeft } from '../game/Countdown'
 import { useAction } from '../game/useAction'
@@ -8,11 +8,15 @@ import type { HostApi } from './hostApi'
 /**
  * The calling controls for each state (docs/03 §2): Start Round N with its Manual/Auto toggle in the lobby,
  * Cancel during the countdown, Grab ball / Auto mode in manual mode, Pause in auto mode, and End round /
- * Clear cards during a round. Grab ball waits out the reading time after a rules change (FR-47).
+ * Clear cards during a round. Grab ball waits out the reading time after a rules change (FR-47). In the
+ * lobby, Deal New Cards gives every player a fresh card (FR-34).
  */
+/** How long "Dealt ✓" shows after dealing new cards. */
+const DealtForMs = 1500
+
 export function RoundControls({ game, host }: { game: Game; host: HostApi }) {
   const [startInAuto, setStartInAuto] = useState(false)
-  const [redraw, setRedraw] = useState(false)
+  const [dealt, setDealt] = useState(false)
   const { busy, error, run } = useAction()
   const countdown = useSecondsLeft(game.state === 'Starting' ? game.countdownEndsAt : null)
   const reading = useSecondsLeft(game.nextBallFrom)
@@ -20,6 +24,17 @@ export function RoundControls({ game, host }: { game: Game; host: HostApi }) {
     ? `Round ${String(game.upcomingRound)}`
     : 'New Round'
   const inRound = game.state === 'Manual' || game.state === 'Auto'
+
+  // "Dealt ✓" for a moment, so a double tap can't deal twice (as Apply does, docs/06).
+  useEffect(() => {
+    if (!dealt) return
+    const timer = setTimeout(() => {
+      setDealt(false)
+    }, DealtForMs)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [dealt])
 
   return (
     <div className="flex flex-col gap-3">
@@ -90,21 +105,24 @@ export function RoundControls({ game, host }: { game: Game; host: HostApi }) {
           <Button
             look="secondary"
             disabled={busy}
-            onClick={() => void run(() => host.clearCards(redraw))}
+            onClick={() => void run(() => host.clearCards(false))}
           >
             Clear cards
           </Button>
-          <label className="flex min-h-12 items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={redraw}
-              onChange={(e) => {
-                setRedraw(e.target.checked)
-              }}
-              className="h-5 w-5"
-            />
-            New cards for everyone
-          </label>
+          {game.state === 'BetweenRounds' && (
+            <Button
+              look="secondary"
+              disabled={busy || dealt}
+              onClick={() =>
+                void run(async () => {
+                  await host.clearCards(true)
+                  setDealt(true)
+                })
+              }
+            >
+              {dealt ? 'Dealt ✓' : 'Deal New Cards'}
+            </Button>
+          )}
         </div>
       )}
 

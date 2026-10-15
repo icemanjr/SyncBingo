@@ -16,6 +16,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Redis__ConnectionString: valkey:6379
+      ForwardedHeaders__Enabled: "true" # nginx in `web` passes each client's address on
     ports:
       - "5080:8080" # direct access for debugging, e.g. http://localhost:5080/healthz
     depends_on:

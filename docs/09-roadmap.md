@@ -23,7 +23,7 @@
 ## Phase 1b — Lean launch (live at SyncBingo.com, ADR 0011, docs/10)
 - [x] Switch Redis to **Valkey** (Compose, Testcontainers); the integration tests prove compatibility
 - [x] **arm64 + amd64** images, cross-compiled (keep the CI image job under 2 minutes)
-- [ ] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
+- [x] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)
 - [ ] AWS account (Paid plan, credits), **Budgets alerts at $10 and $25**, the Lean instance, Cloudflare DNS records
 - [ ] Deploy pipeline to the instance (pull and restart off-hours); measure real bytes per game; verify the docs/10 figures for Lean

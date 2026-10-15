@@ -79,7 +79,7 @@ internal static class RateLimits
         return services;
     }
 
-    /// <summary>The caller's address. Behind a reverse proxy this needs forwarded headers configured (roadmap Phase 1b).</summary>
+    /// <summary>The caller's address: behind a reverse proxy, the one it forwarded (<see cref="ProxyHeaders"/>).</summary>
     public static string ClientAddress(HttpContext http) => http.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
     public static async ValueTask TooManyAsync(HttpContext http, TimeSpan? retryAfter)

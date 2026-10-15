@@ -7,24 +7,28 @@
 | Service | Image | Notes |
 |---------|-------|-------|
 | `web` | multi-stage build: `node` → `nginx-unprivileged` serving the Vite build on port 8080 (planned dev profile: Vite dev server with hot reload) | SPA fallback to `index.html`; proxies `/api` and `/hubs` to `api`, including WebSocket upgrade. Host port 8080 |
-| `api` | multi-stage build: .NET SDK → chiseled ASP.NET runtime (no shell, non-root) | Env: `Redis__ConnectionString`, later `Cors__Origins` and token/password settings. Host port 5080 for debugging |
+| `api` | multi-stage build: .NET SDK → chiseled ASP.NET runtime (no shell, non-root) | Env: `Redis__ConnectionString`, `ForwardedHeaders__Enabled` (see below), later `Cors__Origins` and token/password settings. Host port 5080 for debugging |
 | `valkey` | `valkey/valkey:8.1-alpine`: Redis-compatible (ADR 0011), the 8.x line ElastiCache offers. The API's settings keep the `Redis__` names, since they describe the protocol | No volume; data is disposable |
 
 Commands: `docker compose up --build` (everything, then open http://localhost:8080). Planned: `docker compose --profile dev up` (hot reload) and `docker compose run --rm tests`, which will run the Playwright end-to-end suite against the running stack. The .NET and web unit/integration suites run directly (locally and in CI); integration tests use **Testcontainers** for Redis, so they do not need Compose.
 
 CI builds both images on every PR, for **linux/amd64 and linux/arm64** (ADR 0011), so a broken Dockerfile is caught before merge. Neither needs emulation: the build stages run on the build machine's own architecture (a framework-dependent .NET publish and a Vite build are the same for every CPU), and the runtime stages only copy files onto the target architecture's base image. Image names are fully qualified (`docker.io/…`), which Podman requires.
 
+**Client addresses behind a proxy.** The rate limits key on the caller's address (docs/05 §5), but behind nginx or Caddy every request comes from the proxy. With `ForwardedHeaders__Enabled=true` the API takes the address the proxy appended to `X-Forwarded-For` (only the last one, so a client can't prepend a made-up address), and only when the request comes from loopback or a private network, where the proxy runs. A header from anywhere else is ignored. In the Full profile the ALB plays the proxy's part, from inside the VPC.
+
 Podman works in place of Docker: enable the user socket (`systemctl --user enable --now podman.socket`), set `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`, and use `podman compose` or `docker-compose`.
 
 ## 1a. Lean deployment (the live site, ADR 0011)
 
-One small instance (AWS Lightsail; size to be verified, docs/10) runs a production Compose file:
+One small instance (AWS Lightsail; size to be verified, docs/10) runs `docker-compose.lean.yml`: `SITE_DOMAIN=syncbingo.com docker compose -f docker-compose.lean.yml up -d`. Without `SITE_DOMAIN` it serves `https://localhost` with Caddy's own local certificate, to try the production setup on a laptop.
 
 | Service | Role |
 |---------|------|
-| `caddy` | Let's Encrypt TLS for `syncbingo.com` (DNS on Cloudflare, docs/10 §2a), serves the SPA build, proxies `/api` and `/hubs` (WebSockets) to `api` |
-| `api` | The same image as everywhere else |
-| `valkey` | Append-only persistence on a volume, so live games survive API restarts, deploys and reboots |
+| `caddy` | The `caddy` target of `web/Dockerfile`: the same SPA build with `web/Caddyfile`. Let's Encrypt TLS for `syncbingo.com` and a redirect from `www` (DNS on Cloudflare, docs/10 §2a), HTTP/2 and HTTP/3, zstd/gzip, the same caching as nginx (hashed assets for a year, pages `no-cache`), proxies `/api` and `/hubs` (WebSockets) to `api`. Certificates live on a volume, so rebuilds don't run into Let's Encrypt's rate limits |
+| `api` | The same image as everywhere else, with no published port: only Caddy reaches it. `ForwardedHeaders__Enabled=true` (Caddy replaces any client-sent `X-Forwarded-For` with the real address); `Web__PublicOrigin` from `SITE_DOMAIN` for join and display links |
+| `valkey` | Append-only file (`everysec`) on a volume and no RDB snapshots, so live games survive API restarts, deploys and reboots. `maxmemory 256mb` with `noeviction`: every key has a TTL, and if memory still fills up, new writes fail (new games are refused) rather than a live game being evicted. 256 MB is a first guess until bytes per game are measured (docs/10) |
+
+All three restart unless stopped, and logs are capped at 3 × 10 MB per service for a small disk.
 
 Deploys: CI builds and pushes the images, then the instance pulls and restarts `api` off-hours; clients reconnect and resync. AWS Budgets alerts at $10 and $25.
 

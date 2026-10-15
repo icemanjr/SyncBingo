@@ -107,6 +107,13 @@ Run the full stack in containers (web, api and valkey):
 docker compose up --build         # then open http://localhost:8080
 ```
 
+The live site's setup (Caddy with HTTPS, the API and Valkey with persistence) runs locally too, at https://localhost:8443 with a local certificate:
+
+```bash
+HTTP_PORT=8081 HTTPS_PORT=8443 PUBLIC_ORIGIN=https://localhost:8443 \
+  docker compose -f docker-compose.lean.yml up --build
+```
+
 Planned: `docker compose --profile dev up` for hot reload, and `docker compose run --rm tests` for the Playwright end-to-end tests.
 
 Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).

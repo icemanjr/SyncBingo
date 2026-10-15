@@ -13,7 +13,13 @@ ARG VITE_SERIOUS_BINGO_TEASER=false
 ENV VITE_SERIOUS_BINGO_TEASER=$VITE_SERIOUS_BINGO_TEASER
 RUN npm run build
 
-# Unprivileged nginx listens on 8080 and runs as a non-root user.
+# The live site (Lean, ADR 0011): Caddy serves the same build, gets the certificates and proxies the API.
+# Build it with --target caddy; without a target, the build ends at the nginx image below.
+FROM docker.io/library/caddy:2.11-alpine AS caddy
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/dist /srv
+
+# Local Compose: unprivileged nginx listens on 8080 and runs as a non-root user.
 FROM docker.io/nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

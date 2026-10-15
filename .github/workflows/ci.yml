@@ -105,5 +105,16 @@ jobs:
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
 
-      - name: Compose file is valid
-        run: docker compose config --quiet
+      - name: Live-site web image, Caddy (linux/amd64, linux/arm64)
+        uses: docker/build-push-action@v7
+        with:
+          context: web
+          target: caddy
+          platforms: linux/amd64,linux/arm64
+          push: false
+          cache-from: type=gha,scope=web
+
+      - name: Compose files are valid
+        run: |
+          docker compose config --quiet
+          docker compose -f docker-compose.lean.yml config --quiet

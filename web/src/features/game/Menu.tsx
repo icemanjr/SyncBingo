@@ -14,10 +14,16 @@ export function Menu({
   label,
   items,
   icon,
+  triggerClassName,
+  above = false,
 }: {
   label: string
   items: MenuItem[]
   icon?: ReactNode
+  /** Replaces the round icon button's look, e.g. a labelled tool button. */
+  triggerClassName?: string
+  /** Opens upwards, for a menu near the bottom of the screen. */
+  above?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const id = useId()
@@ -51,7 +57,10 @@ export function Menu({
         onClick={() => {
           setOpen(!open)
         }}
-        className="flex min-h-12 min-w-12 items-center justify-center rounded-xl text-ink-muted hover:bg-accent-soft focus-visible:outline-4 focus-visible:outline-accent"
+        className={
+          triggerClassName ??
+          'flex min-h-12 min-w-12 items-center justify-center rounded-xl text-ink-muted hover:bg-accent-soft focus-visible:outline-4 focus-visible:outline-accent'
+        }
       >
         {icon ?? (
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -64,7 +73,7 @@ export function Menu({
       {open && (
         <ul
           id={id}
-          className="absolute right-0 z-30 mt-1 flex min-w-48 flex-col rounded-2xl bg-surface p-1.5 shadow-card ring-1 ring-line-soft"
+          className={`absolute right-0 z-30 flex min-w-48 flex-col rounded-2xl bg-surface p-1.5 shadow-card ring-1 ring-line-soft ${above ? 'bottom-full mb-1' : 'mt-1'}`}
         >
           {items.map((item) => (
             <li key={item.label}>

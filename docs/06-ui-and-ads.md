@@ -75,20 +75,27 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 ┌───────────────────────┐
 │ [Ad: top banner]      │
 ├───────────────────────┤
-│ [Normal Bingo ⓘ] (N37)│  ← tap: patterns and rules (FR-48); ball corner (if enabled)
-│  B  I  N  G  O        │
-│ 07 22 38 51 66        │
-│ 12 19 41 49 70        │
-│ 03 27 ★  58 62        │
-│ 15 30 33 47 75        │
-│ 09 16 44 60 68        │
-│      [ BINGO! ]       │  ← during a round
-│ Undo  ⚙ My marks      │
-│ Leave game            │  ← asks first (FR-53)
+│ ROUND 1 · HOW TO WIN  │
+│ Normal Bingo ⓘ  (N 37)│  ← tap: patterns and rules (FR-48); the last ball (if shown)
+│ ┌───────────────────┐ │
+│ │ B  I  N  G  O     │ │  ← letter colours (Visual design)
+│ │ 07 22 38 51 66    │ │
+│ │ 12 19 41 49 70    │ │
+│ │ 03 27 ★  58 62    │ │
+│ │ 15 30 33 47 75    │ │
+│ │ 09 16 44 60 68    │ │
+│ └───────────────────┘ │
+│ [      BINGO!      ]  │  ← during a round
+│ [Board][Undo][Marks][More]  ← More: Leave game
 ├───────────────────────┤
 │ [Ad: bottom banner]   │
 └───────────────────────┘
 ```
+
+- **Card tools** sit in one row of icon buttons with short labels: **Call board** (when shown), **Undo** (during a round), **My marks** (FR-51) and **More**, which holds **Leave game** (FR-53).
+- **Auto-fill and New card,** when the host allows them, sit just below.
+- **Join page:** the form is on one card. Arriving by QR shows **Game found from the QR code** with the code and a **Change** button instead of an empty code field. Under the name: "Everyone sees this name when you win." The button reads **Get my card**.
+- **Landing page:** a dark hero ("Bingo for a room full of phones.") with **Join a game** (amber, most visitors) and **Host a game**, then three "how it works" steps.
 
 ### Visual design (2026-10-15)
 

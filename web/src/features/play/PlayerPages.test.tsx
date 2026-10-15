@@ -41,6 +41,15 @@ afterEach(() => {
 })
 
 describe('joining', () => {
+  it("lets a player change the code the QR found, in case it's the wrong game", async () => {
+    fakeApi({})
+    renderAt(`/join/${code}`)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Change' }))
+
+    expect(screen.getByLabelText('Game code')).toHaveValue('9ve4-shp3-k7mw-a2qx')
+  })
+
   it('fills in the code from the QR link and joins', async () => {
     const api = fakeApi({
       [`GET /api/sessions/${code}/join-info`]: { body: { acceptingJoins: true, round: 1 } },
@@ -51,10 +60,11 @@ describe('joining', () => {
     })
     renderAt(`/join/${code}`)
 
-    expect(screen.getByLabelText('Game code')).toHaveValue('9ve4-shp3-k7mw-a2qx')
+    expect(screen.getByText('Game found from the QR code')).toBeInTheDocument()
+    expect(screen.getByText('9ve4-shp3-k7mw-a2qx')).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Game password'), 'harvest')
     await userEvent.type(screen.getByLabelText('Your name'), 'Ava')
-    await userEvent.click(screen.getByRole('button', { name: 'Join' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Get my card' }))
 
     expect(await screen.findByRole('grid', { name: 'Your card' })).toBeInTheDocument()
     expect(api.sent.find((s) => s.path.endsWith('/join'))?.body).toEqual({
@@ -182,7 +192,8 @@ describe('the play screen', () => {
     })
     renderAt(`/play/${code}`)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Leave game' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'More' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Leave game' }))
     expect(
       screen.getByText(
         'Leave the game? A round is in progress, so you can only join again between rounds.',
@@ -191,6 +202,7 @@ describe('the play screen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Stay' }))
     expect(api.sent.some((s) => s.method === 'DELETE')).toBe(false)
 
+    await userEvent.click(screen.getByRole('button', { name: 'More' }))
     await userEvent.click(screen.getByRole('button', { name: 'Leave game' }))
     await userEvent.click(screen.getByRole('button', { name: 'Leave' }))
 
@@ -203,7 +215,8 @@ describe('the play screen', () => {
     fakeApi({ [snapshotPath]: { body: aPlayerSnapshot() } })
     renderAt(`/play/${code}`)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Leave game' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'More' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Leave game' }))
 
     expect(screen.getByText('Leave the game?')).toBeInTheDocument()
   })
@@ -226,7 +239,7 @@ describe('the play screen', () => {
     })
     renderAt(`/play/${code}`)
 
-    expect(await screen.findByText('N 37')).toBeInTheDocument()
+    expect(await screen.findByTestId('last-ball')).toHaveTextContent('N 37')
   })
 
   it('names a shape win, as the server announced it', async () => {
@@ -286,7 +299,7 @@ describe('the play screen', () => {
     fakeApi({ [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) } })
     renderAt(`/play/${code}`)
 
-    await userEvent.click(await screen.findByRole('button', { name: '⚙ My marks' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'My marks' }))
     await userEvent.click(screen.getByRole('radio', { name: /Heart/ }))
     await userEvent.click(screen.getByRole('radio', { name: 'High contrast' }))
 

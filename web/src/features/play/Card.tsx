@@ -87,7 +87,7 @@ export function Card({
     <div
       role="grid"
       aria-label="Your card"
-      className="grid gap-1.5"
+      className="grid gap-2"
       style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(3rem, 1fr))` }}
     >
       {/* Seen, not read out: each square's name starts with its letter instead ("B 7"). */}
@@ -141,7 +141,7 @@ export function Card({
               setShowingFull(undefined)
               onToggle(cell, !marked)
             }}
-            className={`relative flex aspect-square min-h-12 flex-col items-center justify-center rounded-lg border-2 bg-surface focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`relative flex aspect-square min-h-12 flex-col items-center justify-center rounded-xl border-2 bg-surface font-display focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               match ? 'border-dashed border-accent' : 'border-line-soft'
             }`}
           >

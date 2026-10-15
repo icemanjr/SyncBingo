@@ -1,0 +1,9 @@
+# Installed to /etc/systemd/system/ on the live server (docs/07 §1a).
+[Unit]
+Description=Update SyncBingo to the newest published build
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/syncbingo/update.sh

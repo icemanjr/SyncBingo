@@ -1,0 +1,12 @@
+# Installed to /etc/systemd/system/ on the live server (docs/07 §1a); enable with
+# `systemctl enable --now syncbingo-update.timer`. Server time: set the zone with `timedatectl`.
+[Unit]
+Description=Update SyncBingo nightly, when no one is playing
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+# Not after a missed night: catching up at boot could restart the site mid-game.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

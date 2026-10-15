@@ -18,7 +18,7 @@
 | 06 | [UI and ad slots](06-ui-and-ads.md) | Screens, layout, ad-slot rules, accessibility |
 | 07 | [Infrastructure](07-infrastructure.md) | Docker local setup, AWS CDK stacks, CI/CD |
 | 08 | [Testing strategy](08-testing-strategy.md) | Unit, integration, end-to-end, load |
-| 09 | [Roadmap](09-roadmap.md) | MVP phases and future expansion (incl. "Serious Bingo") |
+| 09 | [Roadmap](09-roadmap.md) | MVP phases, the next features (Phase 4) and "Serious Bingo" (Phase 5) |
 | 10 | [Cost and hosting](10-cost-and-hosting.md) | Lean / Middle / Full tiers, cost drivers, free credits, budgets, teardown |
 | — | [ADRs](adr/) | Short records of the key architectural decisions |
 

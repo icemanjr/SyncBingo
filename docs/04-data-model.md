@@ -31,7 +31,7 @@ erDiagram
 
 **Settings defaults** (`SessionSettings.Default`): 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show call board on, auto-fill available off, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*, call board shows the *ball* side, round numbers shown, multiple wins *once per pattern*. *Free space*, *Redraw policy* and *Multiple wins* are round-scoped: they shape a whole round, so they can change only in the lobby, and an Apply that changes one mid-round is refused (422, naming them) with nothing applied.
 
-A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (multiple purchased cards) needs no model change.
+A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (host-assigned cards, several per player) needs no model change.
 
 ## 2. Card generation
 
@@ -90,7 +90,7 @@ Marks, Undo and the auto-fill switch update one `participants` field, checked ag
   - Uniqueness compares the lowercase form (`Key`); the tidied form (`Display`) is what everyone sees.
   - A basic profanity filter (configurable), because children are expected users, follows in Phase 2.
 
-## 6. Reserved for "Serious Bingo" (not built in the MVP)
+## 6. Reserved for "Serious Bingo" (roadmap Phase 5, not built yet)
 
 - `CardClaim`: `{ id, sessionCode, issuedAt, expiresAt, redeemedBy? }`, a single-use claim stored at `s:{code}:claims:{id}`. The host's "generate card" returns a claim QR; scanning it redeems the claim and adds a card to the scanner's participant record. The host can also add a card directly to a participant.
 - Cards carry `issuedInRound`; cards issued this way are removed when the round ends.

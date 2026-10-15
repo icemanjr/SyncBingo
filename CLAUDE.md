@@ -57,7 +57,7 @@ A1 wins credited by host. A2 game-code alphabet omits look-alike characters. A3 
 
 ## Out of scope (for now)
 
-Persistent accounts, payments or any handling of money, chat, native apps. "Serious Bingo" (host-generated card claims, multiple cards per participant, cards expiring each round) is a future phase; keep `Participant.Cards` a list so it needs no model change.
+Persistent accounts, payments or any handling of money, chat, native apps. "Serious Bingo" (the host takes payment outside the app and assigns card(s) to players, several per player; cards expire each round) is roadmap Phase 5, only if the site gets regular traffic; keep `Participant.Cards` a list so it needs no model change.
 
 ## Suggested first tasks (Phase 0 in `docs/09-roadmap.md`)
 

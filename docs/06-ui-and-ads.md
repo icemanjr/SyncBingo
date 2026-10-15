@@ -162,7 +162,8 @@ Every Bingo press appears as an alert with the player's name, the time, the line
 |-----------|---------|
 | *Once per pattern* or *once per round*, awardable 1 | **Inspect**, **Award**, **Dismiss**, ⋯ (**Remove player**) |
 | *Every declared win*, awardable *n* ≥ 1 | **Inspect**, **Award 1** … **Award n** (one button per count, so the host taps the number the player declared; a stepper above 4), **Dismiss**, ⋯ |
-| Awardable 0 ("No awardable matches") | **Inspect**, **Dismiss**, **Remove player**; *Award anyway* stays under ⋯ because the host decides (ADR 0008) |
+| Not on called numbers ("✗ not on called numbers"), card hasn't won | **Inspect**, **Award**, **Dismiss**. Award asks first: *"Award a Bingo that isn't on the called numbers?"* **Award anyway** / **Cancel**, because the host decides (ADR 0008) but may have tapped by mistake |
+| Already won, in the *once* modes ("already won, nothing more to award") | **Inspect**, **Dismiss**. No Award button: an award would change nothing (docs/03) |
 
 Every button keeps the 48 px tap target. An award sends the claim's id, so a double tap counts once.
 

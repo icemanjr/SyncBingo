@@ -481,11 +481,16 @@ public sealed class Session
         var alreadyAwarded = _wins
             .Where(w => w.Round == RoundNumber && w.ParticipantId == participant.Id && w.CardId == cardId && w.WinConditionId == WinConditionId)
             .Sum(w => w.Wins);
+        var alreadyWon = Settings.MultipleWins switch
+        {
+            MultipleWins.OncePerRound => HasWonThisRound(participant.Id, cardId),
+            MultipleWins.OncePerPattern => alreadyAwarded > 0,
+            _ => false,
+        };
         var awardable = Settings.MultipleWins switch
         {
             MultipleWins.EveryDeclaredWin => Math.Max(0, matches.Value - alreadyAwarded),
-            MultipleWins.OncePerRound when HasWonThisRound(participant.Id, cardId) => 0,
-            _ => alreadyAwarded == 0 ? Math.Min(matches.Value, 1) : 0,
+            _ => alreadyWon ? 0 : Math.Min(matches.Value, 1),
         };
         var claim = new Claim(
             _claims.Count + 1,
@@ -498,7 +503,8 @@ public sealed class Session
             matches.Value,
             alreadyAwarded,
             awardable,
-            ClaimStatus.Pending);
+            ClaimStatus.Pending,
+            alreadyWon);
         _claims.Add(claim);
         return Commit(now, new WinClaimed(claim));
     }
@@ -656,7 +662,8 @@ public sealed class Session
         {
             case MultipleWins.OncePerRound when samePattern:
             case MultipleWins.OncePerPattern when samePattern:
-                return Result.Success<IReadOnlyList<SessionEvent>>([]);
+                // Already won: the award changes nothing, but the card's open claims close, so none stays stuck.
+                return CloseOpenClaims(participant.Id, awardedCard, now);
             case MultipleWins.OncePerRound when earlier.Count > 0:
                 return Failure(DomainErrorCode.NotAllowed, "This card has already won this round.");
         }
@@ -795,6 +802,22 @@ public sealed class Session
         && claim.CardId == cardId
         && claim.WinConditionId == WinConditionId
         && claim.Status == ClaimStatus.Pending;
+
+    /// <summary>Dismisses a card's open claims, e.g. ones made after it already won; nothing to close, nothing changes.</summary>
+    private Result<IReadOnlyList<SessionEvent>> CloseOpenClaims(string participantId, int cardId, DateTimeOffset now)
+    {
+        var closed = new List<SessionEvent>();
+        for (var i = 0; i < _claims.Count; i++)
+        {
+            if (IsOpenClaim(_claims[i], participantId, cardId))
+            {
+                _claims[i] = _claims[i] with { Status = ClaimStatus.Dismissed };
+                closed.Add(new ClaimDismissed(_claims[i].Id));
+            }
+        }
+
+        return closed.Count == 0 ? Result.Success<IReadOnlyList<SessionEvent>>([]) : Commit(now, closed);
+    }
 
     private bool HasWonThisRound(string participantId, int cardId) =>
         _wins.Any(w => w.Round == RoundNumber && w.ParticipantId == participantId && w.CardId == cardId);

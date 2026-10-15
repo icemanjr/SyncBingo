@@ -120,7 +120,35 @@ public sealed class MultipleWinsTests
         kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(1, "two lines, but one win");
         kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
 
-        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(0);
+        var again = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+        again.Awardable.ShouldBe(0);
+        again.AlreadyWon.ShouldBeTrue("the host gets no Award button");
+    }
+
+    [Theory]
+    [InlineData(MultipleWins.OncePerPattern)]
+    [InlineData(MultipleWins.OncePerRound)]
+    public void Awarding_a_card_that_already_won_closes_its_claim_instead_of_leaving_it_stuck(MultipleWins mode)
+    {
+        var kit = DoubleBingo(mode);
+        kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
+        var again = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+
+        kit.Session.AwardWin(kit.Player, 1, Now, claimId: again.Id).Single<ClaimDismissed>().ClaimId.ShouldBe(again.Id);
+
+        kit.Session.Claims.ShouldNotContain(c => c.Status == ClaimStatus.Pending);
+        kit.Session.Leaderboard().Single().Wins.ShouldBe(1, "no second win");
+    }
+
+    [Fact]
+    public void A_bingo_not_on_called_numbers_can_still_be_awarded_by_the_host()
+    {
+        var kit = new PlayerTestKit();
+        var claim = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+        claim.Matches.ShouldBe(0);
+        claim.AlreadyWon.ShouldBeFalse();
+
+        kit.Session.AwardWin(kit.Player, 1, Now, claimId: claim.Id).Single<WinAwarded>(); // the host has the last word (ADR 0008)
     }
 
     [Fact]
@@ -131,7 +159,9 @@ public sealed class MultipleWinsTests
         kit.Session.ChangePattern("corners", Now).IsSuccess.ShouldBeTrue();
         kit.Call(65);
 
-        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.Awardable.ShouldBe(0);
+        var claim = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+        claim.Awardable.ShouldBe(0);
+        claim.AlreadyWon.ShouldBeTrue();
     }
 
     [Fact]

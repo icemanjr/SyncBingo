@@ -194,7 +194,7 @@ describe('Display', () => {
     vi.unstubAllGlobals()
   })
 
-  it('connects a TV with its code, saves the join note and disconnects a display', async () => {
+  it('connects a TV with its code, saves the password note and disconnects a display', async () => {
     const api = fakeApi({
       [snapshotPath]: {
         body: aHostSnapshot({ state: 'Auto', round: 1 }, { settings: hostSettings }),
@@ -209,7 +209,7 @@ describe('Display', () => {
     const menu = screen.getByRole('region', { name: 'Displays' })
     await userEvent.type(within(menu).getByLabelText('Connect a TV'), 'k7m-2qx')
     await userEvent.click(within(menu).getByRole('button', { name: 'Connect' }))
-    await userEvent.type(within(menu).getByLabelText('Show with the join QR'), 'Password: harvest')
+    await userEvent.type(within(menu).getByLabelText('Password note'), 'Password: harvest')
     await userEvent.click(within(menu).getByRole('button', { name: 'Save' }))
     await userEvent.click(await within(menu).findByRole('button', { name: 'Disconnect' }))
 

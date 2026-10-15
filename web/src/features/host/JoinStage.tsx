@@ -7,8 +7,9 @@ import { useJoinQr } from './useJoinQr'
 
 /**
  * The lobby's join panel on the host console (docs/06, the design reference): **Join Now!**, the QR with
- * the game code under it and room around it for phone cameras, how joining works, and the join note
- * (FR-49), which the host edits in place.
+ * the game code under it and room around it for phone cameras, how joining works, and the password note
+ * (FR-49): labelled and edited in place for the host; on the TV (no `host`) shown exactly as typed, with
+ * no label, and not at all when empty. Never on the join page, so a mistyped code gets no hint.
  */
 export function JoinStage({
   code,
@@ -17,7 +18,8 @@ export function JoinStage({
 }: {
   code: string
   joinNote: string | null
-  host: HostApi
+  /** Without it the panel is read-only, as on the TV display: the note shows but can't be edited. */
+  host?: HostApi
 }) {
   const { qr } = useJoinQr(code)
   const [editing, setEditing] = useState(false)
@@ -71,18 +73,18 @@ export function JoinStage({
           onSubmit={(e) => {
             e.preventDefault()
             void run(async () => {
-              await host.setJoinNote(note)
+              await host?.setJoinNote(note)
               setEditing(false)
             })
           }}
         >
           <label htmlFor="stage-join-note" className="sr-only">
-            Join note
+            Password note
           </label>
           <input
             id="stage-join-note"
             value={note}
-            maxLength={120}
+            maxLength={80}
             onChange={(e) => {
               setNote(e.target.value)
             }}
@@ -103,7 +105,7 @@ export function JoinStage({
             Cancel
           </Button>
         </form>
-      ) : (
+      ) : host ? (
         <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
           <svg
             aria-hidden="true"
@@ -122,10 +124,10 @@ export function JoinStage({
           <p className="flex-1">
             {joinNote ? (
               <>
-                Join note: <b>{joinNote}</b>
+                Password note: <b>{joinNote}</b>
               </>
             ) : (
-              'No join note. Add one, such as a hint for the password.'
+              'No password note. Add the password, or a hint, to show it on the TV.'
             )}
           </p>
           <button
@@ -138,6 +140,13 @@ export function JoinStage({
             {joinNote ? 'Edit' : 'Add'}
           </button>
         </div>
+      ) : (
+        // On the TV: exactly what the host typed, no label (it may simply be the password); nothing if empty.
+        joinNote && (
+          <p className="rounded-2xl bg-white/10 px-5 py-4 text-center font-display text-3xl font-bold">
+            {joinNote}
+          </p>
+        )
       )}
       {error && <ErrorText>{error}</ErrorText>}
     </section>

@@ -125,10 +125,11 @@ export function DisplayMenu({
           }}
         >
           <label htmlFor="join-note" className="font-semibold">
-            Show with the join QR
+            Password note
           </label>
           <p id="join-note-help" className="text-sm text-ink-muted">
-            For big rooms: the password, or a hint. Shown on displays and here, never on phones.
+            Shown with the join QR on displays exactly as you type it, such as the password or a
+            hint. Never on phones. Leave it empty to show nothing.
           </p>
           <div className="flex flex-wrap gap-2">
             <input

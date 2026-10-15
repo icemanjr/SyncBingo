@@ -51,20 +51,31 @@ describe('the display view (FR-28)', () => {
     const api = fakeApi({ [snapshotPath]: { body: displaySnapshot() } })
     renderDisplay()
 
-    await screen.findByRole('region', { name: 'Join' })
+    await screen.findByRole('region', { name: 'How to join' })
     expect(window.location.hash).toBe('')
     expect(sessionStorage.getItem(`syncbingo:display:${code}`)).toBe('display-token')
     expect(api.sent[0]?.headers.get('Authorization')).toBe('Bearer display-token')
   })
 
-  it('between rounds, shows the join QR and the join note', async () => {
+  it('between rounds, shows the join QR and the password note as typed', async () => {
     sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
     fakeApi({ [snapshotPath]: { body: displaySnapshot({ joinNote: 'Password: harvest' }) } })
     renderDisplay()
 
-    const join = await screen.findByRole('region', { name: 'Join' })
+    const join = await screen.findByRole('region', { name: 'How to join' })
     expect(join).toHaveTextContent('Password: harvest')
     expect(join).toHaveTextContent('9ve4-shp3-k7mw-a2qx')
+    expect(join).not.toHaveTextContent('Password note') // exactly what the host typed, no label
+  })
+
+  it('shows no note at all when the host has not written one', async () => {
+    sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
+    fakeApi({ [snapshotPath]: { body: displaySnapshot({ joinNote: null }) } })
+    renderDisplay()
+
+    const join = await screen.findByRole('region', { name: 'How to join' })
+    expect(join).not.toHaveTextContent(/note/i)
+    expect(screen.queryByRole('button', { name: /Add|Edit/ })).not.toBeInTheDocument()
   })
 
   it('during a round, shows the last ball big and who had Bingo', async () => {
@@ -78,7 +89,7 @@ describe('the display view (FR-28)', () => {
 
     expect(await screen.findByTestId('last-ball')).toHaveTextContent('N 37')
     expect(screen.getByText('Round 2')).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Join' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'How to join' })).not.toBeInTheDocument()
 
     act(() => {
       connection?.onEvent({
@@ -87,14 +98,14 @@ describe('the display view (FR-28)', () => {
         data: { name: 'Ava', winCondition: 'normal', wins: 1 },
       })
     })
-    expect(screen.getByRole('status')).toHaveTextContent('🎉 Ava had a Bingo!')
+    expect(screen.getByRole('status')).toHaveTextContent('Ava had a Bingo!')
   })
 
   it('stops when the host disconnects it, and forgets its token', async () => {
     sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
     fakeApi({ [snapshotPath]: { body: displaySnapshot() } })
     renderDisplay()
-    await screen.findByRole('region', { name: 'Join' })
+    await screen.findByRole('region', { name: 'How to join' })
 
     act(() => {
       connection?.onNotice({ type: 'DisplayDisconnected', data: {} })

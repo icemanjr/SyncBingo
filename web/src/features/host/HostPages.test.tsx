@@ -296,12 +296,12 @@ describe('the host console', () => {
     expect(await screen.findByRole('tab', { name: 'Bingo!, 1 waiting' })).toBeInTheDocument()
   })
 
-  it("adds a join note from the lobby's join panel", async () => {
+  it("adds a password note from the lobby's join panel", async () => {
     const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderConsole()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Add' }))
-    await userEvent.type(screen.getByLabelText('Join note'), "The password is the dog's name")
+    await userEvent.type(screen.getByLabelText('Password note'), "The password is the dog's name")
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {

@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { CallBoard } from '../game/CallBoard'
+import { LastBall } from '../game/LastBall'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
 import { selectionName, winMessage } from '../game/patterns'
 import { SelectionGrids } from '../game/SelectionGrids'
 import { RulesNotice } from '../game/RulesNotice'
 import { useGame } from '../game/useGame'
-import { JoinPanel } from '../host/JoinPanel'
+import { JoinStage } from '../host/JoinStage'
 import { forgetDisplayToken, takeDisplayToken } from './displayToken'
 
 /**
- * The display view (FR-28): what the room sees on a projector or TV. No ads, no controls, read-only: the
- * round and pattern, the last ball huge, the call board, and between rounds the join QR with the join note
- * (FR-49); plus the countdown, rules notices (FR-47), wins and the leaderboard when the host shows it.
+ * The display view (FR-28, the design reference): what the room sees on a projector or TV. No ads, no
+ * controls, read-only. On a wide screen, the left column has the round, the patterns, the last ball large (or
+ * the countdown), the leaderboard when the host shows it and the latest win; the right has the call board,
+ * or between rounds the **Join Now!** panel with the QR and the join note (FR-49). Rules notices (FR-47)
+ * appear above the board.
  */
 export function DisplayView() {
   const code = normalizeCode(useParams().code ?? '')
@@ -40,74 +43,103 @@ export function DisplayView() {
   if (view.state === 'Ended') return centred('The game has ended. Thanks for playing!')
 
   const inRound = view.state === 'Manual' || view.state === 'Auto'
+  const lobby = view.state === 'BetweenRounds'
   const roundLabel = view.settings.showRoundNumbers
     ? `Round ${String(view.upcomingRound)}`
     : inRound
       ? 'This round'
       : 'Next round'
-  const wins = game.messages.filter((m) => m.type === 'WinAwarded')
+  const latestWin = game.messages.filter((m) => m.type === 'WinAwarded').at(-1)
+  const calls = view.calls ?? []
 
   return (
-    <div className="flex min-h-dvh flex-col gap-6 p-6">
-      <header className="flex flex-wrap items-center justify-center gap-4 text-3xl font-bold">
-        <span>{roundLabel}</span>
-        <span aria-hidden="true">·</span>
-        <span>{selectionName(view.winCondition, view)}</span>
-        <SelectionGrids game={view} />
-      </header>
+    <div className="flex min-h-dvh flex-col gap-6 p-6 lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-10 lg:p-10">
+      <div className="flex flex-col items-center gap-5 lg:items-stretch">
+        <div className="flex flex-col items-center gap-2 lg:items-start">
+          <span className="rounded-full bg-ink px-4 py-1.5 text-xl font-extrabold text-page">
+            {roundLabel}
+          </span>
+          <span className="font-display text-3xl font-bold">
+            {selectionName(view.winCondition, view)}
+          </span>
+          <SelectionGrids game={view} />
+        </div>
 
-      {wins.map((message) => (
-        <p
-          key={message.at}
-          role="status"
-          className="rounded-2xl bg-accent p-4 text-center text-4xl font-black text-accent-ink"
-        >
-          {view.settings.winHighlight ? '🎉 ' : ''}
-          {winMessage(
-            (message.data as { name: string }).name,
-            (message.data as { announced?: string | null }).announced,
-            view,
-            false,
-          )}
-        </p>
-      ))}
+        {view.state === 'Starting' ? (
+          <div aria-live="polite" className="flex flex-col items-center gap-2 py-6">
+            <p className="text-lg font-bold tracking-widest text-ink-muted uppercase">
+              Round starts in
+            </p>
+            <p className="font-display text-9xl font-extrabold tabular-nums">{countdown}</p>
+          </div>
+        ) : (
+          !lobby && (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-lg font-bold tracking-widest text-ink-muted uppercase">
+                Last Ball
+              </p>
+              <LastBall last={calls.at(-1)} size="large" />
+            </div>
+          )
+        )}
 
-      {game.rulesNotice && (
-        <RulesNotice notice={game.rulesNotice} patterns={view} onClose={game.dismissRulesNotice} />
-      )}
+        {view.leaderboardVisible && view.leaderboard && (
+          <section
+            aria-label="Leaderboard"
+            className="rounded-3xl bg-surface p-5 text-xl shadow-card"
+          >
+            <h2 className="mb-2 font-display text-2xl font-bold">Leaderboard</h2>
+            {view.leaderboard.length === 0 ? (
+              <p className="text-ink-muted">No wins yet.</p>
+            ) : (
+              <ol className="flex flex-col gap-1">
+                {view.leaderboard.slice(0, 5).map((entry, i) => (
+                  <li key={entry.participantId} className="flex justify-between gap-3">
+                    <span className="truncate">
+                      {i + 1}. {entry.name}
+                    </span>
+                    <span className="font-bold tabular-nums">{entry.wins}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        )}
 
-      {view.state === 'Starting' && (
-        <p aria-live="polite" className="text-center text-5xl font-bold">
-          Round starts in {countdown}
-        </p>
-      )}
+        {latestWin && (
+          <p
+            key={latestWin.at}
+            role="status"
+            className={`mt-auto rounded-3xl bg-accent p-4 text-center font-display text-3xl font-extrabold text-accent-ink ${view.settings.winHighlight ? 'ring-8 ring-ball/60' : ''}`}
+          >
+            {winMessage(
+              (latestWin.data as { name: string }).name,
+              (latestWin.data as { announced?: string | null }).announced,
+              view,
+              false,
+            )}
+          </p>
+        )}
+      </div>
 
-      <CallBoard board={view.board} calls={view.calls ?? []} big />
-
-      {!inRound && view.state !== 'Starting' && (
-        <section aria-label="Join" className="mx-auto rounded-2xl bg-surface p-6 text-xl">
-          <JoinPanel code={code} joinNote={view.joinNote} />
-        </section>
-      )}
-
-      {view.leaderboardVisible && view.leaderboard && (
-        <section
-          aria-label="Leaderboard"
-          className="mx-auto w-full max-w-xl rounded-2xl bg-surface p-6 text-2xl"
-        >
-          <h2 className="mb-2 font-bold">Leaderboard</h2>
-          <ol>
-            {view.leaderboard.map((entry, i) => (
-              <li key={entry.participantId} className="flex justify-between">
-                <span>
-                  {i + 1}. {entry.name}
-                </span>
-                <span className="tabular-nums">{entry.wins}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <div className="flex min-w-0 flex-col justify-center gap-6">
+        {game.rulesNotice && (
+          <RulesNotice
+            notice={game.rulesNotice}
+            patterns={view}
+            onClose={game.dismissRulesNotice}
+          />
+        )}
+        {lobby ? (
+          <div className="mx-auto w-full max-w-4xl">
+            <JoinStage code={code} joinNote={view.joinNote} />
+          </div>
+        ) : (
+          <section aria-label="Call board" className="rounded-[28px] bg-surface p-6 shadow-card">
+            <CallBoard board={view.board} calls={calls} big showLastBall={false} />
+          </section>
+        )}
+      </div>
     </div>
   )
 }

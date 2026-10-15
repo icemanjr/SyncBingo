@@ -1,4 +1,5 @@
 # Local stack: docker compose up --build, then open http://localhost:8080
+# End-to-end tests against it: docker compose --profile tests run --rm tests
 
 services:
   web:
@@ -17,6 +18,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       Redis__ConnectionString: valkey:6379
       ForwardedHeaders__Enabled: "true" # nginx in `web` passes each client's address on
+      RateLimits__CreatesPerHour: "1000" # every end-to-end test creates a game; the live site keeps 30
     ports:
       - "5080:8080" # direct access for debugging, e.g. http://localhost:5080/healthz
     depends_on:
@@ -31,3 +33,21 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  # End-to-end tests (docs/08): real browsers play against the stack above.
+  #   docker compose up -d --build && docker compose --profile tests run --rm tests
+  tests:
+    image: mcr.microsoft.com/playwright:v1.64.1-noble # keep in step with @playwright/test in e2e/package.json
+    profiles: [tests]
+    working_dir: /e2e
+    volumes:
+      - ./e2e:/e2e:Z
+      - /e2e/node_modules # the container's own packages, not the host's
+    # On the host's network, so the browser uses http://localhost:8080 like a person would, and the
+    # links the API hands out (join, display) point at the same place.
+    network_mode: host
+    environment:
+      E2E_BASE_URL: http://localhost:8080
+      CI: ${CI:-}
+    command: sh -c "npm ci --no-audit --no-fund && npx playwright test"
+    init: true

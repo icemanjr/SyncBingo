@@ -34,7 +34,7 @@
 - [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
 - [ ] Profanity filter, TTL/expiry handling
 - [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)
-- [ ] Playwright suite
+- [x] Playwright suite (`e2e/`, the Compose `tests` service, a CI job that gates deploys; docs/08)
 - [ ] **k6 WebSocket load test against the real Lean box** with `docker stats` (target ~10 sessions × 30 players); record the result in docs/10
 
 ## Phase 3 — Full AWS design (portfolio)

@@ -1,0 +1,15 @@
+{
+  "name": "syncbingo-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests: real browsers playing SyncBingo against the running stack (docs/08).",
+  "scripts": {
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "^24.0.0",
+    "typescript": "~6.0.0"
+  }
+}

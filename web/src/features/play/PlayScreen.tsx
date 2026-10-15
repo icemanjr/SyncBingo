@@ -8,10 +8,13 @@ import { RulesNotice } from '../game/RulesNotice'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
 import { Button, ErrorText } from '../game/ui'
+import { CallBoard } from '../game/CallBoard'
+import { Panel } from '../game/ui'
 import { Card } from './Card'
 import { MarkStylePanel } from './MarkStylePanel'
 import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
+import { RulesPanel } from './RulesPanel'
 
 /**
  * Every card face in the set, for **Max** text size (FR-51): one size fitted to the hardest face, so cards
@@ -37,6 +40,8 @@ export function PlayScreen() {
   const player = useMemo(() => playerApi(code, me?.token ?? ''), [code, me?.token])
   const [markStyle, setMarkStyle] = useMarkStyle()
   const [styling, setStyling] = useState(false)
+  const [open, setOpen] = useState<'rules' | 'board'>()
+  const extras = useAction()
   const [sent, setSent] = useState(false)
   const marking = useAction()
   const bingo = useAction()
@@ -125,7 +130,17 @@ export function PlayScreen() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="font-semibold">{pattern?.name ?? view.winCondition}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(open === 'rules' ? undefined : 'rules')
+          }}
+          aria-expanded={open === 'rules'}
+          className="flex min-h-12 items-center gap-1 rounded-xl px-2 font-semibold underline-offset-4 hover:underline focus-visible:outline-4 focus-visible:outline-accent"
+        >
+          {pattern?.name ?? view.winCondition} <span aria-hidden="true">ⓘ</span>
+          <span className="sr-only">: patterns and current rules</span>
+        </button>
         {view.settings.showBallToPlayers && last && (
           <p
             aria-live="polite"
@@ -163,6 +178,16 @@ export function PlayScreen() {
           </div>
         )
       })}
+
+      {open === 'rules' && (
+        <RulesPanel
+          game={view}
+          autoFillOn={you?.autoFillOn ?? false}
+          onClose={() => {
+            setOpen(undefined)
+          }}
+        />
+      )}
 
       {game.rulesNotice && (
         <RulesNotice
@@ -232,6 +257,85 @@ export function PlayScreen() {
           </p>
           {bingo.error && <ErrorText>{bingo.error}</ErrorText>}
         </div>
+      )}
+
+      <div className="flex flex-wrap justify-center gap-2">
+        {view.settings.showCallBoard && calls && (
+          <Button
+            look="secondary"
+            aria-expanded={open === 'board'}
+            onClick={() => {
+              setOpen(open === 'board' ? undefined : 'board')
+            }}
+          >
+            Call board
+          </Button>
+        )}
+        {view.settings.autoFillAvailable && you && (
+          <label className="flex min-h-12 items-center gap-2 rounded-xl border-2 border-line-soft px-3 font-medium">
+            <input
+              type="checkbox"
+              checked={you.autoFillOn}
+              disabled={extras.busy}
+              onChange={(e) => {
+                const on = e.target.checked
+                void extras.run(async () => {
+                  await player.setAutoFill(on)
+                  game.patch((s) => ({ ...s, you: s.you && { ...s.you, autoFillOn: on } }))
+                })
+              }}
+              className="h-5 w-5"
+            />
+            Auto-fill missed numbers
+          </label>
+        )}
+        {view.state === 'BetweenRounds' &&
+          view.settings.redrawPolicy === 'ParticipantsMayRedraw' &&
+          card && (
+            <Button
+              look="secondary"
+              disabled={extras.busy}
+              onClick={() =>
+                void extras.run(async () => {
+                  await player.redraw(card.cardId)
+                  await game.refresh()
+                })
+              }
+            >
+              New card
+            </Button>
+          )}
+      </div>
+      {extras.error && <ErrorText>{extras.error}</ErrorText>}
+
+      {open === 'board' && calls && (
+        <Panel title="Call board">
+          <CallBoard board={view.board} calls={calls} />
+        </Panel>
+      )}
+
+      {view.leaderboard && view.leaderboardVisible && (
+        <Panel title="Leaderboard">
+          {view.leaderboard.length === 0 ? (
+            <p className="text-ink-muted">No wins yet.</p>
+          ) : (
+            <ol className="flex flex-col gap-1">
+              {view.leaderboard.map((entry, i) => (
+                <li
+                  key={entry.participantId}
+                  className={`flex justify-between ${entry.name === me.name ? 'font-bold' : ''}`}
+                >
+                  <span>
+                    {i + 1}. {entry.name}
+                  </span>
+                  <span className="tabular-nums">
+                    {entry.wins} win{entry.wins === 1 ? '' : 's'}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Panel>
       )}
 
       <div className="flex flex-wrap justify-center gap-2">

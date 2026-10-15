@@ -52,7 +52,7 @@ public sealed class ApplyRulesTests
         session.ApplyRules(NoBoard, "blackout", Now).Error!.Message.ShouldBe("Pause before changing the rules.");
 
         session.Settings.ShouldBe(SessionSettings.Default);
-        session.WinConditionId.ShouldBe("normal");
+        session.WinConditionId.ShouldBe(Normal);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class ApplyRulesTests
         session.ApplyRules(SessionSettings.Default with { AutoCallInterval = TimeSpan.Zero }, "blackout", Now)
             .Error!.Code.ShouldBe(DomainErrorCode.Invalid);
 
-        session.WinConditionId.ShouldBe("normal");
+        session.WinConditionId.ShouldBe(Normal);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class ApplyRulesTests
             .Error!.Message.ShouldBe("Free space can only be changed between rounds.");
 
         session.Settings.ShouldBe(SessionSettings.Default);
-        session.WinConditionId.ShouldBe("normal", "nothing else in the same Apply changes either");
+        session.WinConditionId.ShouldBe(Normal, "nothing else in the same Apply changes either");
         NewSession().ApplyRules(NoBoard with { FreeSpace = FreeSpace.Earned }, "normal", Now).IsSuccess.ShouldBeTrue();
     }
 }

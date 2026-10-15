@@ -64,18 +64,25 @@ public static class CardRules
     }
 
     /// <summary>
-    /// How many of the current pattern's masks the card completes: for Normal Bingo the
+    /// How many masks of the selected patterns the card completes: for Normal Bingo the
     /// number of finished lines (two when one ball completes a row and a column), for
     /// single-shape patterns 0 or 1. With <paramref name="marks"/> <c>null</c> only called
     /// cells count (win detection, FR-19); otherwise this follows claim rules (FR-23).
     /// </summary>
-    public static int MatchCount(Card card, uint? marks, Session session)
+    public static int MatchCount(Card card, uint? marks, Session session) =>
+        session.Selection.MatchCount(Covered(card, marks, session));
+
+    /// <summary>The selected patterns the card completes, judged as <see cref="MatchCount"/> is (for the host's eyes only).</summary>
+    public static IReadOnlyList<string> CompletedPatterns(Card card, uint? marks, Session session) =>
+        [.. session.Selection.Completed(Covered(card, marks, session)).Select(pattern => pattern.Id)];
+
+    /// <summary>The cells that count: called ones, and with "Bingo needs marks" only those also marked.</summary>
+    private static uint Covered(Card card, uint? marks, Session session)
     {
         ArgumentNullException.ThrowIfNull(session);
 
         var called = CalledMask(card, session);
-        var covered = marks is { } m && session.Settings.RequireMarksForClaims ? called & m : called;
-        return session.Variant.GetPattern(session.WinConditionId).Masks.Count(mask => (covered & mask) == mask);
+        return marks is { } m && session.Settings.RequireMarksForClaims ? called & m : called;
     }
 
     /// <summary>

@@ -85,7 +85,7 @@ public sealed class SessionLifecycleTests
         var session = InState(SessionState.Manual);
 
         session.ChangePattern("zigzag", Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
-        session.WinConditionId.ShouldBe("normal");
+        session.WinConditionId.ShouldBe(Normal);
     }
 
     [Fact]

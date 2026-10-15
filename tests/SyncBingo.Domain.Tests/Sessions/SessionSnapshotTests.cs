@@ -54,6 +54,25 @@ public sealed class SessionSnapshotTests
     }
 
     [Fact]
+    public void A_session_saved_before_pattern_selections_reads_normal_as_rows_columns_and_diagonals()
+    {
+        var kit = PlayedRound();
+        var saved = kit.Session.ToSnapshot();
+        var old = saved with
+        {
+            WinConditionId = "normal",
+            Wins = [.. saved.Wins.Select(win => win with { WinConditionId = "normal" })],
+            Alerts = [.. saved.Alerts.Select(alert => alert with { WinConditionId = "normal" })],
+        };
+
+        var restored = Session.Restore(old);
+
+        restored.WinConditionId.ShouldBe(Normal);
+        restored.ToSnapshot().Wins.ShouldAllBe(win => win.WinConditionId == Normal, "an earlier win still counts for the once rules");
+        restored.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("and an earlier alert isn't repeated");
+    }
+
+    [Fact]
     public void A_snapshot_with_an_unknown_variant_is_rejected()
     {
         var snapshot = NewSession().ToSnapshot() with { VariantId = "no-such-variant" };

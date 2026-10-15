@@ -24,7 +24,8 @@ public sealed class BingoVariant
         CardLayout layout,
         int ballMax,
         IEnumerable<ColumnRange> columns,
-        IEnumerable<WinPattern> patterns)
+        IEnumerable<WinPattern> patterns,
+        IEnumerable<PatternPreset>? presets = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(layout);
@@ -37,9 +38,11 @@ public sealed class BingoVariant
         BallMax = ballMax;
         Columns = [.. columns];
         Patterns = [.. patterns];
+        Presets = [.. presets ?? []];
 
         ValidateColumns();
         _patternsById = BuildPatternIndex();
+        ValidatePresets();
     }
 
     public string Id { get; }
@@ -54,6 +57,9 @@ public sealed class BingoVariant
 
     public ImmutableArray<WinPattern> Patterns { get; }
 
+    /// <summary>Named groups of patterns, e.g. Normal Bingo = Rows + Columns + Diagonals.</summary>
+    public ImmutableArray<PatternPreset> Presets { get; }
+
     /// <summary>
     /// Marks every new card starts with: the free cell, which always counts toward
     /// any pattern that includes it (assumption A8).
@@ -67,6 +73,46 @@ public sealed class BingoVariant
 
     public bool TryGetPattern(string id, out WinPattern? pattern) =>
         _patternsById.TryGetValue(id, out pattern);
+
+    /// <summary>
+    /// Reads a selection key: pattern ids joined by "+" ("rows+corners"), where a preset's id stands for
+    /// its patterns ("normal" = "rows+columns+diagonals", which also keeps sessions saved before
+    /// selections existed working). Order and repeats don't matter; the result's key is canonical.
+    /// </summary>
+    public bool TryGetSelection(string key, out WinSelection? selection)
+    {
+        selection = null;
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return false;
+        }
+
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var part in key.Split(WinSelection.Separator))
+        {
+            var preset = Presets.FirstOrDefault(p => p.Id == part);
+            if (preset is not null)
+            {
+                ids.UnionWith(preset.PatternIds);
+            }
+            else if (_patternsById.ContainsKey(part))
+            {
+                ids.Add(part);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        selection = new WinSelection([.. Patterns.Where(pattern => ids.Contains(pattern.Id))]);
+        return true;
+    }
+
+    public WinSelection GetSelection(string key) =>
+        TryGetSelection(key, out var selection)
+            ? selection!
+            : throw new KeyNotFoundException($"Variant '{Id}' has no win pattern selection '{key}'.");
 
     /// <summary>The column a ball belongs to, e.g. 37 is column 2 (N) in 75-ball Bingo.</summary>
     public int ColumnOf(int ball)
@@ -115,6 +161,22 @@ public sealed class BingoVariant
 
     private int FreeCellsIn(int column) =>
         Layout.FreeCell is { } free && free % Layout.Columns == column ? 1 : 0;
+
+    private void ValidatePresets()
+    {
+        foreach (var preset in Presets)
+        {
+            if (preset.PatternIds.IsEmpty || preset.PatternIds.Any(id => !_patternsById.ContainsKey(id)))
+            {
+                throw new ArgumentException($"Preset '{preset.Id}' must name patterns of this variant.", "presets");
+            }
+
+            if (_patternsById.ContainsKey(preset.Id))
+            {
+                throw new ArgumentException($"Preset '{preset.Id}' has the same id as a pattern.", "presets");
+            }
+        }
+    }
 
     private ImmutableDictionary<string, WinPattern> BuildPatternIndex()
     {

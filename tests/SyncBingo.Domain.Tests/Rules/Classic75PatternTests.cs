@@ -45,12 +45,15 @@ public sealed class Classic75PatternTests
         { "blackout", [.. Enumerable.Range(0, 25)] },
     };
 
+    /// <summary>Normal Bingo is now a preset: Rows, Columns and Diagonals selected together.</summary>
+    private static WinSelection Normal => Variant.GetSelection("normal");
+
     [Fact]
     public void Normal_has_exactly_the_twelve_lines()
     {
         var expected = NormalLines.Select(row => Cells.Of(row.Data.Item2));
 
-        Variant.GetPattern("normal").Masks.ShouldBe(expected, ignoreOrder: true);
+        Normal.Patterns.SelectMany(pattern => pattern.Masks).ShouldBe(expected, ignoreOrder: true);
     }
 
     [Theory]
@@ -59,7 +62,7 @@ public sealed class Classic75PatternTests
     {
         var marks = Cells.Of(cells) | Free;
 
-        Variant.GetPattern("normal").IsSatisfiedBy(marks).ShouldBeTrue(line);
+        Normal.MatchCount(marks).ShouldBeGreaterThan(0, line);
     }
 
     [Theory]
@@ -70,7 +73,7 @@ public sealed class Classic75PatternTests
         {
             var marks = (Cells.Of(cells) | Free) & ~Cells.Of(missing);
 
-            Variant.GetPattern("normal").IsSatisfiedBy(marks).ShouldBeFalse($"{line} without cell {missing}");
+            Normal.MatchCount(marks).ShouldBe(0, $"{line} without cell {missing}");
         }
     }
 
@@ -79,7 +82,7 @@ public sealed class Classic75PatternTests
     {
         var middleRowWithoutCentre = Cells.Of(10, 11, 13, 14);
 
-        Variant.GetPattern("normal").IsSatisfiedBy(middleRowWithoutCentre | Variant.InitialMarks).ShouldBeTrue();
+        Normal.MatchCount(middleRowWithoutCentre | Variant.InitialMarks).ShouldBe(1);
     }
 
     [Theory]
@@ -122,6 +125,6 @@ public sealed class Classic75PatternTests
     public void Offers_the_documented_win_conditions()
     {
         Variant.Patterns.Select(pattern => pattern.Id)
-            .ShouldBe(["normal", "corners", "B", "I", "N", "G", "O", "blackout"]);
+            .ShouldBe(["rows", "columns", "diagonals", "corners", "B", "I", "N", "G", "O", "blackout"]);
     }
 }

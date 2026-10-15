@@ -29,7 +29,7 @@ public sealed class WinTests
         real.Qualified.ShouldBeTrue();
         kit.Session.Claims.Select(claim => (claim.Id, claim.Status)).ShouldBe([(1, ClaimStatus.Pending), (2, ClaimStatus.Pending)]);
         real.Name.ShouldBe("Sam");
-        real.WinConditionId.ShouldBe("normal");
+        real.WinConditionId.ShouldBe(Normal);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public sealed class WinTests
 
         var win = kit.Session.AwardWin(kit.Player, 1, Now).Single<WinAwarded>().Win;
 
-        win.ShouldBe(new WinRecord(1, "p1", "Sam", 1, "normal", Now, WinSource.Claimed));
+        win.ShouldBe(new WinRecord(1, "p1", "Sam", 1, Normal, Now, WinSource.Claimed));
         kit.Session.Claims[0].Status.ShouldBe(ClaimStatus.Awarded);
         kit.Session.Rounds[0].Wins.ShouldBe([win]);
     }
@@ -90,7 +90,7 @@ public sealed class WinTests
 
         kit.Session.AwardWin(kit.Player, null, Now).Single<WinAwarded>().Win.WinConditionId.ShouldBe("blackout");
 
-        kit.Session.Rounds[0].WinConditionsUsed.ShouldBe(["normal", "blackout"]);
+        kit.Session.Rounds[0].WinConditionsUsed.ShouldBe([Normal, "blackout"]);
         kit.Session.Leaderboard().ShouldBe([new LeaderboardEntry("p1", "Sam", 2)]);
     }
 
@@ -111,7 +111,8 @@ public sealed class WinTests
 
         var detected = kit.Session.DetectWins([kit.Player], Now).Single<WinDetected>();
 
-        detected.ShouldBe(new WinDetected("p1", "Sam", 1, "normal", Matches: 1) { Seq = detected.Seq, Audience = Audience.Host, Streams = detected.Streams });
+        detected.ShouldBe(new WinDetected("p1", "Sam", 1, Normal, Matches: 1, Completed: detected.Completed) { Seq = detected.Seq, Audience = Audience.Host, Streams = detected.Streams });
+        detected.Completed.ShouldBe(["rows"], "the host sees what is complete");
         kit.Marks.ShouldBe(Bits(Free), "the player never marked anything");
         kit.Call(2);
         kit.Session.DetectWins([kit.Player], Now).Value.ShouldBeEmpty("no repeat alerts");
@@ -244,6 +245,44 @@ public sealed class WinTests
         events.Select(e => e.GetType()).ShouldBe([typeof(ClaimDismissed), typeof(ParticipantLeft)]);
         events.OfType<ParticipantLeft>().Single().Audience.ShouldBe(Audience.Everyone, "\"Ava left the game\"");
         kit.Session.Claims.ShouldAllBe(claim => claim.Status == ClaimStatus.Dismissed);
+    }
+
+    [Fact]
+    public void With_several_patterns_any_of_them_wins_and_a_shape_alone_is_announced_by_name()
+    {
+        var kit = new PlayerTestKit();
+        kit.Session.ChangePattern("normal+corners", Now).IsSuccess.ShouldBeTrue();
+        CallAll(kit, [1, 61, 5, 65]); // the four corners, and no line
+
+        var claim = kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim;
+        claim.Matches.ShouldBe(1);
+        claim.Completed.ShouldBe(["corners"]);
+
+        kit.Session.AwardWin(kit.Player, 1, Now).Single<WinAwarded>().Win.Announced.ShouldBe("corners", "\"Sam had Four Corners!\"");
+    }
+
+    [Fact]
+    public void A_line_win_is_announced_as_a_Bingo_even_with_shapes_selected()
+    {
+        var kit = new PlayerTestKit();
+        kit.Session.ChangePattern("rows+corners", Now).IsSuccess.ShouldBeTrue();
+        CallAll(kit, TopRow);
+
+        kit.Session.AwardWin(kit.Player, 1, Now).Single<WinAwarded>().Win.Announced.ShouldBeNull("\"Sam had a Bingo!\"");
+    }
+
+    [Fact]
+    public void Once_per_pattern_counts_the_whole_selection_as_one()
+    {
+        var kit = new PlayerTestKit();
+        kit.Session.ChangePattern("rows+corners", Now).IsSuccess.ShouldBeTrue();
+        CallAll(kit, TopRow);
+        kit.Session.AwardWin(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
+        CallAll(kit, [5, 65]); // the corners now complete too
+
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.AlreadyWon.ShouldBeTrue("one win per selection");
+        kit.Session.ChangePattern("blackout", Now).IsSuccess.ShouldBeTrue();
+        kit.Session.ClaimBingo(kit.Player, 1, Now).Single<WinClaimed>().Claim.AlreadyWon.ShouldBeFalse("a new selection allows another win");
     }
 
     private static void CallAll(PlayerTestKit kit, IEnumerable<int> balls)

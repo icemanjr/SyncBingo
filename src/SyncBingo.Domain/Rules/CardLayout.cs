@@ -57,18 +57,29 @@ public sealed class CardLayout
     /// Every straight line on the card: each row, each column and, on a square
     /// card, both diagonals. On a 5×5 card that is the 12 lines of Normal Bingo.
     /// </summary>
-    public IEnumerable<uint> Lines()
+    public IEnumerable<uint> Lines() => [.. RowLines(), .. ColumnLines(), .. DiagonalLines()];
+
+    /// <summary>Each row, top to bottom.</summary>
+    public IEnumerable<uint> RowLines()
     {
         for (var row = 0; row < Rows; row++)
         {
             yield return Line(column => CellMask(row, column), Columns);
         }
+    }
 
+    /// <summary>Each column, left to right.</summary>
+    public IEnumerable<uint> ColumnLines()
+    {
         for (var column = 0; column < Columns; column++)
         {
             yield return Line(row => CellMask(row, column), Rows);
         }
+    }
 
+    /// <summary>Both diagonals, on a square card; none otherwise.</summary>
+    public IEnumerable<uint> DiagonalLines()
+    {
         if (Rows == Columns)
         {
             yield return Line(i => CellMask(i, i), Rows);

@@ -198,7 +198,7 @@ public sealed class ApiTests : IAsyncDisposable
         settings.GetProperty("autoCallIntervalSeconds").GetInt32().ShouldBe(6);
         settings.GetProperty("showCallBoard").GetBoolean().ShouldBeTrue("unsent fields keep their values");
         settings.GetProperty("unmarking").GetString().ShouldBe("Any", "enums are sent as names");
-        rules.GetProperty("winCondition").GetString().ShouldBe("normal", "the pattern stays unless sent");
+        rules.GetProperty("winCondition").GetString().ShouldBe("rows+columns+diagonals", "the pattern stays unless sent");
     }
 
     [Fact]

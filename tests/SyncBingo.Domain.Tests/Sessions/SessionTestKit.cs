@@ -9,6 +9,9 @@ internal static class SessionTestKit
 {
     public static readonly DateTimeOffset Now = new(2026, 10, 12, 19, 0, 0, TimeSpan.Zero);
 
+    /// <summary>The selection key for Normal Bingo: the key "normal" stands for (rows, columns and diagonals).</summary>
+    public const string Normal = "rows+columns+diagonals";
+
     public static Session NewSession(SessionSettings? settings = null, string winCondition = "normal") =>
         Session.Create(
             GameCode.Parse("9ve4-shp3-k7mw-a2qx"),

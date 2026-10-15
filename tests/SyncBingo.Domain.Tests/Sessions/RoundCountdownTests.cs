@@ -15,7 +15,7 @@ public sealed class RoundCountdownTests
 
         var countdown = session.StartCountdown(startInAuto: false, Now).Single<RoundCountdownStarted>();
 
-        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false, "normal") { Seq = countdown.Seq, Audience = Audience.Everyone, Streams = countdown.Streams });
+        countdown.ShouldBe(new RoundCountdownStarted(1, Now.AddSeconds(10), StartInAuto: false, Normal) { Seq = countdown.Seq, Audience = Audience.Everyone, Streams = countdown.Streams });
         session.State.ShouldBe(SessionState.Starting);
         session.IsInRound.ShouldBeFalse();
         session.UpcomingRound.ShouldBe(1);
@@ -86,7 +86,7 @@ public sealed class RoundCountdownTests
         var session = InState(SessionState.Starting);
 
         session.ChangePattern("blackout", Now).Error!.Message.ShouldBe("The round is about to start. Cancel the countdown to change the rules.");
-        session.WinConditionId.ShouldBe("normal");
+        session.WinConditionId.ShouldBe(Normal);
     }
 
     [Fact]

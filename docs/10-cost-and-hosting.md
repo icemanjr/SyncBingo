@@ -25,7 +25,7 @@ Middle is documented for comparison; it is not planned.
 | Route 53 hosted zone | $0.50/mo | **Not needed for Lean**: DNS is on Cloudflare, free |
 | Domain | `syncbingo.com`, **registered on Cloudflare** (2026-10-14) | Cloudflare charges the registry's price on renewal too, with no markup |
 | CloudFront | Always-free 1 TB egress and 10 M requests/mo | ACM certificates are free |
-| Data transfer | Expected small | Text-only play; estimated a few tens of MB per 30-player game, mostly the first SPA load. **To be measured** (§5) |
+| Data transfer | **Small, measured** (§5a) | About **7 MB per party** of 30 players playing 5 rounds, two thirds of it the first app download. The micro plan's 2 TB a month would carry about 285,000 such parties |
 
 Text-only custom sets (ADR 0009, amended) keep data transfer and storage out of the cost picture: no S3 uploads and no image egress.
 
@@ -65,9 +65,38 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 | What | How | When (roadmap) |
 |------|-----|----------------|
 | Capacity of the Lean box (target ~10 sessions × 30 players) | k6 WebSocket load test against the real box, `docker stats` for memory and CPU | Phase 2 |
-| Bytes per game | Measure a scripted 30-player game: SPA load, snapshot, events | Phase 1b |
+| Bytes per game | ✓ 2026-10-15, §5a | Phase 1b |
 | Lean instance size and price | ✓ 2026-10-15. Lightsail plans in us-east-2: nano $5 (0.5 GB), **micro $7 (1 GB)**, small $12 (2 GB). Nano is too small for .NET + Valkey (256 MB cap) + Caddy. The IPv6-only plans ($1.50–2 cheaper) are ruled out, because many phone and venue networks are IPv4-only. At idle on micro, the containers use about 130 MB of 909 MB | Phase 1b |
 | Full stack price | AWS Pricing Calculator / Pricing API on the synthesized `profile=full` stacks | Phase 3 |
+
+## 5a. Measured: data and memory per game (2026-10-15)
+
+**How it was measured:**
+- **App download:** every file the app loads, from the live site through Caddy, with compression.
+- **Gameplay:** a scripted game against the local stack (same code, fresh build of `fb95e4e`) with 30 players, a host and a display.
+  - Each player joined, loaded their snapshot and connected over WebSockets.
+  - The host started a round and called balls until the first line.
+  - Every player marked every called number on their card, which is an upper bound.
+  - The winner pressed BINGO and the host awarded it. Every screen then reloaded its snapshot, as the app does after a win.
+  - Finally the host cleared the cards, and every screen reloaded again.
+- **What was counted:** every HTTP body both ways, and every WebSocket message each device received.
+- **Adjustments:** API responses of 512 bytes or more were scaled by the compression ratio measured on the live site (a snapshot shrinks from 2,306 to 1,034 bytes with zstd or gzip; Caddy leaves smaller bodies alone). Each response adds 277 B of headers, as measured live. Each request adds an estimated 500 B of browser headers, and each WebSocket message an estimated 30 B of framing and TLS.
+- **Valkey:** `MEMORY USAGE` of the game's keys.
+
+| What | Measured |
+|------|----------|
+| App download, first visit | **140.5 KB per device**: one 132 KB JavaScript file (413 KB uncompressed; gzip, for browsers without zstd, is 131 KB), 5 KB of CSS, the page and the icon. Repeat visits fetch only the 0.8 KB page |
+| Joining and one round to the first Bingo (24 balls) | **503 KB** from the server to all 32 devices (HTTP 285 KB, WebSockets 217 KB), and 193 KB from them |
+| Each further ball | **10.4 KB** out, mostly the ball event (214 B) sent to 32 devices, plus about 9 marks; 4.7 KB in |
+| A round that calls all 75 balls | about **1.0 MB** out |
+| A party: 32 devices, 5 rounds | about **7.0 MB** out. This counts joining in every round, so it errs high; 4.5 MB of it is the first app download |
+| Valkey memory | **26.7 KB per 30-player game** (the participants hash is 11.7 KB of it) |
+
+**What it means:**
+- **Data transfer is not a cost concern.** The micro plan's 2 TB a month would carry about 285,000 parties like that. The earlier estimate of "a few tens of MB per game" was several times too high.
+- **Memory is not either.** Valkey's 256 MB cap (docs/07) would hold about 10,000 such games at once, far more than one small instance could serve. The cap is there to protect the instance, not because games are large.
+- **The biggest gameplay item** is every screen reloading its snapshot after each win and clear: about 80 KB per refresh round. It is acceptable at this size. Patching the screen from the event instead would trim it, if it ever matters.
+- **To reproduce:** the scripts aren't in the repo yet; Phase 2's k6 load test will measure under real concurrency.
 
 ## 6. Teardown
 

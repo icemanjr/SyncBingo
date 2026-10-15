@@ -143,19 +143,23 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
   },
 ]
 
+// Each sentence states the rule as it now stands, not the change ("not highlighted", never "no longer"),
+// because the same words list the current rules (FR-48) as well as announce changes (FR-47).
 const sentences: Record<string, (value: string) => string> = {
   showBallToPlayers: (v) =>
-    v === 'true' ? 'The called ball is shown on your screen' : 'The called ball is no longer shown',
+    v === 'true'
+      ? 'The called ball is shown on your screen'
+      : 'The called ball is not shown on your screen',
   highlightMatches: (v) =>
     v === 'true'
       ? 'Called numbers are highlighted on your card'
-      : 'Called numbers are no longer highlighted',
+      : 'Called numbers are not highlighted',
   showCallBoard: (v) => (v === 'true' ? 'You can open the call board' : 'The call board is hidden'),
   autoFillAvailable: (v) => (v === 'true' ? 'Auto-fill is available' : 'Auto-fill is turned off'),
   freeMarking: (v) =>
     v === 'true' ? 'Any square can be marked' : 'Only called numbers can be marked',
   requireMarksForClaims: (v) =>
-    v === 'true' ? 'Bingo needs your squares marked' : 'Bingo no longer needs marks',
+    v === 'true' ? 'Bingo needs your squares marked' : 'Can call Bingo without marks',
   unmarking: (v) =>
     v === 'Any'
       ? 'Any mark can be removed'

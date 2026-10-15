@@ -44,6 +44,7 @@ const LongPressMs = 500
 export function Card({
   card,
   columns,
+  columnLabels,
   freeCell,
   called,
   highlightMatches,
@@ -54,6 +55,8 @@ export function Card({
 }: {
   card: Schemas['CardView']
   columns: number
+  /** A label above each column (B-I-N-G-O), when the call board's groups match the card's columns. */
+  columnLabels: string[] | null
   freeCell: number | null
   called: Set<number> | null
   highlightMatches: boolean
@@ -86,13 +89,20 @@ export function Card({
       className="grid gap-1.5"
       style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(3rem, 1fr))` }}
     >
+      {/* Seen, not read out: each square's name starts with its letter instead ("B 7"). */}
+      {columnLabels?.map((label) => (
+        <span key={label} aria-hidden="true" className="text-center text-lg font-bold">
+          {label}
+        </span>
+      ))}
       {card.cells.map((number, cell) => {
         const face = faces[cell] ?? ''
         const fit = fitted[cell]
         const marked = (card.marks & (2 ** cell)) !== 0
         const free = cell === freeCell
         const match = highlightMatches && !marked && called?.has(number) === true
-        const label = `${free ? 'Free space' : face}${marked ? ', marked' : ''}${match ? ', called' : ''}`
+        const letter = columnLabels?.[cell % columns]
+        const label = `${free ? 'Free space' : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
         return (
           <button
             key={cell}

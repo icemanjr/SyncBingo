@@ -24,6 +24,12 @@ function setFaces(board: { balls: number[] }[]): string[] {
   return board.flatMap((group) => group.balls).map(String)
 }
 
+/** The board's group labels, one per card column, or none if the groups aren't the card's columns. */
+function columnLabels(board: { label: string }[], columns: number): string[] | null {
+  const labels = board.map((group) => group.label)
+  return labels.length === columns && labels.every((label) => label !== '') ? labels : null
+}
+
 /** How long "Sent to the host!" shows after a Bingo press. */
 const SentForMs = 4000
 
@@ -226,6 +232,7 @@ export function PlayScreen() {
         <Card
           card={card}
           columns={view.card.columns}
+          columnLabels={columnLabels(view.board, view.card.columns)}
           freeCell={view.card.freeCell}
           called={calls ? new Set(calls.map((c) => c.number)) : null}
           highlightMatches={view.settings.highlightMatches}

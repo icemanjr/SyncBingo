@@ -44,6 +44,7 @@ describe('a cut-off square (FR-51)', () => {
       <Card
         card={{ cardId: 1, cells: [75, 74, 73, 72], marks: 0 }}
         columns={2}
+        columnLabels={null}
         freeCell={null}
         called={null}
         highlightMatches={false}

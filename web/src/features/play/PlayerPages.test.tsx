@@ -103,9 +103,9 @@ describe('the play screen', () => {
     })
     renderAt(`/play/${code}`)
 
-    await userEvent.click(await screen.findByRole('gridcell', { name: '1' }))
+    await userEvent.click(await screen.findByRole('gridcell', { name: 'B 1' }))
 
-    expect(await screen.findByRole('gridcell', { name: '1, marked' })).toHaveAttribute(
+    expect(await screen.findByRole('gridcell', { name: 'B 1, marked' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
@@ -127,7 +127,7 @@ describe('the play screen', () => {
     })
     renderAt(`/play/${code}`)
 
-    await userEvent.click(await screen.findByRole('gridcell', { name: '1' }))
+    await userEvent.click(await screen.findByRole('gridcell', { name: 'B 1' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Only called numbers can be marked in this game.',
@@ -156,7 +156,7 @@ describe('the play screen', () => {
 
     expect(await screen.findByText('Waiting for the host to start Round 1.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'BINGO!' })).not.toBeInTheDocument()
-    expect(screen.getByRole('gridcell', { name: '1' })).toBeDisabled()
+    expect(screen.getByRole('gridcell', { name: 'B 1' })).toBeDisabled()
   })
 
   it("shows the round's pattern while it counts down", async () => {
@@ -236,7 +236,7 @@ describe('the play screen', () => {
       colour: 'var(--ink)',
       textSize: 'max',
     })
-    expect(screen.getByRole('gridcell', { name: '1' }).querySelector('span')).toHaveClass(
+    expect(screen.getByRole('gridcell', { name: 'B 1' }).querySelector('span')).toHaveClass(
       'text-4xl',
     )
   })

@@ -30,7 +30,25 @@ One small instance (AWS Lightsail; size to be verified, docs/10) runs `docker-co
 
 All three restart unless stopped, and logs are capped at 3 × 10 MB per service for a small disk.
 
-Deploys: CI builds and pushes the images, then the instance pulls and restarts `api` off-hours; clients reconnect and resync. AWS Budgets alerts at $10 and $25.
+**Deploys: the server pulls, nightly.**
+- After a merge to master, and only when every check passes, CI's `publish` job pushes both images to GitHub's container registry: `ghcr.io/icemanjr/syncbingo-api` and `ghcr.io/icemanjr/syncbingo-web-caddy`. Each is tagged `latest` and `sha-<commit>` and labelled with its commit. Both are for amd64 and arm64.
+- At 04:00 server time, a systemd timer (`deploy/syncbingo-update.timer`) runs `deploy/update.sh` in `/opt/syncbingo`. The script:
+  1. pulls `latest` and reads the commit from its label;
+  2. stops there if that commit is already running;
+  3. otherwise fetches that commit's `docker-compose.lean.yml` and pulls both images by their `sha-` tag, so the API, the web app and the Compose settings always come from the same commit;
+  4. runs `up -d`, which restarts only what changed. Players reconnect and resync from the snapshot (ADR 0002).
+- If any step fails, nothing restarts. For an urgent fix, run the same script by hand over SSH.
+- GitHub needs no key or access to the server, and the server needs no registry credentials: the packages are public, like the repository.
+
+**Server setup** (once):
+1. Install Docker with the Compose plugin.
+2. Put `update.sh` in `/opt/syncbingo`, with an `.env` holding `SITE_DOMAIN=syncbingo.com`.
+3. Copy the two units to `/etc/systemd/system/` and run `systemctl enable --now syncbingo-update.timer`.
+4. Set the time zone with `timedatectl`.
+5. Run `update.sh` once to start the site.
+6. On GitHub, make each new package public (Package settings → Change visibility); new packages start private.
+
+AWS Budgets alerts at $10 and $25.
 
 ## 2. AWS target (Full profile)
 

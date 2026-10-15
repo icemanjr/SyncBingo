@@ -4,7 +4,8 @@
 #
 # Without SITE_DOMAIN it serves https://localhost (Caddy's own local certificate), to try it on a laptop;
 # rootless Podman can't bind 80 and 443, so add HTTP_PORT=8080 HTTPS_PORT=8443 PUBLIC_ORIGIN=https://localhost:8443.
-# Images: CI will push them to GHCR (deploy pipeline, roadmap Phase 1b); until then add --build.
+# Images: CI publishes them to GHCR after each merge; deploy/update.sh pulls them nightly (docs/07 §1a).
+# To build them here instead, add --build.
 
 name: syncbingo
 

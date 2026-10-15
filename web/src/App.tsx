@@ -3,6 +3,9 @@ import { ComingNext } from './app/ComingNext'
 import { FullScreen, Layout } from './app/Layout'
 import { CreateGamePage } from './features/host/CreateGamePage'
 import { HostConsole } from './features/host/HostConsole'
+import { DisplayView } from './features/display/DisplayView'
+import { PairPage } from './features/display/PairPage'
+import { TvPage } from './features/display/TvPage'
 import { LandingPage } from './features/landing/LandingPage'
 import { JoinPage } from './features/play/JoinPage'
 import { PlayScreen } from './features/play/PlayScreen'
@@ -63,7 +66,7 @@ export function AppRoutes() {
         path="/display/:code"
         element={
           <FullScreen>
-            <ComingNext what="The display view" />
+            <DisplayView />
           </FullScreen>
         }
       />
@@ -71,8 +74,16 @@ export function AppRoutes() {
         path="/tv"
         element={
           <FullScreen>
-            <ComingNext what="Connecting a TV" />
+            <TvPage />
           </FullScreen>
+        }
+      />
+      <Route
+        path="/pair/:pairingCode"
+        element={
+          <Layout>
+            <PairPage />
+          </Layout>
         }
       />
       <Route

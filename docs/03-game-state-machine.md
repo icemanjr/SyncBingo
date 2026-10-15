@@ -24,7 +24,7 @@ stateDiagram-v2
 - **BetweenRounds** is the lobby, before the first round and between rounds. Joining and (per FR-20) card redraws happen here. The host's main button reads **Start Round N** (or **Start New Round** with *Show round numbers* off, FR-46), with a **Manual / Auto** toggle beside it, Manual by default.
 - **Starting** is the 10-second countdown (FR-45). Joining and redraws are closed from its first second; the host can **Cancel** back to the lobby. At zero the scheduler starts the round, under any round-scoped settings that were waiting, and every player's marks are reset for those settings.
 - **InRound** starts in **Manual** (the host draws with *Grab ball*), or in **Auto** if the toggle said so, with its first ball drawn at zero. **Auto** draws on a timer until the host presses *Pause*. Players can mark in both.
-- **Clear cards** ends the round (if one is running), clears marks and called balls, optionally gives everyone a new card, and returns to the lobby, so late arrivals can join before the next round. **End round** stops the round but leaves the cards and calls on screen.
+- **Clear cards** ends the round (if one is running), clears marks and called balls, and returns to the lobby, so late arrivals can join before the next round. **End round** stops the round but leaves the cards and calls on screen.
 - **Ended** is reached by the host ending the session or by TTL expiry. All data is then discarded.
 
 ## 2. Commands by state
@@ -35,7 +35,7 @@ stateDiagram-v2
 | Start Round N | ✔ | – | – | – | Starts the 10 s countdown (FR-45), with the Manual/Auto toggle |
 | Cancel countdown | – | ✔ | – | – | Back to the lobby; joining reopens |
 | Round start (at zero) | – | ✔ | – | – | Scheduler only; refills the hopper and resets marks |
-| Clear cards | ✔ | ✖ | ✔ (ends current) | ✔ (ends current) | Clears marks and calls, optional redraw, back to the lobby (FR-34) |
+| Clear cards | ✔ | ✖ | ✔ (ends current) | ✔ (ends current) | Clears marks and calls, back to the lobby (FR-34) |
 | End round | – | – | ✔ | ✔ | Stops the round; cards and calls stay visible |
 | Auto mode | – | – | ✔ | – | Draws a ball at once, then schedules the next after the interval. Not within 3 s of a mid-round rules change (FR-47) |
 | Pause | – | – | – | ✔ | Back to manual: cancels the auto-call schedule. No banner is shown |
@@ -47,7 +47,7 @@ stateDiagram-v2
 | Claim Bingo | ✖ | ✖ | ✔ | ✔ | Any time during a round, even while the next ball waits after a rules change. Always alerts the host, valid or not (FR-37a) |
 | Apply rules (Options → Apply) | ✔ | ✖ | ✔ | ✖ | Settings and pattern together, in one step. Before a round: picks its rules. Mid-round: the same balls and marks continue; free space, redraw policy and multiple wins are lobby only, so an Apply changing them is refused. Refused in auto mode ("Pause before changing the rules") and during the countdown, so the host can announce the change while nothing is being called |
 | Redraw card (participant) | ✔ if allowed | ✖ | ✖ | ✖ | Policy FR-20 |
-| Redraw cards (host) | ✔ | – | – | – | With *Clear cards* |
+| Deal New Cards (host) | ✔ | ✖ | ✖ | ✖ | A fresh card for every player, in the lobby only (FR-34) |
 | Award win | – | – | ✔ | ✔ | Credits a participant; feeds leaderboard |
 | Dismiss claim | – | – | ✔ | ✔ | Host clears a claim without awarding it |
 | Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |

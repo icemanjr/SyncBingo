@@ -95,6 +95,34 @@ describe('the host console', () => {
     vi.unstubAllGlobals()
   })
 
+  it('in the lobby, deals everyone new cards with one button', async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Deal New Cards' }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/cards/clear'))?.body).toEqual({
+        redrawCards: true,
+      })
+    })
+    expect(await screen.findByRole('button', { name: 'Dealt ✓' })).toBeDisabled()
+    expect(screen.queryByRole('checkbox', { name: /new cards/i })).not.toBeInTheDocument()
+  })
+
+  it('offers Deal New Cards only in the lobby, and Clear cards keeps the cards', async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot({ state: 'Manual', round: 1 }) } })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Clear cards' }))
+    expect(screen.queryByRole('button', { name: 'Deal New Cards' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/cards/clear'))?.body).toEqual({
+        redrawCards: false,
+      })
+    })
+  })
+
   it('in the lobby, starts Round 1 in the chosen mode', async () => {
     const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderConsole()

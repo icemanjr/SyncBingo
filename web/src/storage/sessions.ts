@@ -27,6 +27,23 @@ export const seats = {
     }
   },
 
+  /** The games this browser is hosting, e.g. to connect a TV from the TV's QR (ADR 0010). */
+  hostedGames(): string[] {
+    try {
+      const codes: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const name = localStorage.key(i)
+        if (!name?.startsWith('syncbingo:')) continue
+        const code = name.slice('syncbingo:'.length)
+        if (seats.load(code)?.role === 'host') codes.push(code)
+      }
+
+      return codes
+    } catch {
+      return []
+    }
+  },
+
   forget(code: string): void {
     try {
       localStorage.removeItem(key(code))

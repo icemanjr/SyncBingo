@@ -118,7 +118,7 @@ Persistent accounts; payments or any handling of money; chat; custom card images
 
 ## 6. Future: "Serious Bingo"
 
-The app handles **no money**. The host collects payment, then generates a card (new single-use QR that a participant scans to add that card to themselves) or adds a card to a named participant. Cards expire at the end of each round. The MVP data model already allows a participant to hold more than one card (see 04). Note that real-money games are regulated in many jurisdictions; this should be reviewed before any such feature ships.
+Roadmap **Phase 5**, considered only if the site gets regular traffic. The app handles **no money**: the host takes payment outside the app, then **assigns card(s) to players**, as many as each bought (or generates a single-use QR a player scans to add a card to themselves). A player may hold several cards, shown together on their screen; cards expire at the end of each round. The MVP data model already allows a participant to hold more than one card (see 04). Real-money games are regulated in many jurisdictions; this needs a legal review before any such feature ships.
 
 ## 7. Confirmed assumptions
 

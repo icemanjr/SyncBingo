@@ -142,11 +142,13 @@ The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
 
 ## Roadmap
 
-0. **Foundations:** solution layout, Docker Compose, CI, domain model with tests
-1. **Core game (MVP):** sessions, joining, calling, marking, win conditions, rounds, leaderboard
-2. **Polish and hardening:** accessibility, rate limiting, Playwright and k6 suites
-3. **AWS deployment:** CDK stacks, OIDC pipeline, dashboards, live demo
-4. **Future:** "Serious Bingo" (multiple cards per player), custom variants, waiting room
+0. **Foundations:** solution layout, Docker Compose, CI, domain model with tests ✓
+1. **Core game (MVP):** sessions, joining, calling, marking, win conditions, rounds, leaderboard, host console, phones, display and TV pairing ✓
+   - **1b. Lean launch:** the live site at syncbingo.com on one small instance (Valkey, multi-architecture images, Caddy, deploy pipeline)
+2. **Polish and hardening:** accessibility pass, Playwright and k6 suites, load test on the live box
+3. **Full AWS design:** CDK stacks (both profiles), OIDC pipeline, dashboards; deployed once for the portfolio
+4. **Next features:** custom content sets (text) with a set editor, custom variants (ball ranges, card sizes, patterns), a waiting room for late arrivals
+5. **Serious Bingo** (only if the site gets regular traffic): the host takes payment outside the app and assigns card(s) to players, several per player if bought; cards expire each round
 
 Details are in [09 — Roadmap](docs/09-roadmap.md).
 

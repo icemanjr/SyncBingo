@@ -21,6 +21,8 @@ COPY --from=build /app/dist /srv
 
 # Local Compose: unprivileged nginx listens on 8080 and runs as a non-root user.
 FROM docker.io/nginxinc/nginx-unprivileged:1.31-alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# A template, filled in at start-up with the container's DNS servers (see the file).
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080

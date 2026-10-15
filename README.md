@@ -74,6 +74,7 @@ src/SyncBingo.Application/     commands, handlers, ports
 src/SyncBingo.Infrastructure/  Redis store, scheduler, hashing
 src/SyncBingo.Api/             endpoints, SignalR hub, auth
 tests/                         unit and integration tests
+e2e/                           Playwright end-to-end tests (real browsers, whole stack)
 web/                           React + TypeScript SPA
 infra/                         AWS CDK (C#)
 docs/                          design documents and ADRs
@@ -114,7 +115,13 @@ HTTP_PORT=8081 HTTPS_PORT=8443 PUBLIC_ORIGIN=https://localhost:8443 \
   docker compose -f docker-compose.lean.yml up --build
 ```
 
-Planned: `docker compose --profile dev up` for hot reload, and `docker compose run --rm tests` for the Playwright end-to-end tests.
+Run the end-to-end tests against that stack, in Playwright's own container (or `npm test` in `e2e/` with Playwright installed locally):
+
+```bash
+docker compose --profile tests run --rm tests
+```
+
+Planned: `docker compose --profile dev up` for hot reload.
 
 Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 
@@ -127,7 +134,7 @@ Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 | Integration | WebApplicationFactory + Testcontainers (Redis) | Redis store atomicity and expiry, endpoints, auth, rate limits, scheduler, concurrency |
 | Real-time | SignalR .NET client | Event delivery, audiences, reconnect and resync |
 | Frontend unit | Vitest + Testing Library | Components, hooks, store |
-| End-to-end | Playwright | Host and several players through full games, mobile viewports |
+| End-to-end | Playwright | Host and players (phone-sized screens) through full games: joining, calling, marking, claims and awards, rule changes, leaving, the TV display, ad slots. In CI on every PR, before any deploy |
 | Load | k6 | 100 players per session, draw fan-out latency |
 
 The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).

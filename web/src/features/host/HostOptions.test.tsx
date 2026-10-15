@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { seats } from '../../storage/sessions'
-import { aHostSnapshot } from '../../test/fixtures'
+import { aHostSnapshot, standardPatterns } from '../../test/fixtures'
 import { fakeApi } from '../../test/fakeApi'
 import { RulesNotice } from '../game/RulesNotice'
 import { HostConsole } from './HostConsole'
@@ -64,7 +64,8 @@ describe('Options (FR-32)', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Mark any square' }))
-    await userEvent.click(screen.getByRole('radio', { name: 'Blackout' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Blackout' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Normal Bingo' }))
     await userEvent.click(screen.getByRole('button', { name: 'Apply 2 changes' }))
 
     await waitFor(() => {
@@ -74,6 +75,42 @@ describe('Options (FR-32)', () => {
       })
     })
     expect(await screen.findByRole('button', { name: 'Applied ✓' })).toBeDisabled()
+  })
+
+  it('adds a pattern to the selection, and never lets the last one go', async () => {
+    const api = fakeApi({
+      [snapshotPath]: { body: aHostSnapshot({}, { settings: hostSettings }) },
+      [`PUT /api/sessions/${code}/rules`]: {
+        body: { settings: hostSettings, winCondition: 'rows+columns+diagonals+corners' },
+      },
+    })
+    renderConsole()
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Four Corners' }))
+    expect(
+      screen.getByText(/Any selected pattern wins: Normal Bingo or Four Corners/),
+    ).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Apply/ }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/rules'))?.body).toEqual({
+        settings: null,
+        winCondition: 'rows+columns+diagonals+corners',
+      })
+    })
+  })
+
+  it('keeps at least one pattern selected', async () => {
+    fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot({ winCondition: 'corners' }, { settings: hostSettings }),
+      },
+    })
+    renderConsole()
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+
+    expect(screen.getByRole('checkbox', { name: /Four Corners/ })).toBeDisabled()
   })
 
   it('locks the between-rounds settings during a round', async () => {
@@ -223,7 +260,7 @@ describe('the rules notice (FR-47)', () => {
           ],
           nextBallFrom: '',
         }}
-        patterns={[{ id: 'blackout', name: 'Blackout', masks: [] }]}
+        patterns={{ patterns: standardPatterns, presets: [] }}
         onClose={onClose}
       />,
     )

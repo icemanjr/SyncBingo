@@ -44,7 +44,9 @@ In auto mode the **Options** button is hidden, as above; in the lobby and in man
 
 ### Options and Apply (FR-32)
 
-Options holds every rule: the settings and the win pattern. Changes there are a **draft** kept on the host's device until the host presses **Apply**:
+Options holds every rule: the settings and the win patterns. Changes there are a **draft** kept on the host's device until the host presses **Apply**:
+
+- **Patterns** (FR-21) are checkboxes, and any selected pattern wins. **Normal Bingo** heads its group and switches **Rows**, **Columns** and **Diagonals** together; when only some are on it shows as partly checked. The shapes follow: Four Corners, the letters and Blackout. The last selected pattern can't be cleared ("at least one pattern"). A line above the list names the draft selection ("Any selected pattern wins: Normal Bingo or Four Corners").
 
 - Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
 - **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.
@@ -112,7 +114,7 @@ Tapping the pattern name opens this panel, in the lobby, during the countdown or
 └──────────────────────────┘   └──────────────────────────┘
 ```
 
-- **Patterns:** grids are drawn from the shapes the server sends (docs/05 snapshot), never hard-coded, so other card sizes and patterns need no client change. Cells in the pattern are filled **and** outlined, not shown by colour alone; each grid has a text alternative ("Top row", "Column B", "Diagonal").
+- **Patterns:** one grid per selected pattern, under "Any one of these wins:" when there are several. Line patterns show one example line ("Any of the 5 rows"). Grids are drawn from the shapes the server sends (docs/05 snapshot), never hard-coded, so other card sizes and patterns need no client change. Cells in the pattern are filled **and** outlined, not shown by colour alone; each grid has a text alternative ("Top row", "Column B", "Diagonal").
 - **Current rules:** every rule in force that applies to players, in plain words, including the player's own auto-fill switch; host-only settings are left out.
 - Tabs are real tabs for assistive technology (`role="tablist"`), each at least 48 px tall. The panel updates in place if the host applies new rules while it is open, and it never covers the BINGO button.
 

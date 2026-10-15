@@ -303,6 +303,10 @@ public sealed class Participant
     }
 
     /// <summary>How many lines (pattern masks) a card completes under claim rules; see <see cref="CardRules.MatchCount"/>.</summary>
+    /// <summary>The selected patterns this card completes, by the same rules as <see cref="Matches"/>.</summary>
+    public IReadOnlyList<string> CompletedPatterns(int cardId, Session session) =>
+        FindCard(cardId) is { } card ? CardRules.CompletedPatterns(card.Card, card.Marks, session) : [];
+
     public Result<int> Matches(int cardId, Session session)
     {
         ArgumentNullException.ThrowIfNull(session);

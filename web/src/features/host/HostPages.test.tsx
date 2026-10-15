@@ -187,6 +187,7 @@ describe('the host console', () => {
       awardable: 1,
       status: 'Pending' as const,
       alreadyWon: false,
+      completed: ['rows'],
     }
     const api = fakeApi({
       [snapshotPath]: {
@@ -195,7 +196,7 @@ describe('the host console', () => {
     })
     renderConsole()
 
-    expect(await screen.findByText(/Ava pressed Bingo/)).toHaveTextContent('✓ 1 line')
+    expect(await screen.findByText(/Ava pressed Bingo/)).toHaveTextContent('✓ 1 line: Rows')
     await userEvent.click(screen.getByRole('button', { name: 'Award' }))
 
     await waitFor(() => {

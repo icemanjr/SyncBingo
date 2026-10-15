@@ -15,16 +15,6 @@ const code = '9ve4shp3k7mwa2qx'
 const snapshotPath = `GET /api/sessions/${code}/snapshot`
 const settings = aGame().settings
 
-/** Normal Bingo's 12 lines in the server's order: 5 rows, 5 columns, 2 diagonals. */
-const normalMasks = [
-  ...Array.from({ length: 5 }, (_, r) => 0b11111 << (r * 5)),
-  ...Array.from({ length: 5 }, (_, c) =>
-    [0, 5, 10, 15, 20].reduce((m, o) => m | (1 << (o + c)), 0),
-  ),
-  [0, 6, 12, 18, 24].reduce((m, c) => m | (1 << c), 0),
-  [4, 8, 12, 16, 20].reduce((m, c) => m | (1 << c), 0),
-]
-
 function renderPlay() {
   render(
     <MemoryRouter initialEntries={[`/play/${code}`]}>
@@ -51,7 +41,6 @@ describe('the player extras', () => {
         body: aPlayerSnapshot({
           state: 'Manual',
           round: 1,
-          patterns: [{ id: 'normal', name: 'Normal Bingo', masks: normalMasks }],
           settings: { ...settings, freeMarking: false, freeSpace: 'Earned' },
         }),
       },
@@ -60,13 +49,10 @@ describe('the player extras', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: /Normal Bingo/ }))
 
-    expect(
-      screen.getByRole('img', { name: 'Any row, for example the top row' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('img', { name: 'Any column, for example column B' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Either diagonal' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Any of the 5 rows' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Any of the 5 columns' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Any of the 2 diagonals' })).toBeInTheDocument()
+    expect(screen.getByText('Any one of these wins:')).toBeInTheDocument()
     expect(screen.getByText(/must be earned first/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('tab', { name: 'Current rules' }))

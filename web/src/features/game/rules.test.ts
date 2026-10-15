@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { describeChange } from './rules'
 
+const noPatterns = { patterns: [], presets: [] }
+
 describe('rule sentences (FR-47, FR-48)', () => {
-  const off = (rule: string) => describeChange({ rule, value: 'false' }, [])
+  const off = (rule: string) => describeChange({ rule, value: 'false' }, noPatterns)
 
   it('state the rule as it stands, so they read right in the current rules too', () => {
     expect(off('requireMarksForClaims')).toBe('Can call Bingo without marks')
@@ -21,7 +23,7 @@ describe('rule sentences (FR-47, FR-48)', () => {
     ]
     for (const rule of rules) {
       for (const value of ['true', 'false']) {
-        expect(describeChange({ rule, value }, [])).not.toMatch(/no longer/i)
+        expect(describeChange({ rule, value }, noPatterns)).not.toMatch(/no longer/i)
       }
     }
   })

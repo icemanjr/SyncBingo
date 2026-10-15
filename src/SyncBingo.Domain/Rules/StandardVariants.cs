@@ -24,6 +24,8 @@ public static class StandardVariants
 
         WinPattern Shape(string id, string name, params string[] rows) =>
             new(id, name, [layout.ParseShape(rows)]);
+        WinPattern Letter(string letter, params string[] rows) =>
+            new(letter, $"Letter {letter}", [layout.ParseShape(rows)], announcedAs: $"the letter {letter}");
 
         return new BingoVariant(
             id: "classic-75",
@@ -39,44 +41,50 @@ public static class StandardVariants
             ],
             patterns:
             [
-                new WinPattern("normal", "Normal Bingo", layout.Lines()),
+                new WinPattern("rows", "Rows", layout.RowLines(), isLine: true),
+                new WinPattern("columns", "Columns", layout.ColumnLines(), isLine: true),
+                new WinPattern("diagonals", "Diagonals", layout.DiagonalLines(), isLine: true),
                 Shape("corners", "Four Corners",
                     "X...X",
                     ".....",
                     ".....",
                     ".....",
                     "X...X"),
-                Shape("B", "Letter B",
+                Letter("B",
                     "XXXX.",
                     "X...X",
                     "XXXX.",
                     "X...X",
                     "XXXX."),
-                Shape("I", "Letter I",
+                Letter("I",
                     "XXXXX",
                     "..X..",
                     "..X..",
                     "..X..",
                     "XXXXX"),
-                Shape("N", "Letter N",
+                Letter("N",
                     "X...X",
                     "XX..X",
                     "X.X.X",
                     "X..XX",
                     "X...X"),
-                Shape("G", "Letter G",
+                Letter("G",
                     "XXXXX",
                     "X....",
                     "X.XXX",
                     "X...X",
                     "XXXXX"),
-                Shape("O", "Letter O",
+                Letter("O",
                     "XXXXX",
                     "X...X",
                     "X...X",
                     "X...X",
                     "XXXXX"),
                 new WinPattern("blackout", "Blackout", [layout.AllCells]),
+            ],
+            presets:
+            [
+                new PatternPreset("normal", "Normal Bingo", ["rows", "columns", "diagonals"]),
             ]);
     }
 }

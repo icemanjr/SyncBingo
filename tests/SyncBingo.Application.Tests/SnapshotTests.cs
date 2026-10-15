@@ -91,9 +91,13 @@ public sealed class SnapshotTests
 
         var game = (await Queries.SnapshotAsync(code, Caller.Host, TestApp.Ct)).Value.Game;
 
-        game.Patterns.Select(p => p.Id).ShouldBe(["normal", "corners", "B", "I", "N", "G", "O", "blackout"]);
-        game.Patterns[0].Masks.Count.ShouldBe(12, "every row, column and diagonal");
-        game.Patterns[1].Masks.ShouldBe([(1u << 0) | (1u << 4) | (1u << 20) | (1u << 24)]);
+        game.Patterns.Select(p => p.Id).ShouldBe(["rows", "columns", "diagonals", "corners", "B", "I", "N", "G", "O", "blackout"]);
+        game.Presets.ShouldHaveSingleItem().PatternIds.ShouldBe(["rows", "columns", "diagonals"]);
+        game.Patterns[0].Masks.Count.ShouldBe(5, "every row");
+        game.Patterns[0].IsLine.ShouldBeTrue();
+        game.Patterns[3].Masks.ShouldBe([(1u << 0) | (1u << 4) | (1u << 20) | (1u << 24)]);
+        game.Patterns[3].IsLine.ShouldBeFalse("Four Corners is announced by name");
+        game.WinCondition.ShouldBe("rows+columns+diagonals", "Normal Bingo, the default");
         game.Card.ShouldBe(new CardShape(5, 5, 12));
         game.Board.Select(g => g.Label).ShouldBe(["B", "I", "N", "G", "O"]);
         game.Board[4].Balls.ShouldBe(Enumerable.Range(61, 15));

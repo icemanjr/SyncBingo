@@ -566,6 +566,7 @@ export interface components {
             status: components["schemas"]["ClaimStatus"];
             /** @default false */
             alreadyWon: boolean;
+            completed?: null | string[];
             qualified?: boolean;
         };
         ClaimAccepted: {
@@ -626,6 +627,7 @@ export interface components {
             countdownEndsAt: null | string;
             winCondition: string;
             patterns: components["schemas"]["PatternView"][];
+            presets: components["schemas"]["PresetView"][];
             card: components["schemas"]["CardShape"];
             board: components["schemas"]["BoardGroup"][];
             calls: null | components["schemas"]["BallCall"][];
@@ -707,12 +709,19 @@ export interface components {
             id: string;
             name: string;
             masks: number[];
+            isLine: boolean;
+            announcedAs: string;
         };
         PlayerView: {
             participantId: string;
             name: string;
             autoFillOn: boolean;
             cards: components["schemas"]["CardView"][];
+        };
+        PresetView: {
+            id: string;
+            name: string;
+            patternIds: string[];
         };
         ProblemDetails: {
             type?: null | string;
@@ -803,6 +812,7 @@ export interface components {
              * @default 1
              */
             wins: number;
+            announced?: null | string;
         };
         /** @enum {unknown} */
         WinSource: "Claimed" | "Detected" | "Manual";

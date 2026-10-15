@@ -78,10 +78,10 @@ In the table, "all" means all three streams.
 | `RoundEnded` | all | `{ round }` |
 | `BallCalled` | host and display always; players if *Show ball*, *Highlight matching square* or *Show call board* is on | `{ call: { sequence, number, letter, calledAt, source }, previousNumber }` |
 | `AutoCallingStarted` / `AutoCallingPaused` | host | – (the room sees no difference; there is no paused banner) |
-| `WinClaimed` | host | `{ claim: { id, participantId, name, cardId, winConditionId, claimedAt, matches, alreadyAwarded, awardable, status } }` |
+| `WinClaimed` | host | `{ claim: { id, participantId, name, cardId, winConditionId, claimedAt, matches, alreadyAwarded, awardable, status, alreadyWon, completed } }`. `completed` lists the selected patterns the card completes (`["rows", "corners"]`) |
 | `ClaimDismissed` | host | `{ claimId }` |
-| `WinDetected` | host | `{ participantId, name, cardId, winConditionId, matches }` |
-| `WinAwarded` | all | host: `{ win }` in full; players and the display: `{ name, winCondition, wins }`, shown as "Sam had Bingo!" |
+| `WinDetected` | host | `{ participantId, name, cardId, winConditionId, matches, completed }` |
+| `WinAwarded` | all | host: `{ win }` in full; players and the display: `{ name, winCondition, wins, announced }`. `announced` is a pattern id, or null; clients show "Sam had a Bingo!" when it is null, else that pattern's `announcedAs` ("Sam had Four Corners!") |
 | `ParticipantRemoved` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam was removed from the game" |
 | `ParticipantLeft` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam left the game" (FR-53) |
 | `LeaderboardVisibilityChanged` | all | `{ visible }` (wins also change the leaderboard; clients update it from `WinAwarded` or the snapshot) |
@@ -113,5 +113,6 @@ In the table, "all" means all three streams.
 - Authentication: a missing, unknown or revoked token, or a token for a different game, is 401; a valid token without the right role is 403 (the application layer decides roles). A game whose lock stays taken longer than 5 s answers 503 "The game is busy. Please try again."
 - Problem bodies carry `detail` (the message to show) and `code` (the `DomainErrorCode` name) for clients to branch on.
 - Commands answer `204` unless they return data: marks and Undo `{ marks }` (the 25-bit mask), *Grab ball* and *Auto mode* `{ number, letter, sequence }`, *Start Round N* `{ round, endsAt }`, auto-fill `{ on }`, redraw `{ cardId, cells }`, rules `{ settings, winCondition }`.
+**Win patterns (FR-21, ADR 0004 amended).** `winCondition` is a **selection key**: pattern ids joined by `+` in the variant's order, e.g. `rows+columns+diagonals+corners`. Requests may send ids in any order, and a preset id stands for its patterns (`normal`). Responses and events always carry the canonical key. The snapshot's `game.patterns` are `{ id, name, masks, isLine, announcedAs }`, and `game.presets` are `{ id, name, patternIds }` (Normal Bingo = rows, columns, diagonals), so clients name a selection ("Normal Bingo or Four Corners") from data.
 - Settings on the wire: `autoCallIntervalSeconds`, `showBallToPlayers`, `highlightMatches`, `showCallBoard`, `autoFillAvailable`, `winHighlight`, `winDetection`, `redrawPolicy`, `freeMarking`, `requireMarksForClaims`, `unmarking`, `freeSpace`, `showRoundNumbers`, `multipleWins`. Enums are sent as names (`"MismarksOnly"`). In `PUT /rules` every settings field is optional and only those sent change, applied under the session lock to the current settings. `winCondition` is one of `normal`, `corners`, `B`, `I`, `N`, `G`, `O`, `blackout`; left out, the pattern stays.
 

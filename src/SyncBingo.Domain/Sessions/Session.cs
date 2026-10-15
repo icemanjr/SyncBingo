@@ -71,7 +71,11 @@ public sealed class Session
     public SessionSettings Settings { get; private set; }
 
     /// <summary>Id of the current <see cref="WinPattern"/>, e.g. <c>normal</c>.</summary>
+    /// <summary>The selection key of the patterns this round is played for (<see cref="WinSelection"/>), e.g. <c>rows+columns+diagonals</c>.</summary>
     public string WinConditionId { get; private set; }
+
+    /// <summary>The patterns <see cref="WinConditionId"/> names.</summary>
+    public WinSelection Selection => Variant.GetSelection(WinConditionId);
 
     /// <summary>Rounds started so far; 0 in the lobby before the first round.</summary>
     public int RoundNumber { get; private set; }
@@ -134,12 +138,12 @@ public sealed class Session
             return invalid;
         }
 
-        if (!variant.TryGetPattern(winConditionId, out _))
+        if (!variant.TryGetSelection(winConditionId, out var selection))
         {
             return UnknownWinCondition(variant, winConditionId);
         }
 
-        return Result.Success(new Session(code, variant, settings, winConditionId, now));
+        return Result.Success(new Session(code, variant, settings, selection!.Key, now));
     }
 
     public bool HasBeenCalled(int number) => _calledNumbers.Contains(number);
@@ -187,7 +191,10 @@ public sealed class Session
             throw new InvalidOperationException($"Stored session {snapshot.Code} uses unknown variant '{snapshot.VariantId}'.");
         }
 
-        var session = new Session(code, variant, snapshot.Settings, snapshot.WinConditionId, snapshot.CreatedAt)
+        // Sessions saved before selections existed say "normal"; read every stored key as today's canonical one.
+        string Canonical(string key) => variant.TryGetSelection(key, out var selection) ? selection!.Key : key;
+
+        var session = new Session(code, variant, snapshot.Settings, Canonical(snapshot.WinConditionId), snapshot.CreatedAt)
         {
             State = snapshot.State,
             CountdownEndsAt = snapshot.CountdownEndsAt,
@@ -203,13 +210,20 @@ public sealed class Session
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
-        session._claims.AddRange(snapshot.Claims);
-        session._wins.AddRange(snapshot.Wins);
-        session._rounds.AddRange(snapshot.Rounds);
+        session._claims.AddRange(snapshot.Claims.Select(claim => claim with { WinConditionId = Canonical(claim.WinConditionId) }));
+        session._wins.AddRange(snapshot.Wins.Select(win => win with { WinConditionId = Canonical(win.WinConditionId) }));
+        session._rounds.AddRange(snapshot.Rounds.Select(round =>
+            round.WinConditionsUsed.All(key => Canonical(key) == key) && round.Wins.All(win => Canonical(win.WinConditionId) == win.WinConditionId)
+                ? round
+                : round with
+                {
+                    WinConditionsUsed = [.. round.WinConditionsUsed.Select(Canonical)],
+                    Wins = [.. round.Wins.Select(win => win with { WinConditionId = Canonical(win.WinConditionId) })],
+                }));
         session._awardKeys.AddRange(snapshot.AwardKeys ?? []);
         foreach (var alert in snapshot.Alerts)
         {
-            session._alerted[(alert.ParticipantId, alert.CardId, alert.WinConditionId)] = alert.Lines;
+            session._alerted[(alert.ParticipantId, alert.CardId, Canonical(alert.WinConditionId))] = alert.Lines;
         }
 
         return session;
@@ -416,10 +430,12 @@ public sealed class Session
             return invalid;
         }
 
-        if (!Variant.TryGetPattern(winConditionId, out _))
+        if (!Variant.TryGetSelection(winConditionId, out var selection))
         {
             return UnknownWinCondition(Variant, winConditionId);
         }
+
+        winConditionId = selection!.Key;
 
         if (IsInRound && Settings.RoundScopedChanges(settings) is [_, ..] lobbyOnly)
         {
@@ -504,7 +520,8 @@ public sealed class Session
             alreadyAwarded,
             awardable,
             ClaimStatus.Pending,
-            alreadyWon);
+            alreadyWon,
+            participant.CompletedPatterns(cardId, this));
         _claims.Add(claim);
         return Commit(now, new WinClaimed(claim));
     }
@@ -572,7 +589,8 @@ public sealed class Session
                 if (matches > 0 && isNew)
                 {
                     _alerted[key] = matches;
-                    events.Add(new WinDetected(participant.Id, participant.Name.Display, card.Id, WinConditionId, matches));
+                    events.Add(new WinDetected(
+                        participant.Id, participant.Name.Display, card.Id, WinConditionId, matches, CardRules.CompletedPatterns(card.Card, null, this)));
                 }
             }
         }
@@ -691,7 +709,9 @@ public sealed class Session
             }
         }
 
-        var win = new WinRecord(RoundNumber, participant.Id, participant.Name.Display, awardedCard, WinConditionId, now, source, wins);
+        // Named from the called numbers alone, so the announcement is the same whoever marked what.
+        var announced = Selection.Announced(CardRules.CalledMask(participant.Cards.First(c => c.Id == awardedCard).Card, this));
+        var win = new WinRecord(RoundNumber, participant.Id, participant.Name.Display, awardedCard, WinConditionId, now, source, wins, announced);
         _wins.Add(win);
         ReplaceCurrentRound(CurrentRound! with { Wins = [.. CurrentRound!.Wins, win] });
         return Commit(now, new WinAwarded(win));

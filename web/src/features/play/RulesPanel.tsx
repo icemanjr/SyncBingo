@@ -1,20 +1,25 @@
 import { useState } from 'react'
 import type { Schemas } from '../../api/client'
 import { PatternGrid } from '../game/PatternGrid'
+import { selectedPatterns, selectionName } from '../game/patterns'
 import { describeChange } from '../game/rules'
 import { Button, Panel } from '../game/ui'
 
 type Game = Schemas['GameView']
 
-/** The pattern's masks to draw, with what each shows. Lines patterns (Normal) show one row, column and diagonal. */
-function examples(pattern: Schemas['PatternView'], game: Game): { mask: number; label: string }[] {
-  const { rows, columns } = game.card
-  if (pattern.masks.length === rows + columns + 2) {
-    const firstColumn = game.board[0]?.label ?? '1'
+/**
+ * The masks to draw for one pattern, with what each shows. A line pattern shows one of its lines ("Any of
+ * the 5 rows"); a shape shows up to three of its ways to win.
+ */
+function examples(pattern: Schemas['PatternView']): { mask: number; label: string }[] {
+  if (pattern.isLine) {
+    const count = pattern.masks.length
     return [
-      { mask: pattern.masks[0] ?? 0, label: 'Any row, for example the top row' },
-      { mask: pattern.masks[rows] ?? 0, label: `Any column, for example column ${firstColumn}` },
-      { mask: pattern.masks[rows + columns] ?? 0, label: 'Either diagonal' },
+      {
+        mask: pattern.masks[0] ?? 0,
+        label:
+          count === 1 ? pattern.name : `Any of the ${String(count)} ${pattern.name.toLowerCase()}`,
+      },
     ]
   }
 
@@ -28,7 +33,7 @@ function examples(pattern: Schemas['PatternView'], game: Game): { mask: number; 
 function currentRules(game: Game, autoFillOn: boolean): string[] {
   const s = game.settings
   const say = (rule: string, value: string | boolean) =>
-    describeChange({ rule, value: String(value) }, game.patterns)
+    describeChange({ rule, value: String(value) }, game)
   return [
     say('freeMarking', s.freeMarking),
     say('unmarking', s.unmarking),
@@ -59,7 +64,6 @@ export function RulesPanel({
   onClose: () => void
 }) {
   const [tab, setTab] = useState<'patterns' | 'rules'>('patterns')
-  const pattern = game.patterns.find((p) => p.id === game.winCondition)
   const earned = game.settings.freeSpace === 'Earned'
 
   const tabButton = (value: typeof tab, label: string) => (
@@ -96,10 +100,14 @@ export function RulesPanel({
           aria-labelledby="tab-patterns"
           className="flex flex-col gap-3"
         >
-          <p className="text-lg font-bold">{pattern?.name ?? game.winCondition}</p>
+          <p className="text-lg font-bold">{selectionName(game.winCondition, game)}</p>
+          {selectedPatterns(game.winCondition, game).length > 1 && (
+            <p className="text-sm">Any one of these wins:</p>
+          )}
           <div className="flex flex-wrap gap-4">
-            {pattern &&
-              examples(pattern, game).map((example) => (
+            {selectedPatterns(game.winCondition, game)
+              .flatMap(examples)
+              .map((example) => (
                 <figure key={example.label} className="flex flex-col items-center gap-1">
                   <PatternGrid
                     mask={example.mask}

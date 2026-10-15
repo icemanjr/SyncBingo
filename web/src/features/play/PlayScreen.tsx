@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
-import { PatternGrid } from '../game/PatternGrid'
+import { selectionName, winMessage } from '../game/patterns'
+import { SelectionGrids } from '../game/SelectionGrids'
 import { RulesNotice } from '../game/RulesNotice'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
@@ -112,8 +113,7 @@ export function PlayScreen() {
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const calls = view.calls
   const last = calls?.at(-1)
-  const pattern = view.patterns.find((p) => p.id === view.winCondition)
-  const earned = view.settings.freeSpace === 'Earned'
+  const patternName = selectionName(view.winCondition, view)
   const roundName = view.settings.showRoundNumbers
     ? `Round ${String(view.upcomingRound)}`
     : 'The next round'
@@ -149,7 +149,7 @@ export function PlayScreen() {
           aria-expanded={open === 'rules'}
           className="flex min-h-12 items-center gap-1 rounded-xl px-2 font-semibold underline-offset-4 hover:underline focus-visible:outline-4 focus-visible:outline-accent"
         >
-          {pattern?.name ?? view.winCondition} <span aria-hidden="true">ⓘ</span>
+          {patternName} <span aria-hidden="true">ⓘ</span>
           <span className="sr-only">: patterns and current rules</span>
         </button>
         {view.settings.showBallToPlayers && last && (
@@ -163,7 +163,7 @@ export function PlayScreen() {
       </div>
 
       {wins.map((message) => {
-        const data = message.data as { name: string }
+        const data = message.data as { name: string; announced?: string | null }
         const mine = data.name === me.name
         return (
           <div
@@ -176,9 +176,7 @@ export function PlayScreen() {
                 ? `${data.name} was removed from the game`
                 : message.type === 'ParticipantLeft'
                   ? `${data.name} left the game`
-                  : mine
-                    ? `🎉 You have Bingo!`
-                    : `${data.name} had Bingo!`}
+                  : winMessage(data.name, data.announced, view, mine)}
             </span>
             <Button
               look="quiet"
@@ -203,29 +201,18 @@ export function PlayScreen() {
       )}
 
       {game.rulesNotice && (
-        <RulesNotice
-          notice={game.rulesNotice}
-          patterns={view.patterns}
-          onClose={game.dismissRulesNotice}
-        />
+        <RulesNotice notice={game.rulesNotice} patterns={view} onClose={game.dismissRulesNotice} />
       )}
 
-      {view.state === 'Starting' && pattern && (
+      {view.state === 'Starting' && (
         <section
           aria-live="polite"
           aria-label="This round"
           className="flex items-center gap-4 rounded-2xl border-2 border-accent bg-accent-soft p-4"
         >
-          <PatternGrid
-            mask={pattern.masks[0] ?? 0}
-            columns={view.card.columns}
-            rows={view.card.rows}
-            freeCell={view.card.freeCell}
-            earned={earned}
-            label={`${pattern.name} pattern`}
-          />
+          <SelectionGrids game={view} />
           <div>
-            <p className="font-bold">This round: {pattern.name}</p>
+            <p className="font-bold">This round: {patternName}</p>
             <p>Starts in {countdown}</p>
           </div>
         </section>

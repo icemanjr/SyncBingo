@@ -108,7 +108,9 @@ Rules:
 
 ## 5. Win patterns (5×5, row-major, centre = free)
 
-Normal Bingo: any of 5 rows, 5 columns, 2 diagonals. Four Corners: cells 0, 4, 20, 24. Blackout: all 25.
+Rows: any of the 5 rows. Columns: any of the 5 columns. Diagonals: either diagonal. **Normal Bingo** is those three together, a preset. Four Corners: cells 0, 4, 20, 24. Blackout: all 25.
+
+The host selects **one or more** patterns (FR-21); a card wins when it completes any line or shape of any selected pattern, and "N lines" counts across all of them. The selection is the round's win condition: in the "once" modes a card wins **once per selection**, and choosing a different selection mid-round allows another win. A win is announced as "Ava had a Bingo!", or by the shape when that is the only pattern complete ("Ava had Four Corners!"); the host's alerts list everything complete ("✓ 2 lines: Rows, Four Corners").
 
 Letter shapes (`X` = required cell):
 

@@ -5,6 +5,7 @@ import { CallBoard } from '../game/CallBoard'
 import { normalizeCode } from '../game/codes'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
+import { selectionName } from '../game/patterns'
 import { Button, ErrorText, Panel } from '../game/ui'
 import { RulesNotice } from '../game/RulesNotice'
 import { CardInspector } from './CardInspector'
@@ -67,7 +68,7 @@ export function HostConsole() {
   const calls = view.calls ?? []
   const called = new Set(calls.map((call) => call.number))
   const inRound = view.state === 'Manual' || view.state === 'Auto'
-  const pattern = view.patterns.find((p) => p.id === view.winCondition)?.name ?? view.winCondition
+  const pattern = selectionName(view.winCondition, view)
   const roundLabel = view.settings.showRoundNumbers ? `Round ${String(view.round)}` : 'This round'
   const detections = game.messages
     .filter((m) => m.type === 'WinDetected')
@@ -78,6 +79,7 @@ export function HostConsole() {
         name: string
         winConditionId: string
         matches: number
+        completed?: string[] | null
       },
     }))
   const passwordAlerts = game.messages.filter((m) => m.type === 'WrongPasswordsAlert')
@@ -117,11 +119,7 @@ export function HostConsole() {
       </header>
 
       {game.rulesNotice && (
-        <RulesNotice
-          notice={game.rulesNotice}
-          patterns={view.patterns}
-          onClose={game.dismissRulesNotice}
-        />
+        <RulesNotice notice={game.rulesNotice} patterns={view} onClose={game.dismissRulesNotice} />
       )}
 
       {open === 'options' && view.state !== 'Auto' && hostView && (
@@ -191,6 +189,7 @@ export function HostConsole() {
         claims={hostView?.pendingClaims ?? []}
         detections={detections}
         everyDeclaredWin={hostView?.settings.multipleWins === 'EveryDeclaredWin'}
+        patterns={view}
         host={host}
         onInspect={setInspecting}
         onDismissDetection={game.dismissMessage}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Game } from '../game/gameEvents'
+import { idsOf, keyOf, selectionName } from '../game/patterns'
 import { settingSections, type SettingInfo, type Settings } from '../game/rules'
 import { useAction } from '../game/useAction'
 import { Button, ErrorText, Panel } from '../game/ui'
@@ -69,6 +70,48 @@ export function OptionsPanel({
   const set = (key: keyof Draft, value: unknown) => {
     setDraft((d) => ({ ...d, [key]: value }))
   }
+
+  // Patterns (FR-21): several may be selected, at least one always is. The draft holds the selection's key.
+  const selected = new Set(idsOf(draft.winCondition))
+  const grouped = new Set(game.presets.flatMap((preset) => preset.patternIds))
+  const toggle = (ids: string[], on: boolean) => {
+    const next = new Set(selected)
+    for (const id of ids) {
+      if (on) next.add(id)
+      else next.delete(id)
+    }
+    if (next.size > 0) set('winCondition', keyOf(next, game))
+  }
+
+  const checkbox = (
+    label: string,
+    checked: boolean,
+    lastOne: boolean,
+    onChange: (on: boolean) => void,
+    mixed = false,
+  ) => (
+    <label key={label} className="flex min-h-12 items-center gap-3 rounded-xl px-2">
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={lastOne}
+        ref={(box) => {
+          if (box) box.indeterminate = mixed
+        }}
+        onChange={(e) => {
+          onChange(e.target.checked)
+        }}
+        className="h-5 w-5"
+      />
+      {label}
+      {lastOne && <span className="text-sm text-ink-muted">(at least one pattern)</span>}
+    </label>
+  )
+
+  const patternBox = (id: string, name: string) =>
+    checkbox(name, selected.has(id), selected.has(id) && selected.size === 1, (on) => {
+      toggle([id], on)
+    })
 
   const field = (info: SettingInfo) => {
     const locked = info.betweenRounds === true && inRound
@@ -146,29 +189,40 @@ export function OptionsPanel({
   return (
     <Panel title="Options">
       <div className="flex flex-col gap-5">
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 font-semibold">Pattern</legend>
-          {game.patterns.map((pattern) => (
-            <label
-              key={pattern.id}
-              className={`flex min-h-12 items-center gap-3 rounded-xl px-2 ${
-                draft.winCondition === pattern.id && draft.winCondition !== base.winCondition
-                  ? 'bg-accent-soft ring-2 ring-accent'
-                  : ''
-              }`}
-            >
-              <input
-                type="radio"
-                name="pattern"
-                checked={draft.winCondition === pattern.id}
-                onChange={() => {
-                  set('winCondition', pattern.id)
-                }}
-                className="h-5 w-5"
-              />
-              {pattern.name}
-            </label>
-          ))}
+        <fieldset
+          className={`flex flex-col gap-1 rounded-xl ${
+            draft.winCondition !== base.winCondition ? 'bg-accent-soft p-2 ring-2 ring-accent' : ''
+          }`}
+        >
+          <legend className="mb-1 font-semibold">Patterns</legend>
+          <p className="text-sm text-ink-muted">
+            Any selected pattern wins: {selectionName(draft.winCondition, game)}
+          </p>
+          {game.presets.map((preset) => {
+            const all = preset.patternIds.every((id) => selected.has(id))
+            const some = preset.patternIds.some((id) => selected.has(id))
+            return (
+              <div key={preset.id} className="flex flex-col">
+                {checkbox(
+                  preset.name,
+                  all,
+                  all && selected.size === preset.patternIds.length,
+                  (on) => {
+                    toggle(preset.patternIds, on)
+                  },
+                  some && !all,
+                )}
+                <div className="ml-8 flex flex-col">
+                  {game.patterns
+                    .filter((pattern) => preset.patternIds.includes(pattern.id))
+                    .map((pattern) => patternBox(pattern.id, pattern.name))}
+                </div>
+              </div>
+            )
+          })}
+          {game.patterns
+            .filter((pattern) => !grouped.has(pattern.id))
+            .map((pattern) => patternBox(pattern.id, pattern.name))}
         </fieldset>
 
         {settingSections.map((section) => (

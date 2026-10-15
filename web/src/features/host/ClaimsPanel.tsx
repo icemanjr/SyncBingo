@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Schemas } from '../../api/client'
+import { patternNames, type PatternData } from '../game/patterns'
 import { useAction } from '../game/useAction'
 import { Button, ErrorText, Panel } from '../game/ui'
 import type { HostApi } from './hostApi'
@@ -10,6 +11,7 @@ interface Detection {
   name: string
   winConditionId: string
   matches: number
+  completed?: string[] | null
 }
 
 /**
@@ -23,6 +25,7 @@ export function ClaimsPanel({
   claims,
   detections,
   everyDeclaredWin,
+  patterns,
   host,
   onInspect,
   onDismissDetection,
@@ -30,6 +33,8 @@ export function ClaimsPanel({
   claims: Claim[]
   detections: { at: number; data: Detection }[]
   everyDeclaredWin: boolean
+  /** To name the patterns a card completes ("Rows, Four Corners"); only the host sees these. */
+  patterns: PatternData
   host: HostApi
   onInspect: (participantId: string) => void
   onDismissDetection: (at: number) => void
@@ -49,7 +54,7 @@ export function ClaimsPanel({
             <p className="font-semibold">
               🔔 {claim.name} pressed Bingo ·{' '}
               {claim.matches > 0
-                ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}`
+                ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}: ${patternNames(claim.completed, patterns)}`
                 : '✗ not on called numbers'}
               {claim.alreadyWon
                 ? ' · already won, nothing more to award'
@@ -123,7 +128,8 @@ export function ClaimsPanel({
         {detections.map(({ at, data }) => (
           <li key={at} className="flex flex-col gap-2 rounded-xl bg-info p-3">
             <p className="font-semibold">
-              Detected: {data.name} has {data.winConditionId} ({data.matches} line
+              Detected: {data.name} has {patternNames(data.completed, patterns)} ({data.matches}{' '}
+              line
               {data.matches > 1 ? 's' : ''}) on called numbers
             </p>
             <div className="flex flex-wrap gap-2">

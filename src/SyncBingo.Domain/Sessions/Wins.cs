@@ -17,6 +17,7 @@ public enum ClaimStatus
 /// <see cref="MultipleWins"/> setting; 0 shows the host "no awardable matches".
 /// <see cref="AlreadyWon"/> means the card can't be awarded again: in the "once" modes it has
 /// already won this pattern (or, once per round, anything) this round, so the host gets no Award button.
+/// <see cref="Completed"/> names the selected patterns the card completes ("rows", "corners"), for the host.
 /// </summary>
 public sealed record Claim(
     int Id,
@@ -30,7 +31,8 @@ public sealed record Claim(
     int AlreadyAwarded,
     int Awardable,
     ClaimStatus Status,
-    bool AlreadyWon = false)
+    bool AlreadyWon = false,
+    IReadOnlyList<string>? Completed = null)
 {
     public bool Qualified => Matches > 0;
 }
@@ -50,6 +52,8 @@ public enum WinSource
 /// <summary>
 /// Wins the host credited in one award (ADR 0008): usually one, more when the player
 /// declared several and <see cref="MultipleWins.EveryDeclaredWin"/> is on (FR-43).
+/// <see cref="Announced"/> is the shape to name in "Ava had Four Corners!", or <c>null</c> for
+/// "Ava had a Bingo!" (see <see cref="Rules.WinSelection.Announced"/>).
 /// </summary>
 public sealed record WinRecord(
     int Round,
@@ -59,7 +63,8 @@ public sealed record WinRecord(
     string WinConditionId,
     DateTimeOffset AwardedAt,
     WinSource Source,
-    int Wins = 1);
+    int Wins = 1,
+    string? Announced = null);
 
 public sealed record LeaderboardEntry(string ParticipantId, string Name, int Wins);
 
@@ -81,7 +86,7 @@ public sealed record ClaimDismissed(int ClaimId) : SessionEvent;
 /// A card met the win condition on called numbers, whether or not the player noticed
 /// (host only, FR-19). <see cref="Matches"/> is how many lines it completes.
 /// </summary>
-public sealed record WinDetected(string ParticipantId, string Name, int CardId, string WinConditionId, int Matches) : SessionEvent;
+public sealed record WinDetected(string ParticipantId, string Name, int CardId, string WinConditionId, int Matches, IReadOnlyList<string>? Completed = null) : SessionEvent;
 
 /// <summary>The host credited a win.</summary>
 public sealed record WinAwarded(WinRecord Win) : SessionEvent;

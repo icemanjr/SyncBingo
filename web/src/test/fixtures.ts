@@ -3,6 +3,42 @@ import type { Snapshot } from '../features/game/gameEvents'
 
 const letters = ['B', 'I', 'N', 'G', 'O']
 
+const line = (cells: number[]) => cells.reduce((mask, cell) => mask | (1 << cell), 0)
+
+/** The patterns standard Bingo offers (as the server sends them), Normal Bingo being rows, columns and diagonals. */
+export const standardPatterns: Schemas['PatternView'][] = [
+  {
+    id: 'rows',
+    name: 'Rows',
+    masks: [0, 1, 2, 3, 4].map((r) => line([0, 1, 2, 3, 4].map((c) => r * 5 + c))),
+    isLine: true,
+    announcedAs: 'Rows',
+  },
+  {
+    id: 'columns',
+    name: 'Columns',
+    masks: [0, 1, 2, 3, 4].map((c) => line([0, 1, 2, 3, 4].map((r) => r * 5 + c))),
+    isLine: true,
+    announcedAs: 'Columns',
+  },
+  {
+    id: 'diagonals',
+    name: 'Diagonals',
+    masks: [line([0, 6, 12, 18, 24]), line([4, 8, 12, 16, 20])],
+    isLine: true,
+    announcedAs: 'Diagonals',
+  },
+  {
+    id: 'corners',
+    name: 'Four Corners',
+    masks: [line([0, 4, 20, 24])],
+    isLine: false,
+    announcedAs: 'Four Corners',
+  },
+  { id: 'B', name: 'Letter B', masks: [1], isLine: false, announcedAs: 'the letter B' },
+  { id: 'blackout', name: 'Blackout', masks: [33554431], isLine: false, announcedAs: 'Blackout' },
+]
+
 /** A standard 75-ball game in the lobby, as the API's snapshot describes it; override what a test needs. */
 export function aGame(changes: Partial<Schemas['GameView']> = {}): Schemas['GameView'] {
   return {
@@ -11,11 +47,9 @@ export function aGame(changes: Partial<Schemas['GameView']> = {}): Schemas['Game
     round: 0,
     upcomingRound: 1,
     countdownEndsAt: null,
-    winCondition: 'normal',
-    patterns: [
-      { id: 'normal', name: 'Normal Bingo', masks: [31] },
-      { id: 'blackout', name: 'Blackout', masks: [33554431] },
-    ],
+    winCondition: 'rows+columns+diagonals',
+    patterns: standardPatterns,
+    presets: [{ id: 'normal', name: 'Normal Bingo', patternIds: ['rows', 'columns', 'diagonals'] }],
     card: { rows: 5, columns: 5, freeCell: 12 },
     board: letters.map((label, i) => ({
       label,

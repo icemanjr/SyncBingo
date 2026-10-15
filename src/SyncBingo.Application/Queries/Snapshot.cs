@@ -24,6 +24,7 @@ public sealed record GameView(
     DateTimeOffset? CountdownEndsAt,
     string WinCondition,
     IReadOnlyList<PatternView> Patterns,
+    IReadOnlyList<PresetView> Presets,
     CardShape Card,
     IReadOnlyList<BoardGroup> Board,
     IReadOnlyList<BallCall>? Calls,
@@ -36,8 +37,14 @@ public sealed record GameView(
     string? JoinNote,
     bool LeaderboardVisible);
 
-/// <summary>A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.</summary>
-public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks);
+/// <summary>
+/// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
+/// <see cref="WinCondition"/> in the game view is a selection of these, joined by "+" (FR-21).
+/// </summary>
+public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks, bool IsLine, string AnnouncedAs);
+
+/// <summary>A named group of patterns, e.g. Normal Bingo = rows + columns + diagonals; clients name a selection with it.</summary>
+public sealed record PresetView(string Id, string Name, IReadOnlyList<string> PatternIds);
 
 /// <summary>The card's grid: cells are numbered row by row; <see cref="FreeCell"/> is the free space, if any.</summary>
 public sealed record CardShape(int Rows, int Columns, int? FreeCell);
@@ -182,7 +189,8 @@ public sealed class GameQueries(ISessionStore store)
             session.UpcomingRound,
             session.CountdownEndsAt,
             session.WinConditionId,
-            [.. variant.Patterns.Select(pattern => new PatternView(pattern.Id, pattern.Name, [.. pattern.Masks]))],
+            [.. variant.Patterns.Select(pattern => new PatternView(pattern.Id, pattern.Name, [.. pattern.Masks], pattern.IsLine, pattern.AnnouncedAs))],
+            [.. variant.Presets.Select(preset => new PresetView(preset.Id, preset.Name, [.. preset.PatternIds]))],
             new CardShape(variant.Layout.Rows, variant.Layout.Columns, variant.Layout.FreeCell),
             [.. variant.Columns.Select(column => new BoardGroup(column.Label, [.. Enumerable.Range(column.Min, column.Count)]))],
             showCalls ? [.. session.Calls] : null,

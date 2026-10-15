@@ -65,7 +65,8 @@ public sealed class SnapshotApiTests : IAsyncDisposable
         using var response = await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/snapshot", hostToken);
         var game = (await Json(response)).GetProperty("game");
 
-        game.GetProperty("patterns")[0].GetProperty("masks").GetArrayLength().ShouldBe(12);
+        game.GetProperty("patterns")[0].GetProperty("masks").GetArrayLength().ShouldBe(5, "rows");
+        game.GetProperty("presets")[0].GetProperty("name").GetString().ShouldBe("Normal Bingo");
         game.GetProperty("card").GetProperty("freeCell").GetInt32().ShouldBe(12);
         game.GetProperty("state").GetString().ShouldBe("BetweenRounds");
     }

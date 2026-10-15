@@ -26,7 +26,8 @@
 - [x] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)
 - [ ] AWS account (Paid plan, credits), **Budgets alerts at $10 and $25**, the Lean instance, Cloudflare DNS records
-- [ ] Deploy pipeline to the instance (pull and restart off-hours); measure real bytes per game; verify the docs/10 figures for Lean
+- [x] Deploy pipeline: CI publishes images to GHCR after merges; the server pulls nightly (`deploy/update.sh`, docs/07 §1a)
+- [ ] Measure real bytes per game; verify the docs/10 figures for Lean
 
 ## Phase 2 — Polish and hardening
 - [ ] Accessibility pass, reduced motion, screen-reader labels

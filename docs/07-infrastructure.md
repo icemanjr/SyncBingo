@@ -46,7 +46,8 @@ All three restart unless stopped, and logs are capped at 3 × 10 MB per service 
 3. Copy the two units to `/etc/systemd/system/` and run `systemctl enable --now syncbingo-update.timer`.
 4. Set the time zone with `timedatectl`.
 5. Run `update.sh` once to start the site.
-6. On GitHub, make each new package public (Package settings → Change visibility); new packages start private.
+
+The packages are public with nothing to set: the images' `org.opencontainers.image.source` label links them to this public repository, and they take its visibility. Checked 2026-10-15 with an anonymous pull of both, on arm64. The first run of `update.sh` was tested the same day against the registry, on a laptop: it started both images by commit, and a second run found nothing to do.
 
 AWS Budgets alerts at $10 and $25.
 

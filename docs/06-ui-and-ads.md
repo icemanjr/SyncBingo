@@ -76,6 +76,18 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 └───────────────────────┘
 ```
 
+### Visual design (2026-10-15)
+
+The agreed reference is the design canvas made on 2026-10-15 (host lobby and round on a laptop, host and player on a phone, landing, join, TV display). The refreshed screens follow it; the layouts land screen by screen (roadmap Phase 2).
+
+- **Look:** "party, but tidy". Deep plum ink, a violet accent and an amber last ball, on a faint lilac page. Dark mode is a deep plum page with lighter violet accents.
+- **Type:** **Figtree** for reading, **Bricolage Grotesque** for headings, numbers and big buttons. Both are self-hosted (`@fontsource-variable`, SIL Open Font License), so no request goes to a font service. Browsers fetch only the Latin files: 61 KB (Bricolage 41 KB, Figtree 20 KB) on top of the 140 KB first visit (docs/10 §5a).
+- **B-I-N-G-O colours:** B blue, I red, N grey, G green, O amber-brown, as on real bingo balls. They colour group headers and called balls, with white text that is AA on each. The letter is always written too, so colour is never the only cue.
+- **Contrast:** every text and background pair is checked by script, in both themes: 4.5:1 for text, 3:1 for borders.
+- **Tokens by meaning:** `page`, `surface`, `ink`, `accent`, `notice`, `ball`, `letter-*`, `group` in `web/src/index.css`, each with a light and a dark value. Components never name a colour directly.
+- **Buttons:** one solid **primary** action per screen (Grab ball, Start Round, Join). Tinted **secondary** for the rest, **outline** for a second strong action (Auto mode), **quiet** text buttons for minor ones. All keep the 48 px tap target.
+- **Icons:** drawn (inline SVG), never text symbols or emoji, which some phones' fonts can't show.
+
 ### Theme (FR-50)
 
 A three-way switch in every page's header: **System** (the default: follows the device, including when the device switches at sunset), **Light** and **Dark**. Remembered on the device; nothing is sent to the server. Colours are defined by meaning (page, surface, ink, muted ink, accent, danger…) with a light and a dark value each, so every screen supports both, and body and muted text meet 4.5:1 in both. The join QR stays black on white in either theme so phones can scan it. The display view has no header and follows the screen's own setting.

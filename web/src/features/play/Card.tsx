@@ -8,6 +8,7 @@ import {
   type Fitted,
   type Measure,
 } from './fitText'
+import { letterBackground } from '../game/letters'
 import { Mark } from './Mark'
 import { textSizes, type MarkStyle } from './markStyle'
 
@@ -91,7 +92,11 @@ export function Card({
     >
       {/* Seen, not read out: each square's name starts with its letter instead ("B 7"). */}
       {columnLabels?.map((label) => (
-        <span key={label} aria-hidden="true" className="text-center text-lg font-bold">
+        <span
+          key={label}
+          aria-hidden="true"
+          className={`flex h-9 items-center justify-center rounded-xl font-display text-xl font-extrabold text-white ${letterBackground(label)}`}
+        >
           {label}
         </span>
       ))}

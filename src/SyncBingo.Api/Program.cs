@@ -1,13 +1,21 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SyncBingo.Api;
 using SyncBingo.Api.Endpoints;
+using SyncBingo.Api.Http;
 using SyncBingo.Api.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSyncBingo(builder.Configuration);
+builder.Services.AddProxyHeaders();
 
 var app = builder.Build();
+
+// First, so everything after it (the rate limits above all) sees the client's own address.
+if (ProxyHeaders.Enabled(app.Configuration))
+{
+    app.UseForwardedHeaders();
+}
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

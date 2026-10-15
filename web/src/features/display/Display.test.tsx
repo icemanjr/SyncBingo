@@ -87,7 +87,7 @@ describe('the display view (FR-28)', () => {
         data: { name: 'Ava', winCondition: 'normal', wins: 1 },
       })
     })
-    expect(screen.getByRole('status')).toHaveTextContent('🎉 Ava had Bingo!')
+    expect(screen.getByRole('status')).toHaveTextContent('🎉 Ava had a Bingo!')
   })
 
   it('stops when the host disconnects it, and forgets its token', async () => {

@@ -229,6 +229,22 @@ describe('the play screen', () => {
     expect(await screen.findByText('N 37')).toBeInTheDocument()
   })
 
+  it('names a shape win, as the server announced it', async () => {
+    fakeApi({ [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) } })
+    renderAt(`/play/${code}`)
+    await screen.findByRole('grid', { name: 'Your card' })
+
+    act(() => {
+      connection?.onEvent({
+        type: 'WinAwarded',
+        seq: 1,
+        data: { name: 'Ben', winCondition: 'rows+corners', wins: 1, announced: 'corners' },
+      })
+    })
+
+    expect(await screen.findByText('Ben had Four Corners!')).toBeInTheDocument()
+  })
+
   it('tells everyone who had Bingo, and celebrates with the winner', async () => {
     fakeApi({ [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) } })
     renderAt(`/play/${code}`)
@@ -247,7 +263,7 @@ describe('the play screen', () => {
       })
     })
 
-    expect(screen.getByText('Ben had Bingo!')).toBeInTheDocument()
+    expect(screen.getByText('Ben had a Bingo!')).toBeInTheDocument()
     expect(screen.getByText('🎉 You have Bingo!')).toBeInTheDocument()
   })
 

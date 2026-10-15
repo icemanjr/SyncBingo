@@ -1,4 +1,5 @@
 import type { Schemas } from '../../api/client'
+import { selectionName, type PatternData } from './patterns'
 
 export type Settings = Schemas['SettingsBody']
 export type SettingKey = Exclude<keyof Settings, never>
@@ -180,15 +181,10 @@ const sentences: Record<string, (value: string) => string> = {
         : 'One win per card per pattern',
 }
 
-/** A rules change in plain words (FR-47), e.g. "Pattern changed to Blackout". */
-export function describeChange(
-  change: { rule: string; value: string },
-  patterns: Schemas['PatternView'][],
-): string {
-  if (change.rule === 'winCondition') {
-    const name = patterns.find((p) => p.id === change.value)?.name ?? change.value
-    return `Pattern changed to ${name}`
-  }
+/** A rules change in plain words (FR-47), e.g. "Pattern changed to Normal Bingo or Four Corners". */
+export function describeChange(change: { rule: string; value: string }, data: PatternData): string {
+  if (change.rule === 'winCondition')
+    return `Pattern changed to ${selectionName(change.value, data)}`
 
   return sentences[change.rule]?.(change.value) ?? `${change.rule}: ${change.value}`
 }

@@ -1,4 +1,4 @@
-import type { Schemas } from '../../api/client'
+import type { PatternData } from './patterns'
 import type { RulesNotice as Notice } from './gameEvents'
 import { describeChange } from './rules'
 
@@ -12,7 +12,8 @@ export function RulesNotice({
   onClose,
 }: {
   notice: Notice
-  patterns: Schemas['PatternView'][]
+  /** The game's patterns and presets, to name a new selection. */
+  patterns: PatternData
   onClose: () => void
 }) {
   return (

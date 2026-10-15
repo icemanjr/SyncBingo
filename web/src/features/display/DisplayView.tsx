@@ -3,7 +3,8 @@ import { useParams } from 'react-router'
 import { CallBoard } from '../game/CallBoard'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
-import { PatternGrid } from '../game/PatternGrid'
+import { selectionName, winMessage } from '../game/patterns'
+import { SelectionGrids } from '../game/SelectionGrids'
 import { RulesNotice } from '../game/RulesNotice'
 import { useGame } from '../game/useGame'
 import { JoinPanel } from '../host/JoinPanel'
@@ -38,7 +39,6 @@ export function DisplayView() {
   const view = game.snapshot.game
   if (view.state === 'Ended') return centred('The game has ended. Thanks for playing!')
 
-  const pattern = view.patterns.find((p) => p.id === view.winCondition)
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const roundLabel = view.settings.showRoundNumbers
     ? `Round ${String(view.upcomingRound)}`
@@ -52,17 +52,8 @@ export function DisplayView() {
       <header className="flex flex-wrap items-center justify-center gap-4 text-3xl font-bold">
         <span>{roundLabel}</span>
         <span aria-hidden="true">·</span>
-        <span>{pattern?.name ?? view.winCondition}</span>
-        {pattern && (
-          <PatternGrid
-            mask={pattern.masks[0] ?? 0}
-            columns={view.card.columns}
-            rows={view.card.rows}
-            freeCell={view.card.freeCell}
-            earned={view.settings.freeSpace === 'Earned'}
-            label={`${pattern.name} pattern`}
-          />
-        )}
+        <span>{selectionName(view.winCondition, view)}</span>
+        <SelectionGrids game={view} />
       </header>
 
       {wins.map((message) => (
@@ -72,16 +63,17 @@ export function DisplayView() {
           className="rounded-2xl bg-accent p-4 text-center text-4xl font-black text-accent-ink"
         >
           {view.settings.winHighlight ? '🎉 ' : ''}
-          {(message.data as { name: string }).name} had Bingo!
+          {winMessage(
+            (message.data as { name: string }).name,
+            (message.data as { announced?: string | null }).announced,
+            view,
+            false,
+          )}
         </p>
       ))}
 
       {game.rulesNotice && (
-        <RulesNotice
-          notice={game.rulesNotice}
-          patterns={view.patterns}
-          onClose={game.dismissRulesNotice}
-        />
+        <RulesNotice notice={game.rulesNotice} patterns={view} onClose={game.dismissRulesNotice} />
       )}
 
       {view.state === 'Starting' && (

@@ -24,7 +24,7 @@ services:
 
   # Valkey: the open-source, Redis-compatible store (ADR 0011); 8.x, as on ElastiCache.
   valkey:
-    image: valkey/valkey:8.1-alpine
+    image: docker.io/valkey/valkey:8.1-alpine
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 5s

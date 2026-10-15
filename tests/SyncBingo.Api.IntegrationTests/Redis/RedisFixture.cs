@@ -16,7 +16,7 @@ namespace SyncBingo.Api.IntegrationTests.Redis;
 /// </summary>
 public sealed class RedisFixture : IAsyncLifetime
 {
-    private readonly RedisContainer _container = new RedisBuilder("valkey/valkey:8.1-alpine").Build();
+    private readonly RedisContainer _container = new RedisBuilder("docker.io/valkey/valkey:8.1-alpine").Build();
 
     public IConnectionMultiplexer Connection { get; private set; } = null!;
 

@@ -1,9 +1,14 @@
 import type { BallCall } from './gameEvents'
 import type { Schemas } from '../../api/client'
 
+/** Three columns per group (15 balls: 3 columns of 5), filled top to bottom. */
+const SubColumns = 3
+const rowsFor = (balls: number) => Math.ceil(balls / SubColumns)
+
 /**
  * The call board (FR-27): every ball, grouped as the server says (B-I-N-G-O for standard Bingo), with
- * called balls marked by shape and weight as well as colour, and the last ball large on top.
+ * called balls marked by shape and weight as well as colour, and the last ball large on top. Each group's
+ * balls run down its columns, then across (docs/06), so "was 27 called?" means one short run under "I".
  */
 export function CallBoard({
   board,
@@ -20,7 +25,7 @@ export function CallBoard({
   return (
     <div className="flex flex-col items-center gap-4">
       <div aria-live="polite" className="text-center">
-        <p className="text-sm text-ink-muted">Last ball</p>
+        <p className="text-sm text-ink-muted">Last Ball</p>
         <p
           className={`font-bold tabular-nums ${big ? 'text-8xl' : 'text-5xl'}`}
           data-testid="last-ball"
@@ -32,7 +37,11 @@ export function CallBoard({
         {board.map((group) => (
           <div key={group.label} className="flex flex-col items-center gap-1">
             <span className={`font-bold ${big ? 'text-3xl' : ''}`}>{group.label}</span>
-            <ol className="grid grid-cols-3 gap-1" aria-label={`Balls ${group.label}`}>
+            <ol
+              className="grid grid-flow-col gap-1"
+              style={{ gridTemplateRows: `repeat(${String(rowsFor(group.balls.length))}, auto)` }}
+              aria-label={`Balls ${group.label}`}
+            >
               {group.balls.map((ball) => {
                 const isCalled = called.has(ball)
                 return (

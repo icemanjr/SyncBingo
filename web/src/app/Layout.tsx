@@ -18,7 +18,11 @@ export function Layout({ children }: { children: ReactNode }) {
       </div>
       <main className="flex w-full max-w-3xl flex-1 flex-col gap-4 p-4">
         <header className="flex items-center justify-between gap-3">
-          <Link to="/" className="min-h-12 content-center text-lg font-bold text-ink">
+          <Link
+            to="/"
+            className="flex min-h-12 items-center gap-2 rounded-xl font-display text-xl font-extrabold tracking-tight text-ink focus-visible:outline-4 focus-visible:outline-accent"
+          >
+            <BrandMark />
             SyncBingo
           </Link>
           <ThemeToggle />
@@ -32,6 +36,18 @@ export function Layout({ children }: { children: ReactNode }) {
         <AdSlot position="bottom" />
       </div>
     </div>
+  )
+}
+
+/** The logo: a bingo ball in the accent colour. */
+export function BrandMark() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent font-display text-sm font-extrabold text-accent-ink shadow-[inset_0_0_0_5px_rgb(255_255_255/0.22)]"
+    >
+      S
+    </span>
   )
 }
 

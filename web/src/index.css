@@ -24,52 +24,93 @@
   --color-danger-soft: var(--danger-soft);
   --color-danger-ink: var(--danger-ink);
   --color-notice: var(--notice);
+  --color-notice-ink: var(--notice-ink);
+  --color-notice-line: var(--notice-line);
   --color-info: var(--info);
+  /* The last ball, and the B-I-N-G-O letters, which also colour called balls (white text on all). */
+  --color-ball: var(--ball);
+  --color-ball-ink: var(--ball-ink);
+  --color-letter-b: var(--letter-b);
+  --color-letter-i: var(--letter-i);
+  --color-letter-n: var(--letter-n);
+  --color-letter-g: var(--letter-g);
+  --color-letter-o: var(--letter-o);
+  --color-group: var(--group);
+
+  /* Figtree for reading, Bricolage Grotesque for headings, numbers and big buttons (self-hosted, docs/06). */
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    'Bricolage Grotesque Variable', 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
+/* The design reference: deep plum ink, violet accent, an amber last ball (docs/06). */
 :root {
   color-scheme: light;
-  --page: #f8fafc;
+  --page: #f5f3fa;
   --surface: #ffffff;
-  --ink: #0f172a;
-  --ink-muted: #475569;
-  --ink-faint: #64748b;
-  --line: #94a3b8;
-  --line-soft: #e2e8f0;
-  --accent: #4f46e5;
-  --accent-strong: #4338ca;
+  --ink: #1c1633;
+  --ink-muted: #5e5873;
+  --ink-faint: #6e6886;
+  --line: #8c85a3;
+  --line-soft: #e4e0ef;
+  --accent: #5534e0;
+  --accent-strong: #3d1fc2;
   --accent-ink: #ffffff;
-  --accent-text: #4338ca;
-  --accent-soft: #eef2ff;
-  --danger: #b91c1c;
-  --danger-soft: #fef2f2;
-  --danger-ink: #7f1d1d;
-  --notice: #fffbeb;
-  --info: #f0f9ff;
+  --accent-text: #3d1fc2;
+  --accent-soft: #ece8fd;
+  --danger: #b42318;
+  --danger-soft: #fef1f0;
+  --danger-ink: #7a1c12;
+  --notice: #fff4db;
+  --notice-ink: #6b4e00;
+  --notice-line: #ffc23d;
+  --info: #eef4ff;
+  --ball: #ffc23d;
+  --ball-ink: #1c1633;
+  --letter-b: #2563eb;
+  --letter-i: #c4323a;
+  --letter-n: #5b5670;
+  --letter-g: #157a4b;
+  --letter-o: #a65a00;
+  --group: #f7f5fc;
 }
 
 .dark {
   color-scheme: dark;
-  --page: #0b1120;
-  --surface: #1e293b;
-  --ink: #f1f5f9;
-  --ink-muted: #cbd5e1;
-  --ink-faint: #94a3b8;
-  --line: #64748b;
-  --line-soft: #334155;
-  --accent: #818cf8;
-  --accent-strong: #a5b4fc;
-  --accent-ink: #0b1120;
-  --accent-text: #a5b4fc;
-  --accent-soft: #1e1b4b;
-  --danger: #f87171;
-  --danger-soft: #450a0a;
-  --danger-ink: #fecaca;
-  --notice: #422006;
-  --info: #082f49;
+  --page: #140f26;
+  --surface: #221b3a;
+  --ink: #f4f1fb;
+  --ink-muted: #c9c3da;
+  --ink-faint: #a9a2c0;
+  --line: #7a7296;
+  --line-soft: #362e52;
+  --accent: #a08bff;
+  --accent-strong: #bdaeff;
+  --accent-ink: #140f26;
+  --accent-text: #bdaeff;
+  --accent-soft: #2e2558;
+  --danger: #ff8a80;
+  --danger-soft: #3d1416;
+  --danger-ink: #ffd2cc;
+  --notice: #3a2c08;
+  --notice-ink: #ffe3a3;
+  --notice-line: #b38200;
+  --info: #1a2440;
+  --ball: #ffc23d;
+  --ball-ink: #1c1633;
+  --letter-n: #6e6886;
+  --group: #2a2245;
 }
 
 body {
   background-color: var(--page);
   color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* A soft lift for cards and panels. */
+@utility shadow-card {
+  box-shadow:
+    0 1px 2px rgb(28 22 51 / 0.06),
+    0 8px 24px -12px rgb(28 22 51 / 0.18);
 }

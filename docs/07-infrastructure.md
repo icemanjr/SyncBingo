@@ -40,16 +40,24 @@ All three restart unless stopped, and logs are capped at 3 × 10 MB per service 
 - If any step fails, nothing restarts. For an urgent fix, run the same script by hand over SSH.
 - GitHub needs no key or access to the server, and the server needs no registry credentials: the packages are public, like the repository.
 
-**Server setup** (once):
-1. Install Docker with the Compose plugin.
-2. Put `update.sh` in `/opt/syncbingo`, with an `.env` holding `SITE_DOMAIN=syncbingo.com`.
-3. Copy the two units to `/etc/systemd/system/` and run `systemctl enable --now syncbingo-update.timer`.
-4. Set the time zone with `timedatectl`.
-5. Run `update.sh` once to start the site.
+**The server** (live since 2026-10-15):
+- **Instance:** Lightsail `syncbingo-1`, the `micro_3_0` plan (1 GB, 2 vCPUs, 40 GB, 2 TB transfer, $7/month), Ubuntu 24.04 LTS, in `us-east-2a`. The project's Region is fixed at us-east-2 (docs/10 §3).
+- **Address:** static IP `syncbingo-ip` (18.223.223.138), with Cloudflare `A` records for `syncbingo.com` and `www`, DNS only.
+- **Firewall:** 80/tcp and 443/tcp+udp open to all; 22/tcp only from the maintainer's IP and Lightsail's browser SSH (`lightsail-connect`).
+- **SSH:** the maintainer's own ed25519 key with a passphrase (`ssh-add -t 4h`); only the public half is uploaded. Host keys are pinned from `aws lightsail get-instance-access-details`, not trusted on first use.
+- **Setup:** `deploy/setup.sh`, given as the instance's launch script, runs once as root. It:
+  - sets the time zone to America/Denver, so the nightly update runs at 04:00 Mountain;
+  - adds 1 GB of swap, with `vm.swappiness=10` and `vm.overcommit_memory=1` for Valkey;
+  - installs Docker from Docker's repository;
+  - installs `update.sh`, `.env` and the timer.
+- **Lightsail quirk:** Lightsail puts its own lines in front of a launch script and runs the file with `/bin/sh`, so the script switches itself to bash.
+- **Kept on purpose:** the `ubuntu` user is not in the `docker` group (that is root without a prompt), and Ubuntu's automatic security updates stay on but don't reboot, so a live game is never cut short. Reboot for kernel updates at a quiet time.
+- **Starting the site:** once DNS pointed at the server, `sudo /opt/syncbingo/update.sh` started it, and Caddy got its certificates on the first try.
+- **At idle:** the API used about 100 MB, Caddy 20 MB and Valkey 7 MB, with about 420 MB of memory still free and swap unused.
 
 The packages are public with nothing to set: the images' `org.opencontainers.image.source` label links them to this public repository, and they take its visibility. Checked 2026-10-15 with an anonymous pull of both, on arm64. The first run of `update.sh` was tested the same day against the registry, on a laptop: it started both images by commit, and a second run found nothing to do.
 
-AWS Budgets alerts at $10 and $25.
+**Cost controls** (docs/10 §4): a project spend limit of $30, and an AWS Budgets alert at $10.
 
 ## 2. AWS target (Full profile)
 

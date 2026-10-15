@@ -8,7 +8,7 @@ SyncBingo is a personal project paid for out of pocket; banner ads are only a ho
 
 | Tier | What runs | Monthly cost | Gets you | Trade-offs |
 |------|-----------|--------------|----------|------------|
-| **Lean** (the live site) | One small instance running Docker Compose: Caddy (TLS + static SPA + reverse proxy), the API, and a **Valkey** container | ~$5–7 + domain *(unverified)* | A real, always-on site; the same code and store as Full | One instance, no high availability. A deploy or restart briefly drops connections, but **games survive**: state is in Valkey, and clients reconnect and resync from the snapshot. A box failure ends live games |
+| **Lean** (the live site) | One small instance running Docker Compose: Caddy (TLS + static SPA + reverse proxy), the API, and a **Valkey** container | **$7** + domain *(verified 2026-10-15: Lightsail `micro_3_0`, us-east-2)* | A real, always-on site; the same code and store as Full | One instance, no high availability. A deploy or restart briefly drops connections, but **games survive**: state is in Valkey, and clients reconnect and resync from the snapshot. A box failure ends live games |
 | **Middle** | One Fargate ARM task behind an ALB, ElastiCache Valkey (t4g.micro), S3 + CloudFront | ~$35–45 *(unverified)* | Managed containers and cache, TLS at the edge | The ALB's fixed hourly charge dominates; little gained over Lean for this traffic |
 | **Full** (the reference design, docs/07) | 2 Fargate ARM tasks across AZs, ALB, ElastiCache Valkey, S3 + CloudFront, CloudWatch (DNS on Cloudflare) | ~$50–60 *(unverified)* | High availability, autoscaling, the complete portfolio architecture | Mostly fixed hourly charges whatever the traffic |
 
@@ -33,31 +33,32 @@ Text-only custom sets (ADR 0009, amended) keep data transfer and storage out of 
 
 `syncbingo.com` is registered with **Cloudflare Registrar**, and its DNS is managed there for free.
 
-- **Lean:** an `A` record (and `AAAA`, if the instance has IPv6) for `syncbingo.com` and `www` points at the instance's static IP. Start **DNS only** (grey cloud), so Caddy gets Let's Encrypt certificates directly. Turning on Cloudflare's proxy later (free TLS at the edge, caching, DDoS protection; WebSockets are supported) means switching Caddy to a DNS-01 challenge with a Cloudflare API token, or to a Cloudflare origin certificate. That decision belongs to Phase 1b.
+- **Lean (done 2026-10-15):** an `A` record for `syncbingo.com` and `www` points at the instance's static IP. Start **DNS only** (grey cloud), so Caddy gets Let's Encrypt certificates directly. Turning on Cloudflare's proxy later (free TLS at the edge, caching, DDoS protection; WebSockets are supported) means switching Caddy to a DNS-01 challenge with a Cloudflare API token, or to a Cloudflare origin certificate. That decision belongs to Phase 1b.
 - **Full:** CloudFront's alias (`CNAME`) and the ACM validation record go in Cloudflare too, so the Full profile needs no Route 53 zone. CDK outputs the records to add; they are added by hand or through the Cloudflare API.
 - **Account hygiene:** the Cloudflare account signs in with Google, so its security is the **Google account's**: keep 2-Step Verification on there (a passkey or an authenticator app rather than SMS). Registrar lock on, and auto-renew on (an expired domain can be taken by someone else).
 
-## 3. Free credits (new account)
+## 3. The AWS project
 
-There is no AWS account yet, so it will be created under the post-15-July-2025 rules *(unverified, to check at sign-up)*:
+Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed in with a social login, rather than a classic account with a root user.
 
-- $100 in credits on sign-up, plus up to $100 more for onboarding tasks (e.g. launching and terminating an EC2 instance, creating an AWS Budgets alert).
-- The **Free plan** lasts 6 months, then the account closes unless upgraded (90 days to recover). The **Paid plan** keeps the same credits and then bills normally. An always-on site needs the Paid plan, or an upgrade before the 6 months end.
-- To confirm: which services the Free plan allows (Lightsail? Fargate, ALB, ElastiCache?), and whether credits apply to Lightsail.
+- **Region:** fixed at **us-east-2 (Ohio)**. AWS assigns it from the contact address (every US address gets us-east-2), and new-experience projects can't create Regional resources anywhere else. Oregon would be closer to the maintainer in Utah, but the extra 20–30 ms doesn't matter for a Bingo game. Choosing a Region would mean activating advanced features, which isn't worth it. So Lean runs in us-east-2. **For Phase 3:** CloudFront requires its ACM certificate in us-east-1, which these project rules may not allow; check this before building the Full stacks.
+- **Plan:** **Paid**, upgraded on day one, with $100 of credits, which are used first. On the Free plan the project would have closed after 6 months (2027-04-15) unless upgraded in time.
+- **Services:** Lightsail, Budgets, ECS, ElastiCache, CloudFront and S3 are all available to such projects.
 
 **Strategy:**
-1. Create the account; set **AWS Budgets alerts at $10 and $25** on day one (one of the onboarding tasks).
-2. Launch **Lean** as the live site.
-3. Once the game is complete, deploy **Full** once with `cdk deploy -c profile=full`, capture screenshots, a dashboard view and a short demo recording, then `cdk destroy`.
-4. Keep Lean running; credits cover it for a long time if they apply to it.
+1. Launch **Lean** as the live site ✓ (2026-10-15).
+2. Once the game is complete, deploy **Full** once with `cdk deploy -c profile=full`, capture screenshots, a dashboard view and a short demo recording, then `cdk destroy`.
+3. Keep Lean running. The credits cover roughly the first year of it.
 
-## 4. Target budgets
+## 4. Target budgets and cost controls
 
 | Tier | Target |
 |------|--------|
-| Lean | **≤ $7/month** plus the domain |
+| Lean | **≤ $7/month** plus the domain ✓ (the `micro_3_0` plan, $7) |
 | Full | **≤ $60/month**, and only for the days it is deployed |
-| Alerts | AWS Budgets at **$10** (warning) and **$25** (act) |
+
+- **Spend limit (AWS Settings): $30/month.** Past the limit, AWS pauses the project, which takes the site down, so it sits well above the normal ~$7–8. Of its early controls, only *Stop new resource launches* is on. *Pause idle resources* is off, because a party site is idle most of the day. *Pause top cost drivers* is off, because that would be the server itself. The limit emails at 50%, 75% and 90% ($15, $22.50, $27).
+- **AWS Budgets: `syncbingo-monthly-10`,** a $10 monthly cost budget that excludes credits and refunds, so it tracks real usage. It emails on actual and on forecast spend above $10, which is earlier than the spend limit's first email at $15. The planned $25 alert was dropped, because the spend limit's emails cover it.
 
 ## 5. Verification plan
 
@@ -65,7 +66,7 @@ There is no AWS account yet, so it will be created under the post-15-July-2025 r
 |------|-----|----------------|
 | Capacity of the Lean box (target ~10 sessions × 30 players) | k6 WebSocket load test against the real box, `docker stats` for memory and CPU | Phase 2 |
 | Bytes per game | Measure a scripted 30-player game: SPA load, snapshot, events | Phase 1b |
-| Lean instance size and price | Lightsail bundle that fits API + Valkey + Caddy with headroom (check: whether the $5 bundle now has 512 MB or 1 GB, and that the IPv6-only bundle is ruled out for phones on IPv4-only networks) | Phase 1b |
+| Lean instance size and price | ✓ 2026-10-15. Lightsail plans in us-east-2: nano $5 (0.5 GB), **micro $7 (1 GB)**, small $12 (2 GB). Nano is too small for .NET + Valkey (256 MB cap) + Caddy. The IPv6-only plans ($1.50–2 cheaper) are ruled out, because many phone and venue networks are IPv4-only. At idle on micro, the containers use about 130 MB of 909 MB | Phase 1b |
 | Full stack price | AWS Pricing Calculator / Pricing API on the synthesized `profile=full` stacks | Phase 3 |
 
 ## 6. Teardown

@@ -2,9 +2,9 @@
 
 **A real-time, session-based multiplayer Bingo platform.**
 
-[Design docs](docs/README.md) · [Architecture decisions](docs/adr/README.md) · [Roadmap](docs/09-roadmap.md) · Live demo: *coming in Phase 3*
+[Design docs](docs/README.md) · [Architecture decisions](docs/adr/README.md) · [Roadmap](docs/09-roadmap.md) · **Live: [syncbingo.com](https://syncbingo.com)**
 
-> **Status:** design complete, implementation starting (Phase 0). The [design documents](docs/README.md) are the source of truth; this README describes the planned system.
+> **Status:** the core game is complete and live at [syncbingo.com](https://syncbingo.com) (roadmap Phases 0, 1 and 1b). Next: polish and hardening (Phase 2). The [design documents](docs/README.md) are the source of truth.
 
 ## What is SyncBingo?
 

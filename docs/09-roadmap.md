@@ -25,7 +25,7 @@
 - [x] **arm64 + amd64** images, cross-compiled (keep the CI image job under 2 minutes)
 - [x] Production Compose profile: **Caddy** (Let's Encrypt, SPA, proxy), API, Valkey with append-only persistence; forwarded headers from Caddy trusted, so rate limits see each client's address
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)
-- [ ] AWS account (Paid plan, credits), **Budgets alerts at $10 and $25**, the Lean instance, Cloudflare DNS records
+- [x] AWS project (Paid plan, $100 credits, us-east-2), a $30 spend limit and a $10 Budgets alert, the Lean instance (`deploy/setup.sh`), Cloudflare DNS records. **Live at https://syncbingo.com** (2026-10-15)
 - [x] Deploy pipeline: CI publishes images to GHCR after merges; the server pulls nightly (`deploy/update.sh`, docs/07 §1a)
 - [ ] Measure real bytes per game; verify the docs/10 figures for Lean
 

@@ -4,7 +4,7 @@ Phone-first, drop-in party Bingo web app. A host creates a session; participants
 
 ## Status
 
-**Design is complete; no code exists yet.** Start by reading `docs/README.md`, then the numbered documents it links. The docs are the source of truth. If you change a decision, update the relevant doc and add or amend an ADR in `docs/adr/`.
+**The core game is built and live at https://syncbingo.com** (roadmap Phases 0, 1 and 1b; the server is described in `docs/07` §1a). Next is Phase 2 in `docs/09-roadmap.md`. Read `docs/README.md` and the numbered documents it links before larger changes. The docs are the source of truth. If you change a decision, update the relevant doc and add or amend an ADR in `docs/adr/`.
 
 ## Stack
 

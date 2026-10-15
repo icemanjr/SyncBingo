@@ -147,6 +147,10 @@ describe('connecting a TV (ADR 0010)', () => {
     )
 
     expect(await screen.findByText('K7M-2QX')).toBeInTheDocument()
+    // The page subscribes in an effect after the code shows; on a slow machine that comes a little later.
+    await waitFor(() => {
+      expect(handlers.paired).toBeDefined()
+    })
     act(() => {
       handlers.paired?.({ sessionCode: code, displayToken: 'tv-token' })
     })
@@ -164,11 +168,14 @@ describe('connecting a TV (ADR 0010)', () => {
     )
 
     await screen.findByText('K7M-2QX')
+    await waitFor(() => {
+      expect(handlers.expired).toBeDefined()
+    })
     act(() => {
       handlers.expired?.()
     })
 
-    expect(screen.getByText('That code expired.')).toBeInTheDocument()
+    expect(await screen.findByText('That code expired.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Get a new code' })).toBeInTheDocument()
   })
 })

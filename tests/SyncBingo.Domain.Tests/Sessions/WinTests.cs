@@ -233,6 +233,19 @@ public sealed class WinTests
         kit.Session.Claims.ShouldAllBe(claim => claim.Status == ClaimStatus.Dismissed);
     }
 
+    [Fact]
+    public void A_player_who_leaves_is_announced_as_leaving_and_their_claims_close()
+    {
+        var kit = new PlayerTestKit();
+        kit.Session.ClaimBingo(kit.Player, 1, Now).IsSuccess.ShouldBeTrue();
+
+        var events = kit.Session.Leave(kit.Player, Now).Value;
+
+        events.Select(e => e.GetType()).ShouldBe([typeof(ClaimDismissed), typeof(ParticipantLeft)]);
+        events.OfType<ParticipantLeft>().Single().Audience.ShouldBe(Audience.Everyone, "\"Ava left the game\"");
+        kit.Session.Claims.ShouldAllBe(claim => claim.Status == ClaimStatus.Dismissed);
+    }
+
     private static void CallAll(PlayerTestKit kit, IEnumerable<int> balls)
     {
         foreach (var ball in balls)

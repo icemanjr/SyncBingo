@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
@@ -36,7 +36,8 @@ const SentForMs = 4000
 /**
  * A player's screen (docs/06): their card, marked in their own style (FR-51), the last ball if the host
  * shows it, Undo, the Bingo button during a round (FR-17), and the notices every player gets: rules
- * updated (FR-47), the round's pattern while it counts down, who had Bingo and who was removed.
+ * updated (FR-47), the round's pattern while it counts down, who had Bingo and who was removed or left.
+ * **Leave game** asks first (FR-53), and mid-round says they can only join again between rounds.
  */
 export function PlayScreen() {
   const code = normalizeCode(useParams().code ?? '')
@@ -49,6 +50,9 @@ export function PlayScreen() {
   const [open, setOpen] = useState<'rules' | 'board'>()
   const extras = useAction()
   const [sent, setSent] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const leave = useAction()
+  const navigate = useNavigate()
   const marking = useAction()
   const bingo = useAction()
   const countdown = useSecondsLeft(
@@ -114,7 +118,8 @@ export function PlayScreen() {
     ? `Round ${String(view.upcomingRound)}`
     : 'The next round'
   const wins = game.messages.filter(
-    (m) => m.type === 'WinAwarded' || m.type === 'ParticipantRemoved',
+    (m) =>
+      m.type === 'WinAwarded' || m.type === 'ParticipantRemoved' || m.type === 'ParticipantLeft',
   )
 
   const toggle = (cell: number, marked: boolean) => {
@@ -169,9 +174,11 @@ export function PlayScreen() {
             <span>
               {message.type === 'ParticipantRemoved'
                 ? `${data.name} was removed from the game`
-                : mine
-                  ? `🎉 You have Bingo!`
-                  : `${data.name} had Bingo!`}
+                : message.type === 'ParticipantLeft'
+                  ? `${data.name} left the game`
+                  : mine
+                    ? `🎉 You have Bingo!`
+                    : `${data.name} had Bingo!`}
             </span>
             <Button
               look="quiet"
@@ -386,6 +393,49 @@ export function PlayScreen() {
             setStyling(false)
           }}
         />
+      )}
+
+      {leaving ? (
+        <div role="alertdialog" aria-label="Leave the game" className="flex flex-col gap-2">
+          <p className="font-semibold">
+            {inRound || view.state === 'Starting'
+              ? 'Leave the game? A round is in progress, so you can only join again between rounds.'
+              : 'Leave the game?'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              look="danger"
+              disabled={leave.busy}
+              onClick={() =>
+                void leave.run(async () => {
+                  await player.leave()
+                  seats.forget(code)
+                  void navigate('/')
+                })
+              }
+            >
+              Leave
+            </Button>
+            <Button
+              look="secondary"
+              onClick={() => {
+                setLeaving(false)
+              }}
+            >
+              Stay
+            </Button>
+          </div>
+          {leave.error && <ErrorText>{leave.error}</ErrorText>}
+        </div>
+      ) : (
+        <Button
+          look="quiet"
+          onClick={() => {
+            setLeaving(true)
+          }}
+        >
+          Leave game
+        </Button>
       )}
     </div>
   )

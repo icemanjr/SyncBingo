@@ -28,6 +28,8 @@ export function playerApi(code: string, token: string) {
       unwrap(
         api.PUT('/api/sessions/{code}/me/auto-fill', { params: { path }, headers, body: { on } }),
       ),
+    /** Leave the game (FR-53); the token stops working. */
+    leave: () => unwrap(api.DELETE('/api/sessions/{code}/me', { params: { path }, headers })),
     redraw: (cardId: number) =>
       unwrap(
         api.POST('/api/sessions/{code}/cards/redraw', {

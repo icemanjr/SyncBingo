@@ -71,6 +71,8 @@ public sealed class SignalREventPublisher(IHubContext<GameHub> hub) : IEventPubl
                 return JsonSerializer.SerializeToNode(new { name = win.Name, winCondition = win.WinConditionId, wins = win.Wins }, Json);
             case ParticipantRemoved removed when !host:
                 return JsonSerializer.SerializeToNode(new { name = removed.Name }, Json);
+            case ParticipantLeft left when !host:
+                return JsonSerializer.SerializeToNode(new { name = left.Name }, Json);
         }
 
         var data = JsonSerializer.SerializeToNode(e, e.GetType(), Json)!.AsObject();

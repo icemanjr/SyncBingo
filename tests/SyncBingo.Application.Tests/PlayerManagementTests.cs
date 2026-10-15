@@ -57,6 +57,27 @@ public sealed class PlayerManagementTests
     }
 
     [Fact]
+    public async Task A_player_can_leave_and_their_name_is_free_again()
+    {
+        var code = await _app.NewGameAsync();
+        var ava = await _app.JoinAsync(code, "Ava");
+
+        (await _app.Players.LeaveAsync(code, Caller.Participant(ava), TestApp.Ct)).IsSuccess.ShouldBeTrue();
+
+        _app.Publisher.Events.OfType<ParticipantLeft>().Single().Name.ShouldBe("Ava");
+        (await _app.Players.LeaveAsync(code, Caller.Participant(ava), TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.NotFound, "already gone");
+        await _app.JoinAsync(code, "Ava"); // the name is free for someone else, or for Ava between rounds
+    }
+
+    [Fact]
+    public async Task Only_a_player_can_leave()
+    {
+        var code = await _app.NewGameAsync();
+
+        (await _app.Players.LeaveAsync(code, Caller.Host, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.Forbidden);
+    }
+
+    [Fact]
     public async Task Awarding_the_same_claim_twice_counts_once()
     {
         var (code, ava) = await RoundWithPlayerAsync();

@@ -52,6 +52,7 @@ stateDiagram-v2
 | Dismiss claim | – | – | ✔ | ✔ | Host clears a claim without awarding it |
 | Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |
 | Remove (kick) participant | ✔ | ✔ | ✔ | ✔ | Dismisses their pending claims; wins already awarded stay in the history |
+| Leave game (participant) | ✔ | ✔ | ✔ | ✔ | As a removal, but announced as "Ava left the game" (FR-53); they can join again only between rounds |
 | Show leaderboard to all | ✔ | ✔ | ✔ | ✔ | The host always sees it; this shows or hides it for participants and the display |
 
 ## 3. Ball drawing

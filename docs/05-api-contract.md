@@ -23,6 +23,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/cards/{cardId}/undo` | – | Undo (FR-25): resets the card to its marks when the last ball was called. Always allowed during a round. Returns updated marks. |
 | `POST /sessions/{code}/claims` | `{ cardId }` | Bingo button. `202 { claimedAt }`: the claim always goes to the host (FR-37a); the player is not told whether it qualifies. |
 | `PUT /sessions/{code}/me/auto-fill` | `{ on }` | Switch auto-fill for the caller's own card; 409 unless the host made it available. |
+| `DELETE /sessions/{code}/me` | – | Leave the game (FR-53): 204; pending claims dismissed, token revoked, name and card released. Everyone gets `ParticipantLeft { name }`. |
 | `POST /sessions/{code}/cards/redraw` | `{ cardId }` | Only when policy allows and state is BetweenRounds. |
 
 ## 3. Host endpoints (host token)
@@ -82,6 +83,7 @@ In the table, "all" means all three streams.
 | `WinDetected` | host | `{ participantId, name, cardId, winConditionId, matches }` |
 | `WinAwarded` | all | host: `{ win }` in full; players and the display: `{ name, winCondition, wins }`, shown as "Sam had Bingo!" |
 | `ParticipantRemoved` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam was removed from the game" |
+| `ParticipantLeft` | all | host: `{ participantId, name }`; players and the display: `{ name }`, shown as "Sam left the game" (FR-53) |
 | `LeaderboardVisibilityChanged` | all | `{ visible }` (wins also change the leaderboard; clients update it from `WinAwarded` or the snapshot) |
 | `SessionEnded` | all | – |
 | `JoinNoteChanged` | host and display | `{ note }` (FR-49; `null` when cleared) |

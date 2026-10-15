@@ -243,6 +243,18 @@ public sealed class ApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_player_who_leaves_can_no_longer_use_their_token()
+    {
+        var (code, _) = await NewGameAsync();
+        var (_, avaToken) = await JoinAsync(code, "Ava");
+
+        (await _client.SendAsync(HttpMethod.Delete, $"/api/sessions/{code}/me", avaToken)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/me/auto-fill", avaToken, new { on = false }))
+            .StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task A_game_stuck_behind_its_lock_answers_service_unavailable()
     {
         var (code, hostToken) = await NewGameAsync();

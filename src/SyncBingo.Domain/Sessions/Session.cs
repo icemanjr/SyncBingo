@@ -744,11 +744,27 @@ public sealed class Session
     {
         ArgumentNullException.ThrowIfNull(participant);
 
-        if (State == SessionState.Ended)
-        {
-            return WrongState("remove a participant");
-        }
+        return State == SessionState.Ended
+            ? WrongState("remove a participant")
+            : Drop(participant, now, new ParticipantRemoved(participant.Id, participant.Name.Display));
+    }
 
+    /// <summary>
+    /// A participant leaves on their own, at any time (they can join again only between rounds).
+    /// The same as being removed, except that everyone hears "Ava left the game".
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> Leave(Participant participant, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(participant);
+
+        return State == SessionState.Ended
+            ? WrongState("leave")
+            : Drop(participant, now, new ParticipantLeft(participant.Id, participant.Name.Display));
+    }
+
+    /// <summary>Dismisses the participant's pending claims, then announces that they are gone.</summary>
+    private Result<IReadOnlyList<SessionEvent>> Drop(Participant participant, DateTimeOffset now, SessionEvent gone)
+    {
         var events = new List<SessionEvent>();
         for (var i = 0; i < _claims.Count; i++)
         {
@@ -759,7 +775,7 @@ public sealed class Session
             }
         }
 
-        events.Add(new ParticipantRemoved(participant.Id, participant.Name.Display));
+        events.Add(gone);
         return Commit(now, events);
     }
 
@@ -909,7 +925,7 @@ public sealed class Session
     /// Who receives an event (docs/05 §4), decided here so that it is counted in the same step as
     /// the change. The host hears everything; the display and players never hear claims, alerts or
     /// the auto/manual switch, and players hear the balls only when a setting shows them. Wins and
-    /// removals reach everyone ("Sam had Bingo!", "Sam was removed from the game").
+    /// removals reach everyone ("Sam had Bingo!", "Sam was removed from the game", "Sam left the game").
     /// </summary>
     private Audience AudienceOf(SessionEvent e) => e switch
     {

@@ -27,7 +27,7 @@
 - [x] Domain: `syncbingo.com`, registered on Cloudflare (2026-10-14)
 - [x] AWS project (Paid plan, $100 credits, us-east-2), a $30 spend limit and a $10 Budgets alert, the Lean instance (`deploy/setup.sh`), Cloudflare DNS records. **Live at https://syncbingo.com** (2026-10-15)
 - [x] Deploy pipeline: CI publishes images to GHCR after merges; the server pulls nightly (`deploy/update.sh`, docs/07 §1a)
-- [ ] Measure real bytes per game; verify the docs/10 figures for Lean
+- [x] Measure real bytes per game: about 7 MB per 30-player party of 5 rounds, 26.7 KB of Valkey memory per game (docs/10 §5a); Lean price verified ($7)
 
 ## Phase 2 — Polish and hardening
 - [ ] Accessibility pass, reduced motion, screen-reader labels

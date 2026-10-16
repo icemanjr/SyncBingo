@@ -50,6 +50,11 @@ public sealed class JoinSessionHandler(
             return new DomainError(DomainErrorCode.Invalid, Describe(problem));
         }
 
+        if (!NameFilter.IsAllowed(name.Display))
+        {
+            return Errors.NameNotAllowed();
+        }
+
         await using var sessionLock = (await store.LockAsync(code, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
         var session = await store.GetAsync(code, cancellationToken).ConfigureAwait(false);

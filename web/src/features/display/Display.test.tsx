@@ -117,6 +117,18 @@ describe('the display view (FR-28)', () => {
     })
   })
 
+  it('says the game has ended when it expired, not that the host disconnected it', async () => {
+    sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
+    fakeApi({ [snapshotPath]: { status: 401, body: { title: 'Unauthorized', status: 401 } } })
+    renderDisplay()
+
+    expect(await screen.findByText('This game has ended. Thanks for playing!')).toBeInTheDocument()
+    expect(screen.queryByText(/disconnected/)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(sessionStorage.getItem(`syncbingo:display:${code}`)).toBeNull()
+    })
+  })
+
   it('without a token, says how to open it', () => {
     renderDisplay()
 

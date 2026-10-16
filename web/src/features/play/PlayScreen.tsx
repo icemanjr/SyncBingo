@@ -5,6 +5,8 @@ import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
 import { selectionName, winMessage } from '../game/patterns'
 import { SelectionGrids } from '../game/SelectionGrids'
+import { GameEnded } from '../game/GameEnded'
+import { isGone } from '../game/gone'
 import { LastBall } from '../game/LastBall'
 import { Menu } from '../game/Menu'
 import { RulesNotice } from '../game/RulesNotice'
@@ -96,9 +98,12 @@ export function PlayScreen() {
   const removed = game.messages.some(
     (m) => m.type === 'ParticipantRemoved' && (m.data as { name?: string }).name === me?.name,
   )
+  // Gone without a removal: the game ended and has expired, so its tokens no longer exist.
+  const gone = !removed && isGone(game.error)
+  const ended = game.snapshot?.game.state === 'Ended'
   useEffect(() => {
-    if (removed) seats.forget(code)
-  }, [removed, code])
+    if (removed || gone || ended) seats.forget(code)
+  }, [removed, gone, ended, code])
 
   if (!me) {
     return (
@@ -111,9 +116,10 @@ export function PlayScreen() {
     )
   }
 
-  if (removed || game.error?.status === 401) {
+  if (removed) {
     return <p className="m-auto text-center">The host removed you from the game.</p>
   }
+  if (gone) return <GameEnded />
 
   if (!game.snapshot) {
     return (
@@ -124,13 +130,7 @@ export function PlayScreen() {
   }
 
   const { game: view, you } = game.snapshot
-  if (view.state === 'Ended') {
-    return (
-      <p className="m-auto text-center text-lg font-semibold">
-        The game has ended. Thanks for playing!
-      </p>
-    )
-  }
+  if (view.state === 'Ended') return <GameEnded />
 
   const card = you?.cards[0]
   const inRound = view.state === 'Manual' || view.state === 'Auto'

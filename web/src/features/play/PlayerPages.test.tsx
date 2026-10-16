@@ -233,6 +233,15 @@ describe('the play screen', () => {
     expect(await screen.findByText('Ben left the game')).toBeInTheDocument()
   })
 
+  it('says the game has ended when it expired, not that the host removed them', async () => {
+    fakeApi({ [snapshotPath]: { status: 401, body: { title: 'Unauthorized', status: 401 } } })
+    renderAt(`/play/${code}`)
+
+    expect(await screen.findByRole('heading', { name: 'This game has ended' })).toBeInTheDocument()
+    expect(screen.queryByText(/removed you/)).not.toBeInTheDocument()
+    expect(seats.load(code)).toBeUndefined()
+  })
+
   it('shows the last ball when the host shows it', async () => {
     fakeApi({
       [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1, calls: [aCall(37)] }) },

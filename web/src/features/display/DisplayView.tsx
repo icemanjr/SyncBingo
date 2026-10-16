@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { CallBoard } from '../game/CallBoard'
+import { isGone } from '../game/gone'
 import { LastBall } from '../game/LastBall'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
@@ -25,18 +26,20 @@ export function DisplayView() {
   const countdown = useSecondsLeft(
     game.snapshot?.game.state === 'Starting' ? game.snapshot.game.countdownEndsAt : null,
   )
-  const disconnected =
-    game.messages.some((m) => m.type === 'DisplayDisconnected') || game.error?.status === 401
+  // Disconnected only when the host said so; a token the server no longer knows means the game expired.
+  const disconnected = game.messages.some((m) => m.type === 'DisplayDisconnected')
+  const gone = !disconnected && isGone(game.error)
 
   useEffect(() => {
-    if (disconnected) forgetDisplayToken(code)
-  }, [disconnected, code])
+    if (disconnected || gone) forgetDisplayToken(code)
+  }, [disconnected, gone, code])
 
   const centred = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
 
   if (!token)
     return centred('Open this display from the host’s “Open display” menu, or connect a TV at /tv.')
   if (disconnected) return centred('The host disconnected this display.')
+  if (gone) return centred('This game has ended. Thanks for playing!')
   if (!game.snapshot) return centred(game.error ? game.error.detail : 'Connecting…')
 
   const view = game.snapshot.game

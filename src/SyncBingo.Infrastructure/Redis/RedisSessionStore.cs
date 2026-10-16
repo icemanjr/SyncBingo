@@ -72,7 +72,9 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
     {
         ArgumentNullException.ThrowIfNull(session);
 
-        return RunAsync(Scripts.Save, session.Code, StoreJson.Write(session));
+        // An ended game keeps only a few minutes; the domain refuses every command on it, so nothing extends that.
+        var expiry = session.State == SessionState.Ended ? options.EndedExpiry : options.IdleExpiry;
+        return RunWithExpiryAsync(Scripts.Save, session.Code, expiry, StoreJson.Write(session));
     }
 
     public async Task<string?> GetPasswordHashAsync(GameCode code, CancellationToken cancellationToken)
@@ -194,11 +196,14 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
     private SessionKeys Keys(GameCode code) => new(options.KeyPrefix, code);
 
     /// <summary>Runs a script over all the session's keys with the idle expiry first; true when it returned 1.</summary>
-    private async Task<bool> RunAsync(string script, GameCode code, params RedisValue[] args)
+    private Task<bool> RunAsync(string script, GameCode code, params RedisValue[] args) =>
+        RunWithExpiryAsync(script, code, options.IdleExpiry, args);
+
+    private async Task<bool> RunWithExpiryAsync(string script, GameCode code, TimeSpan expiry, params RedisValue[] args)
     {
         ArgumentNullException.ThrowIfNull(code);
 
-        RedisValue[] values = [(long)options.IdleExpiry.TotalMilliseconds, .. args];
+        RedisValue[] values = [(long)expiry.TotalMilliseconds, .. args];
         var result = await Db.ScriptEvaluateAsync(script, Keys(code).All, values).ConfigureAwait(false);
         return (long)result == 1;
     }

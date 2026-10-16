@@ -9,6 +9,12 @@ public sealed record RedisStoreOptions
     /// <summary>A session with no activity for this long expires (every write refreshes it).</summary>
     public TimeSpan IdleExpiry { get; init; } = TimeSpan.FromHours(4);
 
+    /// <summary>
+    /// How long a session the host ended stays: long enough for every screen to show "The game has ended"
+    /// and a sleeping phone to catch up, then it is gone (decided 2026-10-16).
+    /// </summary>
+    public TimeSpan EndedExpiry { get; init; } = TimeSpan.FromMinutes(5);
+
     /// <summary>A session is gone this long after it was created, however busy it is.</summary>
     public TimeSpan MaxLifetime { get; init; } = TimeSpan.FromHours(12);
 

@@ -75,6 +75,25 @@ public sealed class RedisSessionStoreTests(RedisFixture redis)
     }
 
     [Fact]
+    public async Task A_game_the_host_ended_expires_after_five_minutes()
+    {
+        var session = await CreatedAsync();
+        await Store.TryAddParticipantAsync(session.Code, Player(session, "p1", "Ava"), Ct);
+        await Store.SaveTokenAsync(session.Code, "token-hash", Caller.Participant("p1"), Ct);
+        session.End(_time.Now).IsSuccess.ShouldBeTrue();
+
+        await Store.SaveAsync(session, Ct);
+
+        foreach (var key in Keys(session))
+        {
+            var ttl = await redis.Db.KeyTimeToLiveAsync(key);
+            if (!await redis.Db.KeyExistsAsync(key)) continue;
+            ttl.ShouldNotBeNull($"{key} must expire");
+            ttl.Value.ShouldBeInRange(TimeSpan.FromMinutes(4), TimeSpan.FromMinutes(5), $"{key}: an ended game is gone in five minutes");
+        }
+    }
+
+    [Fact]
     public async Task A_session_past_its_lifetime_is_gone_however_busy()
     {
         var session = await CreatedAsync();

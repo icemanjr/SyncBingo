@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { CallBoard } from '../game/CallBoard'
@@ -7,6 +7,8 @@ import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
 import { selectionName } from '../game/patterns'
 import { Dialog } from '../game/Dialog'
+import { GameEnded } from '../game/GameEnded'
+import { isGone } from '../game/gone'
 import { Menu } from '../game/Menu'
 import { Button, ErrorText } from '../game/ui'
 import { RulesNotice } from '../game/RulesNotice'
@@ -38,6 +40,12 @@ export function HostConsole() {
   const [open, setOpen] = useState<'options' | 'displays' | 'leaderboard' | 'end'>()
   const [tab, setTab] = useState<'board' | 'bingo' | 'players'>('board')
   const end = useAction()
+  // The game is over (ended, or expired so the server no longer knows it): this browser forgets it.
+  const gone = isGone(game.error)
+  const ended = game.snapshot?.game.state === 'Ended'
+  useEffect(() => {
+    if (gone || ended) seats.forget(code)
+  }, [gone, ended, code])
 
   if (!token) {
     return (
@@ -50,6 +58,8 @@ export function HostConsole() {
     )
   }
 
+  if (gone) return <GameEnded hostLink />
+
   if (!game.snapshot) {
     return (
       <p className="m-auto text-ink-muted">
@@ -59,16 +69,7 @@ export function HostConsole() {
   }
 
   const { game: view, host: hostView } = game.snapshot
-  if (view.state === 'Ended') {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <h1 className="text-2xl font-bold">The game has ended</h1>
-        <Link to="/" className="font-semibold text-accent-text underline">
-          Back to the start
-        </Link>
-      </div>
-    )
-  }
+  if (view.state === 'Ended') return <GameEnded hostLink />
 
   const calls = view.calls ?? []
   const called = new Set(calls.map((call) => call.number))

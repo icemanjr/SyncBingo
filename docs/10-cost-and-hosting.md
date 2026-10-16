@@ -64,7 +64,7 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 
 | What | How | When (roadmap) |
 |------|-----|----------------|
-| Capacity of the Lean box (target ~10 sessions × 30 players) | k6 WebSocket load test against the real box, `docker stats` for memory and CPU | Phase 2 |
+| Capacity of the Lean box (target ~10 sessions × 30 players) | ✓ 2026-10-16, §5b | Phase 2 |
 | Bytes per game | ✓ 2026-10-15, §5a | Phase 1b |
 | Lean instance size and price | ✓ 2026-10-15. Lightsail plans in us-east-2: nano $5 (0.5 GB), **micro $7 (1 GB)**, small $12 (2 GB). Nano is too small for .NET + Valkey (256 MB cap) + Caddy. The IPv6-only plans ($1.50–2 cheaper) are ruled out, because many phone and venue networks are IPv4-only. At idle on micro, the containers use about 130 MB of 909 MB | Phase 1b |
 | Full stack price | AWS Pricing Calculator / Pricing API on the synthesized `profile=full` stacks | Phase 3 |
@@ -97,6 +97,33 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 - **Memory is not either.** Valkey's 256 MB cap (docs/07) would hold about 10,000 such games at once, far more than one small instance could serve. The cap is there to protect the instance, not because games are large.
 - **The biggest gameplay item** is every screen reloading its snapshot after each win and clear: about 80 KB per refresh round. It is acceptable at this size. Patching the screen from the event instead would trim it, if it ever matters.
 - **To reproduce:** the scripts aren't in the repo yet; Phase 2's k6 load test will measure under real concurrency.
+
+## 5b. Measured: the live box under load (2026-10-16)
+
+**How it was measured:**
+- **The test:** `load/bingo.js` (k6) against **https://syncbingo.com** at 00:46 Mountain, with no real games running.
+- **The games:** 10 games of 30 players each (300 players). Each player is a real WebSocket connection, as a phone's is.
+- **What the players do:** they listen for balls and mark every called number on their card.
+- **What the hosts do:** one host per game starts a round and calls 40 balls, one every 4 seconds, about 3½ minutes in all.
+- **On the server:** `docker stats`, memory and load sampled every 5 s over SSH.
+
+| What | Result |
+|------|--------|
+| Ball delivery, from the server calling it to a player receiving it | **median 34 ms, 95% within 40 ms, slowest 68 ms**, for all 12,000 deliveries (40 balls × 300 players) |
+| Requests (joins, 3,864 marks, ball calls) | **0 failed** of 4,594; median 62 ms, 95% within 125 ms, measured from Utah |
+| API memory | 88 MB idle, **159 MB** peak |
+| API CPU | 1% idle, **66% of one core** peak (the box has 2) |
+| Caddy memory | 14 MB idle, **105 MB** peak (300 TLS WebSocket connections) |
+| Valkey memory | 5 MB idle, 7 MB peak |
+| Free memory, lowest | **242 MB** of 909 MB; swap unused |
+| Load average | peak 0.72 on 2 vCPUs |
+
+**What it means:**
+- **The target is met with plenty of room.** The $7 `micro_3_0` plan carries the target of 10 games × 30 players.
+- **A rough estimate of capacity, not measured:** about 0.5 MB of API and Caddy memory per connected player. The free 242 MB suggests room for a few hundred more players before memory gets tight.
+- **The CPU peak** most likely came from 300 joins arriving close together, since each join checks the password with deliberately slow PBKDF2 hashing (docs/07). Real parties join over minutes, not seconds.
+- **Delivery times** include the network from Utah to Ohio (about 30 ms). The server's own share is a few milliseconds.
+- **To run it again** (off-hours only on the live site): `k6 run -e BASE=https://syncbingo.com load/bingo.js`. `GAMES`, `PLAYERS`, `BALLS` and `CALL_EVERY` change its size.
 
 ## 6. Teardown
 

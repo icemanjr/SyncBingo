@@ -35,7 +35,7 @@
 - [ ] Profanity filter, TTL/expiry handling
 - [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)
 - [x] Playwright suite (`e2e/`, the Compose `tests` service, a CI job that gates deploys; docs/08)
-- [ ] **k6 WebSocket load test against the real Lean box** with `docker stats` (target ~10 sessions × 30 players); record the result in docs/10
+- [x] **k6 WebSocket load test against the real Lean box** (`load/bingo.js`): 10 games × 30 players, balls delivered in 34 ms (median), 0 failures, 242 MB of memory left (docs/10 §5b)
 
 ## Phase 3 — Full AWS design (portfolio)
 - [ ] CDK stacks (network, data, app, web), GitHub OIDC pipeline; context flag **`profile=lean|full`**, `cdk synth` for both in CI

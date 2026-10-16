@@ -10,7 +10,7 @@
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |
 | **Frontend unit** | Vitest + Testing Library | Event-stream sequencing and resync, the API client, token storage (incl. blocked storage), AdSlot layout, pages, store reducers |
 | **End-to-end** | Playwright (multiple browser contexts) | Host + 3 participants through full flows, mobile viewport emulation |
-| **Load** | k6 (WebSocket) | 100 participants per session, many sessions, draw fan-out latency |
+| **Load** | k6 (WebSocket), `load/bingo.js` | Many games of real WebSocket players marking their cards; draw fan-out latency. Run against the live box off-hours (results: docs/10 §5b) |
 
 ## 2. Key scenarios
 

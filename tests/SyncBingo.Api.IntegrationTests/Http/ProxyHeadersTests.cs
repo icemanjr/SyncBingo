@@ -62,27 +62,68 @@ public sealed class ProxyHeadersTests(RedisFixture redis)
         (await Create(client, "203.0.113.3")).ShouldBe(HttpStatusCode.TooManyRequests);
     }
 
-    private WebApplicationFactoryWithAddress Api(bool enabled, string from) => new(redis, enabled, IPAddress.Parse(from));
+    [Fact]
+    public async Task Behind_CloudFront_the_viewer_address_counts_without_its_port()
+    {
+        await using var factory = Api(enabled: true, from: Proxy, clientAddressHeader: ViewerAddress);
+        using var client = factory.CreateClient();
 
-    private static async Task<HttpStatusCode> Create(HttpClient client, string forwardedFor)
+        // Each request comes from a new source port; it is still the same viewer.
+        (await Create(client, "203.0.113.1:40001", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "203.0.113.1:40002", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "203.0.113.1:40003", ViewerAddress)).ShouldBe(HttpStatusCode.TooManyRequests);
+        (await Create(client, "203.0.113.2:40004", ViewerAddress)).ShouldBe(HttpStatusCode.Created, "another viewer");
+    }
+
+    [Fact]
+    public async Task Behind_CloudFront_an_IPv6_viewer_is_one_caller_across_ports()
+    {
+        await using var factory = Api(enabled: true, from: Proxy, clientAddressHeader: ViewerAddress);
+        using var client = factory.CreateClient();
+
+        // CloudFront writes IPv6 without brackets, so only the last group is the port.
+        (await Create(client, "2001:db8::1:40001", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "2001:db8::1:40002", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "2001:db8::1:40003", ViewerAddress)).ShouldBe(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
+    public async Task Behind_CloudFront_the_header_counts_only_from_the_private_network()
+    {
+        await using var factory = Api(enabled: true, from: Stranger, clientAddressHeader: ViewerAddress);
+        using var client = factory.CreateClient();
+
+        (await Create(client, "203.0.113.1:40001", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "203.0.113.2:40002", ViewerAddress)).ShouldBe(HttpStatusCode.Created);
+        (await Create(client, "203.0.113.3:40003", ViewerAddress)).ShouldBe(HttpStatusCode.TooManyRequests);
+    }
+
+    private const string ViewerAddress = "CloudFront-Viewer-Address";
+
+    private WebApplicationFactoryWithAddress Api(bool enabled, string from, string? clientAddressHeader = null) =>
+        new(redis, enabled, IPAddress.Parse(from), clientAddressHeader);
+
+    private static async Task<HttpStatusCode> Create(HttpClient client, string forwardedFor, string header = "X-Forwarded-For")
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/api/sessions", UriKind.Relative))
         {
             Content = System.Net.Http.Json.JsonContent.Create(new { password = "secret" }),
         };
-        request.Headers.Add("X-Forwarded-For", forwardedFor);
+        request.Headers.Add(header, forwardedFor);
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         return response.StatusCode;
     }
 
     /// <summary>The API with a create limit of 2, seeing every request arrive from <paramref name="from"/>.</summary>
-    private sealed class WebApplicationFactoryWithAddress(RedisFixture redis, bool enabled, IPAddress from) : IAsyncDisposable
+    private sealed class WebApplicationFactoryWithAddress(RedisFixture redis, bool enabled, IPAddress from, string? clientAddressHeader)
+        : IAsyncDisposable
     {
         private readonly Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory =
             new ApiFactory(redis, new Dictionary<string, string>
             {
                 ["RateLimits:CreatesPerHour"] = "2",
                 ["ForwardedHeaders:Enabled"] = enabled ? "true" : "false",
+                ["ForwardedHeaders:ClientAddressHeader"] = clientAddressHeader ?? string.Empty,
             }).WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
                 services.AddSingleton<IStartupFilter>(new ConnectionFrom(from))));
 

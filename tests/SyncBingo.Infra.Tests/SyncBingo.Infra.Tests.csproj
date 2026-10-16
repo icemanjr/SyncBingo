@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- CDK's assertion helpers take loosely typed objects and arrays. -->
+    <NoWarn>$(NoWarn);CA1861</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The jsii runtime behind CDK isn't safe to start from several tests at once: run them one at a time. -->
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../infra/src/SyncBingo.Infra/SyncBingo.Infra.csproj" />
+  </ItemGroup>
+
+</Project>

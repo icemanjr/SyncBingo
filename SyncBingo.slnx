@@ -5,9 +5,13 @@
     <Project Path="src/SyncBingo.Domain/SyncBingo.Domain.csproj" />
     <Project Path="src/SyncBingo.Infrastructure/SyncBingo.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/infra/">
+    <Project Path="infra/src/SyncBingo.Infra/SyncBingo.Infra.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/SyncBingo.Api.IntegrationTests/SyncBingo.Api.IntegrationTests.csproj" />
     <Project Path="tests/SyncBingo.Application.Tests/SyncBingo.Application.Tests.csproj" />
     <Project Path="tests/SyncBingo.Domain.Tests/SyncBingo.Domain.Tests.csproj" />
+    <Project Path="tests/SyncBingo.Infra.Tests/SyncBingo.Infra.Tests.csproj" />
   </Folder>
 </Solution>

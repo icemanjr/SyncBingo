@@ -38,10 +38,10 @@
 - [x] **k6 WebSocket load test against the real Lean box** (`load/bingo.js`): 10 games × 30 players, balls delivered in 34 ms (median), 0 failures, 242 MB of memory left (docs/10 §5b)
 
 ## Phase 3 — Full AWS design (portfolio)
-- [ ] CDK stacks (network, data, app, web), GitHub OIDC pipeline; context flag **`profile=lean|full`**, `cdk synth` for both in CI
-- [ ] Price the synthesized `full` stacks (AWS Pricing Calculator / Pricing API); mark docs/10 figures verified
+- [x] CDK stacks (network, data, app, web), GitHub OIDC pipeline; context flag **`profile=lean|full`**, `cdk synth` for both in CI
+- [x] Price the synthesized `full` stacks (AWS Pricing Calculator / Pricing API); mark docs/10 figures verified
 - [ ] Deploy **Full** once on free credits: screenshots, dashboards, a demo recording; then `cdk destroy`
-- [ ] Dashboards and alarms; teardown checklist (docs/10)
+- [x] Dashboards and alarms; teardown checklist (docs/10)
 - [ ] Terms of Use and privacy pages (incl. host responsibility for custom content), linked from the footer; legal review before public launch
 
 ## Phase 4 — Next features (soon after launch)

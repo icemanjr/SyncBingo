@@ -100,79 +100,87 @@ export function Card({
           {label}
         </span>
       ))}
-      {card.cells.map((number, cell) => {
-        const face = faces[cell] ?? ''
-        const fit = fitted[cell]
-        const marked = (card.marks & (2 ** cell)) !== 0
-        const free = cell === freeCell
-        const match = highlightMatches && !marked && called?.has(number) === true
-        const letter = columnLabels?.[cell % columns]
-        const label = `${free ? 'Free space' : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
-        return (
-          <button
-            key={cell}
-            ref={cell === 0 ? firstSquare : undefined}
-            type="button"
-            role="gridcell"
-            aria-pressed={marked}
-            aria-label={label}
-            title={fit?.truncated ? face : undefined}
-            disabled={disabled}
-            onPointerDown={() => {
-              press.current.longPressed = false
-              if (!fit?.truncated) return
-              press.current.timer = setTimeout(() => {
-                press.current.longPressed = true
-                setShowingFull(cell)
-              }, LongPressMs)
-            }}
-            onPointerUp={endPress}
-            onPointerLeave={endPress}
-            onPointerCancel={endPress}
-            onContextMenu={(e) => {
-              if (fit?.truncated) e.preventDefault() // a long press shows the text, not the phone's menu
-            }}
-            onClick={() => {
-              if (press.current.longPressed) {
-                press.current.longPressed = false
-                return // the long press showed the full text; it doesn't mark
-              }
-
-              setShowingFull(undefined)
-              onToggle(cell, !marked)
-            }}
-            className={`relative flex aspect-square min-h-12 flex-col items-center justify-center rounded-xl border-2 bg-surface font-display focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-              match ? 'border-dashed border-accent' : 'border-line-soft'
-            }`}
-          >
-            {marked && <Mark style={markStyle} />}
-            <span
-              aria-hidden="true"
-              className={`relative z-10 flex flex-col items-center font-bold tabular-nums ${fit ? '' : (size?.className ?? 'text-xl')}`}
-              style={{
-                textShadow:
-                  '0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 1px var(--surface)',
-                fontSize: fit ? `${String(fit.size)}px` : undefined,
-                lineHeight: 1.15,
-              }}
-            >
-              {(fit?.lines ?? [face]).map((line, i) => (
-                <span key={i} className="whitespace-nowrap">
-                  {line}
-                </span>
-              ))}
-            </span>
-            {showingFull === cell && (
-              <span
-                role="tooltip"
-                className="absolute -top-2 left-1/2 z-30 -translate-x-1/2 -translate-y-full rounded-lg bg-ink px-2 py-1 text-sm whitespace-nowrap text-page"
-              >
-                {face}
-              </span>
-            )}
-          </button>
-        )
-      })}
+      {Array.from({ length: Math.ceil(card.cells.length / columns) }, (_, row) => (
+        // A row for screen readers only ("contents" keeps the CSS grid's layout).
+        <div key={row} role="row" className="contents">
+          {card.cells
+            .slice(row * columns, (row + 1) * columns)
+            .map((number, i) => square(number, row * columns + i))}
+        </div>
+      ))}
     </div>
   )
+
+  function square(number: number, cell: number) {
+    const face = faces[cell] ?? ''
+    const fit = fitted[cell]
+    const marked = (card.marks & (2 ** cell)) !== 0
+    const free = cell === freeCell
+    const match = highlightMatches && !marked && called?.has(number) === true
+    const letter = columnLabels?.[cell % columns]
+    const label = `${free ? 'Free space' : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
+    return (
+      <button
+        key={cell}
+        ref={cell === 0 ? firstSquare : undefined}
+        type="button"
+        role="gridcell"
+        aria-selected={marked}
+        aria-label={label}
+        title={fit?.truncated ? face : undefined}
+        disabled={disabled}
+        onPointerDown={() => {
+          press.current.longPressed = false
+          if (!fit?.truncated) return
+          press.current.timer = setTimeout(() => {
+            press.current.longPressed = true
+            setShowingFull(cell)
+          }, LongPressMs)
+        }}
+        onPointerUp={endPress}
+        onPointerLeave={endPress}
+        onPointerCancel={endPress}
+        onContextMenu={(e) => {
+          if (fit?.truncated) e.preventDefault() // a long press shows the text, not the phone's menu
+        }}
+        onClick={() => {
+          if (press.current.longPressed) {
+            press.current.longPressed = false
+            return // the long press showed the full text; it doesn't mark
+          }
+
+          setShowingFull(undefined)
+          onToggle(cell, !marked)
+        }}
+        className={`relative flex aspect-square min-h-12 flex-col items-center justify-center rounded-xl border-2 bg-surface font-display focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+          match ? 'border-dashed border-accent' : 'border-line-soft'
+        }`}
+      >
+        {marked && <Mark style={markStyle} />}
+        <span
+          aria-hidden="true"
+          className={`relative z-10 flex flex-col items-center font-bold tabular-nums ${fit ? '' : (size?.className ?? 'text-xl')}`}
+          style={{
+            textShadow: '0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 1px var(--surface)',
+            fontSize: fit ? `${String(fit.size)}px` : undefined,
+            lineHeight: 1.15,
+          }}
+        >
+          {(fit?.lines ?? [face]).map((line, i) => (
+            <span key={i} className="whitespace-nowrap">
+              {line}
+            </span>
+          ))}
+        </span>
+        {showingFull === cell && (
+          <span
+            role="tooltip"
+            className="absolute -top-2 left-1/2 z-30 -translate-x-1/2 -translate-y-full rounded-lg bg-ink px-2 py-1 text-sm whitespace-nowrap text-page"
+          >
+            {face}
+          </span>
+        )}
+      </button>
+    )
+  }
 }

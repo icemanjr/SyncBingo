@@ -30,7 +30,7 @@
 - [x] Measure real bytes per game: about 7 MB per 30-player party of 5 rounds, 26.7 KB of Valkey memory per game (docs/10 §5a); Lean price verified ($7)
 
 ## Phase 2 — Polish and hardening
-- [ ] Accessibility pass, reduced motion, screen-reader labels
+- [x] Accessibility pass: every screen scanned with axe-core (WCAG 2.1 AA, light and dark) on every PR; the card's grid fixed; reduced motion honoured (docs/06 §3)
 - [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
 - [x] Profanity filter for player names (FR-4); ended games expire after 5 minutes, and an expired game reads as ended on every screen (docs/04 §4)
 - [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)

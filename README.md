@@ -135,7 +135,7 @@ Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 | Real-time | SignalR .NET client | Event delivery, audiences, reconnect and resync |
 | Frontend unit | Vitest + Testing Library | Components, hooks, store |
 | End-to-end | Playwright | Host and players (phone-sized screens) through full games: joining, calling, marking, claims and awards, rule changes, leaving, the TV display, ad slots. In CI on every PR, before any deploy |
-| Load | k6 | 100 players per session, draw fan-out latency |
+| Load | k6 | 10 games × 30 players on the live server: balls reach every phone in 34 ms (median), 0 failures ([results](docs/10-cost-and-hosting.md)) |
 
 The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
 

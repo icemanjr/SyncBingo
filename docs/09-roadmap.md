@@ -32,7 +32,7 @@
 ## Phase 2 — Polish and hardening
 - [ ] Accessibility pass, reduced motion, screen-reader labels
 - [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
-- [ ] Profanity filter, TTL/expiry handling
+- [x] Profanity filter for player names (FR-4); ended games expire after 5 minutes, and an expired game reads as ended on every screen (docs/04 §4)
 - [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)
 - [x] Playwright suite (`e2e/`, the Compose `tests` service, a CI job that gates deploys; docs/08)
 - [x] **k6 WebSocket load test against the real Lean box** (`load/bingo.js`): 10 games × 30 players, balls delivered in 34 ms (median), 0 failures, 242 MB of memory left (docs/10 §5b)

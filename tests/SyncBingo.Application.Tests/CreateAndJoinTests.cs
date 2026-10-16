@@ -55,6 +55,19 @@ public sealed class CreateAndJoinTests
         _app.Publisher.Notifications.ShouldBe([(new Recipient.Host(), (Notification)new ParticipantJoined(joined.ParticipantId, "Sam"))]);
     }
 
+    [Fact]
+    public async Task An_offensive_name_is_refused_and_nothing_is_kept()
+    {
+        var code = await _app.NewGameAsync();
+
+        var refused = await _app.Join.HandleAsync(new JoinSession(code.ToString(), TestApp.Password, "Sh1t Head"), TestApp.Ct);
+
+        refused.Error!.Code.ShouldBe(DomainErrorCode.Invalid);
+        refused.Error.Message.ShouldBe("Please choose a different name.");
+        _app.Store.ReservedNames(code).ShouldBeEmpty("the name isn't reserved");
+        _app.Publisher.Notifications.ShouldBeEmpty("and the host isn't told about it");
+    }
+
     [Theory]
     [InlineData("9ve4-shp3-k7mw-a2qx")] // well-formed, but no such game
     [InlineData("not a code")]

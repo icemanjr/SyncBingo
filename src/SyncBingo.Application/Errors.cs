@@ -5,6 +5,10 @@ namespace SyncBingo.Application;
 
 internal static class Errors
 {
+    /// <summary>An offensive name (<see cref="Domain.Participants.NameFilter"/>); the reason isn't spelled out.</summary>
+    public static DomainError NameNotAllowed() =>
+        new(DomainErrorCode.Invalid, "Please choose a different name.");
+
     public static DomainError SessionNotFound() =>
         new(DomainErrorCode.NotFound, "That game doesn't exist or has ended. Check the code with your host.");
 

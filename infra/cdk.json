@@ -1,0 +1,8 @@
+{
+  "app": "dotnet run --project src/SyncBingo.Infra",
+  "context": {
+    "profile": "full",
+    "stage": "dev",
+    "@aws-cdk/core:defaultCrossStackReferences": "strong"
+  }
+}

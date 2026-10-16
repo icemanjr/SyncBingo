@@ -14,7 +14,7 @@ var app = builder.Build();
 // First, so everything after it (the rate limits above all) sees the client's own address.
 if (ProxyHeaders.Enabled(app.Configuration))
 {
-    app.UseForwardedHeaders();
+    app.UseProxyHeaders(app.Configuration);
 }
 
 app.UseExceptionHandler();

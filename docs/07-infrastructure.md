@@ -16,7 +16,7 @@ nginx re-resolves `api` (a `resolver` filled in from the container's DNS servers
 
 CI builds both images on every PR, for **linux/amd64 and linux/arm64** (ADR 0011), so a broken Dockerfile is caught before merge. Neither needs emulation: the build stages run on the build machine's own architecture (a framework-dependent .NET publish and a Vite build are the same for every CPU), and the runtime stages only copy files onto the target architecture's base image. Image names are fully qualified (`docker.io/…`), which Podman requires.
 
-**Client addresses behind a proxy.** The rate limits key on the caller's address (docs/05 §5), but behind nginx or Caddy every request comes from the proxy. With `ForwardedHeaders__Enabled=true` the API takes the address the proxy appended to `X-Forwarded-For` (only the last one, so a client can't prepend a made-up address), and only when the request comes from loopback or a private network, where the proxy runs. A header from anywhere else is ignored. In the Full profile the ALB plays the proxy's part, from inside the VPC.
+**Client addresses behind a proxy.** The rate limits key on the caller's address (docs/05 §5), but behind nginx or Caddy every request comes from the proxy. With `ForwardedHeaders__Enabled=true` the API takes the address the proxy appended to `X-Forwarded-For` (only the last one, so a client can't prepend a made-up address), and only when the request comes from loopback or a private network, where the proxy runs. A header from anywhere else is ignored. In the Full profile there are two proxies, CloudFront and then the ALB, so the client's address isn't the last one in `X-Forwarded-For`. There `ForwardedHeaders__ClientAddressHeader=CloudFront-Viewer-Address` takes it from the header CloudFront sets itself (`address:port`; a client's own copy is replaced), still only from a private address, the ALB's. The ALB accepts only CloudFront's origin-facing addresses, so nobody can go around CloudFront to send a made-up one.
 
 Podman works in place of Docker: enable the user socket (`systemctl --user enable --now podman.socket`), set `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`, and use `podman compose` or `docker-compose`.
 
@@ -86,7 +86,8 @@ flowchart TB
 | Edge routing | CloudFront behaviours: default → S3; `/api/*` and `/hubs/*` → ALB with caching disabled and WebSocket support |
 | TLS and DNS | ACM certificates; DNS records in Cloudflare, where `syncbingo.com` is registered (no Route 53 zone needed; docs/10 §2a) |
 | Secrets/config | SSM Parameter Store / Secrets Manager injected into tasks |
-| Network | Private subnets for tasks and Redis; consider VPC endpoints versus NAT cost for a demo |
+| Network | Valkey in isolated subnets (no route out). The tasks run in public subnets with a public address and no NAT gateway, which would cost about $33 a month on its own; their security group lets in only the ALB, and the ALB only CloudFront (the AWS-managed origin-facing prefix list). For production, private subnets with a NAT gateway, or ECR with VPC endpoints |
+| Images | GHCR, where CI already publishes the arm64 API image for the live site; no ECR copy to keep. Pin a build with `-c imageTag=sha-<commit>` |
 | Protection | Security groups scoped tightly. Edge rate rules (AWS WAF in front of CloudFront, or Cloudflare) only with **very high per-IP thresholds**, or none: a whole event of up to 100 people shares one WiFi address, and a busy game is thousands of requests from that address in a few minutes. The API's own limits (docs/05 §5) are keyed by player token where it matters |
 
 ## 3. AWS CDK (C#)
@@ -95,18 +96,25 @@ Stacks in `infra/`:
 
 | Stack | Contents |
 |-------|----------|
-| `NetworkStack` | VPC, subnets, security groups |
-| `DataStack` | ElastiCache subnet group + replication group |
-| `AppStack` | ECR repo, ECS cluster, Fargate service, ALB, autoscaling, log groups |
-| `WebStack` | S3 bucket, CloudFront distribution, behaviours, certificate, DNS |
-| `PipelineRoleStack` | GitHub OIDC role for CI deploys |
+| `NetworkStack` | VPC (2 zones, public and isolated subnets, no NAT), security groups, the ALB and its listener |
+| `DataStack` | ElastiCache for Valkey 8.1: subnet group, parameter group (`volatile-ttl`), replication group (1 node in dev; 2 with failover in prod), TLS and encryption at rest |
+| `WebStack` | Private S3 bucket (origin access control), CloudFront distribution: a CloudFront Function serves `index.html` for app routes; `/api/*` and `/hubs/*` go to the ALB uncached with all viewer and CloudFront headers; optional custom domain and certificate |
+| `AppStack` | ECS cluster, Fargate service (arm64, 2–3 tasks in dev, up to 6 in prod), target group on `/readyz`, the listener rule, autoscaling on CPU and requests, a log group, alarms to SNS and a dashboard |
+| `PipelineRoleStack` | GitHub OIDC provider and a deploy role that only this repository's `master` or a stage environment can take; it assumes the CDK bootstrap roles, and can upload the app and invalidate CloudFront |
+| `LeanStack` (profile `lean`) | The live server as code: a Lightsail `micro_3_0` instance with `deploy/setup.sh` as its launch script, its firewall and a static IP. The live `syncbingo-1` was made by hand before this existed and is not managed by it |
 
-Stage configuration (`dev`, `prod`) comes from CDK context so the same code deploys both. A second context flag, `profile=lean|full` (ADR 0011), selects the Lean instance or the full set of stacks; `cdk synth` runs for both in CI.
+The ALB sits in the network stack so that CloudFront can point at it and the app stack can use CloudFront's address for join links, without the two stacks depending on each other.
+
+Stage configuration (`dev`, `prod`) comes from CDK context so the same code deploys both. A second context flag, `profile=lean|full` (ADR 0011), selects the Lean instance or the full set of stacks; CI runs `cdk synth --strict` for Lean and for Full in both stages, and `tests/SyncBingo.Infra.Tests` checks the templates (CDK assertions). Optional context: `imageTag`, `domain` with `certificateArn`, `alarmEmail`, `sshCidr` (Lean), `githubOidcProviderArn`. See `infra/README.md`.
+
+**Trade-offs worth knowing:**
+- **CloudFront to the ALB is plain HTTP.** The ALB has no certificate without a domain of ours. For production, give the ALB an HTTPS listener (a us-east-2 certificate for an origin name) and set the origin to HTTPS only, or use a CloudFront VPC origin with an internal ALB, once WebSocket support for VPC origins is confirmed.
+- **Cross-stack references are strong** (CloudFormation exports), so a producing stack can't drop an output another stack still uses.
 
 ## 4. CI/CD (GitHub Actions)
 
 1. **PR:** restore, build, unit tests, integration tests (Testcontainers), web lint/typecheck/tests, `cdk synth`, container image build.
-2. **Main:** build and push images to ECR, `cdk diff`, deploy `dev` automatically.
+2. **Main:** build and push images to GHCR (done for the live site), `cdk diff`, deploy `dev` automatically (planned, once Full is deployed).
 3. **Release tag:** manual approval, deploy `prod`; sync SPA to S3 and invalidate CloudFront.
 4. AWS access via GitHub **OIDC** (no long-lived keys). Dependabot for NuGet and npm. Optional container and dependency scanning.
 

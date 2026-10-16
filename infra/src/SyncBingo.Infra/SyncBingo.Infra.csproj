@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- CDK's own conventions: props classes with setters, and stacks named ...Stack. -->
+    <NoWarn>$(NoWarn);CA2227;CA1002;CA1711</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.CDK.Lib" />
+    <PackageReference Include="Constructs" />
+  </ItemGroup>
+
+</Project>

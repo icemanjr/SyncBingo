@@ -40,7 +40,7 @@ export function PrivacyPage() {
     <LegalPage title="Privacy" updated="16 October 2026">
       <p>
         SyncBingo is a party Bingo game. It has no accounts and no sign-up, and it keeps as little
-        as it can, for as short a time as it can. It is run by [OPERATOR NAME]; questions go to
+        as it can, for as short a time as it can. It is run by Nathan Holst; questions go to
         [CONTACT EMAIL].
       </p>
 
@@ -110,8 +110,8 @@ export function TermsPage() {
   return (
     <LegalPage title="Terms of Use" updated="16 October 2026">
       <p>
-        SyncBingo is a free party Bingo game run by [OPERATOR NAME]. By hosting or joining a game
-        you agree to these terms. Questions go to [CONTACT EMAIL].
+        SyncBingo is a free party Bingo game run by Nathan Holst. By hosting or joining a game you
+        agree to these terms. Questions go to [CONTACT EMAIL].
       </p>
 
       <h2>Playing fair and kind</h2>
@@ -139,7 +139,7 @@ export function TermsPage() {
       <p>
         SyncBingo is provided as it is, without guarantees. It may be unavailable at times, games
         can end when the server restarts or expires them, and features may change. To the extent the
-        law allows, [OPERATOR NAME] isn&apos;t liable for any loss from using it.
+        law allows, Nathan Holst isn&apos;t liable for any loss from using it.
       </p>
 
       <h2>Changes</h2>

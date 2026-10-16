@@ -13,10 +13,10 @@ import { forgetDisplayToken, takeDisplayToken } from './displayToken'
 
 /**
  * The display view (FR-28, the design reference): what the room sees on a projector or TV. No ads, no
- * controls, read-only. On a wide screen, the left column has the round, the patterns, the last ball large (or
- * the countdown), the leaderboard when the host shows it and the latest win; the right has the call board,
- * or between rounds the **Join Now!** panel with the QR and the join note (FR-49). Rules notices (FR-47)
- * appear above the board.
+ * controls, read-only. On a wide screen, the left column has the round, the last ball large (or the
+ * countdown), the patterns under it and the leaderboard when the host shows it. The right has the call board at the top, at full
+ * size, or between rounds the **Join Now!** panel with the QR and the password note (FR-49); under it, the
+ * latest win, large, and rules notices (FR-47).
  */
 export function DisplayView() {
   const code = normalizeCode(useParams().code ?? '')
@@ -59,10 +59,6 @@ export function DisplayView() {
           <span className="rounded-full bg-ink px-4 py-1.5 text-xl font-extrabold text-page">
             {roundLabel}
           </span>
-          <span className="font-display text-3xl font-bold">
-            {selectionName(view.winCondition, view)}
-          </span>
-          <SelectionGrids game={view} />
         </div>
 
         {view.state === 'Starting' ? (
@@ -82,6 +78,13 @@ export function DisplayView() {
             </div>
           )
         )}
+
+        <div className="flex flex-col items-center gap-2 lg:items-start">
+          <span className="font-display text-3xl font-bold">
+            {selectionName(view.winCondition, view)}
+          </span>
+          <SelectionGrids game={view} />
+        </div>
 
         {view.leaderboardVisible && view.leaderboard && (
           <section
@@ -105,12 +108,24 @@ export function DisplayView() {
             )}
           </section>
         )}
+      </div>
 
+      {/* The board stays at the top, at full size; alerts go under it, never above or beside it. */}
+      <div className="flex min-w-0 flex-col justify-start gap-6">
+        {lobby ? (
+          <div className="mx-auto w-full max-w-4xl">
+            <JoinStage code={code} joinNote={view.joinNote} />
+          </div>
+        ) : (
+          <section aria-label="Call board" className="rounded-[28px] bg-surface p-6 shadow-card">
+            <CallBoard board={view.board} calls={calls} big showLastBall={false} />
+          </section>
+        )}
         {latestWin && (
           <p
             key={latestWin.at}
             role="status"
-            className={`mt-auto rounded-3xl bg-accent p-4 text-center font-display text-3xl font-extrabold text-accent-ink ${view.settings.winHighlight ? 'ring-8 ring-ball/60' : ''}`}
+            className={`rounded-3xl bg-accent px-6 py-5 text-center font-display text-5xl font-extrabold text-accent-ink ${view.settings.winHighlight ? 'ring-8 ring-ball/60' : ''}`}
           >
             {winMessage(
               (latestWin.data as { name: string }).name,
@@ -120,24 +135,12 @@ export function DisplayView() {
             )}
           </p>
         )}
-      </div>
-
-      <div className="flex min-w-0 flex-col justify-center gap-6">
         {game.rulesNotice && (
           <RulesNotice
             notice={game.rulesNotice}
             patterns={view}
             onClose={game.dismissRulesNotice}
           />
-        )}
-        {lobby ? (
-          <div className="mx-auto w-full max-w-4xl">
-            <JoinStage code={code} joinNote={view.joinNote} />
-          </div>
-        ) : (
-          <section aria-label="Call board" className="rounded-[28px] bg-surface p-6 shadow-card">
-            <CallBoard board={view.board} calls={calls} big showLastBall={false} />
-          </section>
         )}
       </div>
     </div>

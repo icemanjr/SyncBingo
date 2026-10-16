@@ -251,17 +251,18 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 Opened from the host console with **Open display**, in a new tab or on another device via its link or QR. It has its own read-only **display token** and its own connection, so popping it out never disconnects the host console. It shows only what the room should see:
 
 ```
-During a round (16:9; left column 300 px, the board fills the rest)
+During a round (16:9; left column 300 px, the board fills the rest, from the top)
 ┌──────────────────────────────────────────────────────────────┐
 │ [Round 3]          ┌──────────────────────────────────────┐  │
-│ Normal Bingo       │  (B)    (I)    (N)    (G)    (O)      │  │
-│ ▦ ▦ ▦ pattern grids│  1 6 11 16 21 26 31 ■ 41 46 51 56 ... │  │
-│   LAST BALL        │  2 ■ 12 17 22 27 32 37 42 47 52 57    │  │
-│    ( N 37 )        │  … tinted tiles, down then across     │  │
-│ Leaderboard (if    └──────────────────────────────────────┘  │
-│  the host shows it)                                          │
-│ [ Ava had a Bingo! ]  ← the latest win                       │
+│   LAST BALL        │  (B)    (I)    (N)    (G)    (O)      │  │
+│    ( N 37 )        │  1 6 11 16 21 26 31 ■ 41 46 51 56 ... │  │
+│ Normal Bingo       │  … tinted tiles, down then across     │  │
+│ ▦ ▦ ▦ pattern grids└──────────────────────────────────────┘  │
+│ Leaderboard (if    [        Ava had a Bingo!            ]    │  ← alerts under the board:
+│  the host shows it)[ Rules updated: … ]                      │     the latest win, rules notices
 └──────────────────────────────────────────────────────────────┘
+
+The board never moves or shrinks for an alert, so its balls never crowd on smaller TVs.
 
 Between rounds: the board's place shows the Join Now! panel: the QR, the game code under it,
 and the password note exactly as the host typed it ("Password: harvest2026"), or nothing if empty.

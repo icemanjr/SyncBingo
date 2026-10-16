@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -59,5 +60,18 @@ describe('the display view', () => {
     renderAt('/display/9ve4shp3k7mwa2qx')
 
     expect(screen.queryByRole('complementary', { name: 'Advertisement' })).not.toBeInTheDocument()
+  })
+})
+
+describe('the legal pages', () => {
+  it('are linked from every page, and say they are drafts', async () => {
+    renderAt('/')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Privacy' }))
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Privacy' })).toBeInTheDocument()
+    expect(screen.getByRole('note')).toHaveTextContent('Draft, pending legal review')
+    await userEvent.click(screen.getByRole('link', { name: 'Terms' }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Terms of Use' })).toBeInTheDocument()
   })
 })

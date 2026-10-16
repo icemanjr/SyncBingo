@@ -7,6 +7,7 @@
 | Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
+| Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. Linked from a footer on every page except the TV |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |

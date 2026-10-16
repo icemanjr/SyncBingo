@@ -31,6 +31,22 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
           <ThemeToggle />
         </header>
         {children}
+        <footer className="mt-auto flex justify-center gap-2 pt-2 text-sm text-ink-muted">
+          {(
+            [
+              ['/terms', 'Terms'],
+              ['/privacy', 'Privacy'],
+            ] as const
+          ).map(([to, label]) => (
+            <Link
+              key={to}
+              to={to}
+              className="inline-flex min-h-12 items-center rounded-xl px-3 underline-offset-4 hover:underline focus-visible:outline-4 focus-visible:outline-accent"
+            >
+              {label}
+            </Link>
+          ))}
+        </footer>
       </main>
       <div className="hidden lg:block">
         <AdSlot position="right" />

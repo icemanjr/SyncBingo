@@ -7,6 +7,7 @@
 | Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose game password and initial settings |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
+| Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. Linked from a footer on every page except the TV |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
@@ -326,6 +327,10 @@ The host opens **Open display ⧉ → Connect a TV** and types the code (or scan
 - Text contrast meets WCAG AA; large, simple typography for the current ball.
 - Screen-reader labels on every cell, e.g. "B 7, called, marked".
 - The host can optionally speak the ball aloud with the browser's speech synthesis (nice-to-have).
+
+- **Checked automatically (2026-10-16):** `e2e/tests/accessibility.spec.ts` plays a real game and scans every screen with axe-core against WCAG 2.1 A and AA, in light and in dark, on every PR: landing, create, join, the host's lobby, Options and round (laptop and phone), the player's card and rules panel, and the TV.
+- **The first scan found one problem:** the player's card wasn't a valid grid. Its squares now sit in rows and announce a mark as "selected". Everything else passed.
+- **Reduced motion:** with the device's reduced-motion setting on, animations and transitions are switched off everywhere, by one global rule, and the BINGO button doesn't move when pressed.
 
 ## 4. States to design
 

@@ -7,6 +7,7 @@ import { DisplayView } from './features/display/DisplayView'
 import { PairPage } from './features/display/PairPage'
 import { TvPage } from './features/display/TvPage'
 import { LandingPage } from './features/landing/LandingPage'
+import { PrivacyPage, TermsPage } from './features/legal/LegalPages'
 import { JoinPage } from './features/play/JoinPage'
 import { PlayScreen } from './features/play/PlayScreen'
 
@@ -19,6 +20,22 @@ export function AppRoutes() {
         element={
           <Layout>
             <LandingPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <Layout>
+            <TermsPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <Layout>
+            <PrivacyPage />
           </Layout>
         }
       />

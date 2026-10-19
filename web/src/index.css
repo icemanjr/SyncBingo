@@ -114,3 +114,15 @@ body {
     0 1px 2px rgb(28 22 51 / 0.06),
     0 8px 24px -12px rgb(28 22 51 / 0.18);
 }
+
+/* Reduced motion (docs/06 §3): nothing slides, fades or animates for people whose device asks for less. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

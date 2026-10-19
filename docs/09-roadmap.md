@@ -40,7 +40,7 @@
 ## Phase 3 — Full AWS design (portfolio)
 - [x] CDK stacks (network, data, app, web), GitHub OIDC pipeline; context flag **`profile=lean|full`**, `cdk synth` for both in CI
 - [x] Price the synthesized `full` stacks (AWS Pricing Calculator / Pricing API); mark docs/10 figures verified
-- [ ] Deploy **Full** once on free credits: screenshots, dashboards, a demo recording; then `cdk destroy`
+- [ ] Deploy **Full** for an evening on free credits (`infra/scripts/full-up.sh`): end-to-end and k6 runs against it, a failover with one task stopped, dashboard and console captures; then `full-down.sh` the same day (docs/10 §3)
 - [x] Dashboards and alarms; teardown checklist (docs/10)
 - [x] Terms of Use and Privacy pages, plain-language **drafts** of what the app actually does (`/terms`, `/privacy`), linked from every page's footer; the operator's name and the addresses `legal@` and `support@syncbingo.com` come from build settings (`web/.env`)
 - [ ] Legal review of those drafts before relying on them

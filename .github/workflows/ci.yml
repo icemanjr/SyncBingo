@@ -119,8 +119,8 @@ jobs:
           push: false
           cache-from: type=gha,scope=web
 
-      - name: Deploy script passes shellcheck
-        run: shellcheck deploy/update.sh
+      - name: Deploy scripts pass shellcheck
+        run: shellcheck -x deploy/update.sh infra/scripts/*.sh
 
       - name: Compose files are valid
         run: |

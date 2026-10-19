@@ -29,14 +29,15 @@ CI runs these with `--strict` (any warning fails), and `tests/SyncBingo.Infra.Te
 | `sshCidr` | none | Lean only: the one address SSH is open to, besides Lightsail's browser console |
 | `githubOidcProviderArn` | none | Reuse an account's existing GitHub OIDC provider |
 
-## Deploy (the one-time Full deploy, by the maintainer)
+## Deploy for a demo, then tear down (the maintainer)
 
-All in the project's Region, us-east-2. Signed in with `aws login`:
+Signed in with `aws login --region us-east-2`, from the repository root:
 
 ```bash
-npx aws-cdk bootstrap                                  # once per account and Region
-npx aws-cdk deploy -c profile=full --all -c alarmEmail=you@example.com
-# then upload the app: build web/, aws s3 sync web/dist s3://<BucketName> --delete,
-# and aws cloudfront create-invalidation --distribution-id <DistributionId> --paths /index.html
-npx aws-cdk destroy -c profile=full --all             # and run the checks in docs/10 §6
+infra/scripts/full-up.sh                                  # asks first; ALARM_EMAIL=you@example.com to email alarms
+infra/scripts/full-down.sh                                # the same day
 ```
+
+- **`full-up.sh`:** bootstraps CDK if needed, deploys all five stacks, builds the web app with the Serious Bingo teaser, uploads it to the bucket (hashed assets cached for a year, `index.html` revalidated), invalidates `index.html`, then waits until the page and the API both answer through CloudFront. It prints the address and what to try.
+- **`full-down.sh`:** says how long it was up and roughly what that cost, destroys the stacks, then checks that nothing billable is left (docs/10 §6). It keeps the `CDKToolkit` stack, which costs cents.
+- About $0.08 an hour while up (docs/10 §5c). The live site is untouched throughout.

@@ -8,7 +8,7 @@ The site should be live and always on at SyncBingo.com, so a recruiter can simpl
 ## Decision
 - **Two deployment profiles from the same code.**
   - **Lean** (the live site): one small instance running Docker Compose: **Caddy** (Let's Encrypt TLS, serves the SPA, proxies `/api` and `/hubs`), the API, and a **Valkey** container with append-only persistence.
-  - **Full** (the portfolio design): unchanged from ADR 0007 and docs/07, deployed once on free credits for screenshots and a demo, then torn down.
+  - **Full** (the portfolio design): unchanged from ADR 0007 and docs/07, deployed for a few hours on free credits to prove it deploys and works (tests, a failover, console captures), then torn down the same day (amended 2026-10-19: the app looks the same in both profiles, so app screenshots gain nothing).
   - The CDK app takes a context flag, `profile=lean|full`; `cdk synth` must pass for both.
 - **Valkey, not Redis OSS**, everywhere: Compose, Testcontainers and ElastiCache. Valkey is Redis-compatible (StackExchange.Redis and our Lua scripts, including `cjson`, work unchanged) and cheaper on ElastiCache. ADR 0003's design is unchanged; only the engine changes.
 - **One store implementation.** Lean runs the same `RedisSessionStore` against the local Valkey container, rather than a second in-memory `ISessionStore`. It costs ~10–20 MB of RAM and keeps live games through API restarts and deploys; the scheduler lease and the SignalR backplane work unchanged with one instance.

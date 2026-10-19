@@ -30,6 +30,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     const host = await open(browser, laptop)
     await scan(host, 'landing (laptop)')
     await scan(await open(browser, phone), 'landing (phone)')
+    await scan(await open(browser, phone, '/terms'), 'terms (phone)')
+    await scan(await open(browser, phone, '/privacy'), 'privacy (phone)')
     await host.getByRole('link', { name: 'Host a game' }).click()
     await scan(host, 'create game')
     await host.getByLabel('Game password').fill(password)

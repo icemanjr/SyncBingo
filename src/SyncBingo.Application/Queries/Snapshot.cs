@@ -192,7 +192,9 @@ public sealed class GameQueries(ISessionStore store)
             [.. variant.Patterns.Select(pattern => new PatternView(pattern.Id, pattern.Name, [.. pattern.Masks], pattern.IsLine, pattern.AnnouncedAs))],
             [.. variant.Presets.Select(preset => new PresetView(preset.Id, preset.Name, [.. preset.PatternIds]))],
             new CardShape(variant.Layout.Rows, variant.Layout.Columns, variant.Layout.FreeCell),
-            [.. variant.Columns.Select(column => new BoardGroup(column.Label, [.. Enumerable.Range(column.Min, column.Count)]))],
+            variant.IsFreeForm
+                ? [new BoardGroup(string.Empty, [.. Enumerable.Range(1, variant.BallMax)])] // one block, no labels (docs/06)
+                : [.. variant.Columns.Select(column => new BoardGroup(column.Label, [.. Enumerable.Range(column.Min, column.Count)]))],
             showCalls ? [.. session.Calls] : null,
             session.BallsRemaining,
             session.NextBallFrom,

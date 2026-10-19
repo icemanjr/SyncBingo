@@ -17,7 +17,9 @@ public sealed record ContentPair(string Ball, string Square, string? Group)
 
 /// <summary>
 /// A host's custom content set (FR-44, ADR 0009): ball and square pairs of text, with optional named
-/// groups. Item ids are positions in <see cref="Pairs"/> plus one, as balls are numbered from 1.
+/// groups. Item ids are positions in <see cref="Pairs"/> plus one, as balls are numbered from 1. Pairs are
+/// kept grouped: each group's entries together, in group order, then any ungrouped ones, so every group is a
+/// run of item ids.
 /// <para>
 /// Built only through <see cref="TryCreate"/>, which checks everything the server must before a set is
 /// used: the limits, printable text, and that each side is unique, so a call can match only one square
@@ -144,7 +146,11 @@ public sealed class ContentSet
             return Result.Failure<ContentSet>(DomainErrorCode.Invalid, $"{shown}{more}.");
         }
 
-        return Result.Success(new ContentSet(setName, pairs.ToImmutable(), [.. groups]));
+        // Each group's entries together, groups in order, ungrouped entries last; within that, the host's order.
+        // A group is then a run of item ids, as a B-I-N-G-O column is a range of numbers (ADR 0009).
+        var order = groups.Select((group, index) => (group, index)).ToDictionary(g => g.group, g => g.index, StringComparer.Ordinal);
+        var ordered = pairs.OrderBy(pair => pair.Group is null ? int.MaxValue : order[pair.Group]);
+        return Result.Success(new ContentSet(setName, [.. ordered], [.. groups]));
     }
 
     /// <summary>The set as entries again, e.g. to write its file.</summary>

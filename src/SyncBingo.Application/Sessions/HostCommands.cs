@@ -108,7 +108,7 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
             await store.ReleaseAllCardsAsync(code, cancellationToken).ConfigureAwait(false);
         }
 
-        var generator = new ColumnCardGenerator(session.Variant);
+        var generator = CardGenerators.For(session.Variant);
         foreach (var stored in participants)
         {
             var newCards = new List<Card>();

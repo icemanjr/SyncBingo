@@ -48,6 +48,7 @@ stateDiagram-v2
 | Apply rules (Options → Apply) | ✔ | ✖ | ✔ | ✖ | Settings and pattern together, in one step. Before a round: picks its rules. Mid-round: the same balls and marks continue; free space, redraw policy and multiple wins are lobby only, so an Apply changing them is refused. Refused in auto mode ("Pause before changing the rules") and during the countdown, so the host can announce the change while nothing is being called |
 | Redraw card (participant) | ✔ if allowed | ✖ | ✖ | ✖ | Policy FR-20 |
 | Deal New Cards (host) | ✔ | ✖ | ✖ | ✖ | A fresh card for every player, in the lobby only (FR-34) |
+| Use this set / back to numbers (host) | ✔ | ✖ | ✖ | ✖ | A custom set, or numbers again (FR-44, ADR 0009): clears the last round's calls and deals every player a new card; a set that doesn't fit the card is refused with the reason |
 | Award win | – | – | ✔ | ✔ | Credits a participant; feeds leaderboard |
 | Dismiss claim | – | – | ✔ | ✔ | Host clears a claim without awarding it |
 | Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |

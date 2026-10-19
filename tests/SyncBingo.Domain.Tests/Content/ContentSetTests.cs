@@ -46,7 +46,7 @@ public sealed class ContentSetTests
         var entries = Words(23);
         entries.Add(new ContentEntry("  carbon\tdioxide ", null, " gases "));
 
-        var pair = Valid(entries)[24];
+        var pair = Valid(entries)[1]; // the only grouped entry comes first
 
         pair.Ball.ShouldBe("carbon dioxide");
         pair.Group.ShouldBe("gases");
@@ -201,7 +201,7 @@ public sealed class ContentSetTests
 
         var back = Valid(entries).ToEntries().ToList();
 
-        back[0].ShouldBe(new ContentEntry("word 1", null, null));
-        back[23].ShouldBe(new ContentEntry("2 + 5", "7", "sums"));
+        back[0].ShouldBe(new ContentEntry("2 + 5", "7", "sums")); // grouped entries come first
+        back[1].ShouldBe(new ContentEntry("word 1", null, null));
     }
 }

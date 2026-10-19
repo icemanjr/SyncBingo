@@ -1,3 +1,4 @@
+using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Rules;
 
@@ -23,6 +24,9 @@ public sealed class Session
     /// <summary>Longest join note (FR-49): a password or a short hint.</summary>
     public const int MaxJoinNoteLength = 80;
 
+    /// <summary>The rules without custom content: the card, patterns and presets a set is played with.</summary>
+    private readonly BingoVariant _standard;
+
     private readonly List<BallCall> _calls = [];
     private readonly HashSet<int> _calledNumbers = [];
     private readonly List<Claim> _claims = [];
@@ -37,6 +41,7 @@ public sealed class Session
     private Session(GameCode code, BingoVariant variant, SessionSettings settings, string winConditionId, DateTimeOffset now)
     {
         Code = code;
+        _standard = variant;
         Variant = variant;
         Settings = settings;
         WinConditionId = winConditionId;
@@ -46,7 +51,14 @@ public sealed class Session
 
     public GameCode Code { get; }
 
-    public BingoVariant Variant { get; }
+    /// <summary>The rules in force: the standard ones, or those of the custom set in use (<see cref="ContentVariant"/>).</summary>
+    public BingoVariant Variant { get; private set; }
+
+    /// <summary>The host's custom set (ADR 0009), or <c>null</c> for numbers.</summary>
+    public ContentSet? Content { get; private set; }
+
+    /// <summary>The custom set is dealt by group, one per card column (Group items).</summary>
+    public bool GroupItems { get; private set; }
 
     public SessionState State { get; private set; } = SessionState.BetweenRounds;
 
@@ -151,7 +163,7 @@ public sealed class Session
     /// <summary>The session as plain data, for storage.</summary>
     public SessionSnapshot ToSnapshot() => new(
         Code.Value,
-        Variant.Id,
+        _standard.Id,
         State,
         CountdownEndsAt,
         StartInAuto,
@@ -171,13 +183,16 @@ public sealed class Session
         NextBallFrom,
         StreamSeqs,
         [.. _awardKeys],
-        JoinNote);
+        JoinNote,
+        Content?.Name,
+        GroupItems);
 
     /// <summary>
-    /// Rebuilds a session saved with <see cref="ToSnapshot"/>. A snapshot naming an unknown
-    /// variant or game code is a corrupt record, not a user error, so it throws.
+    /// Rebuilds a session saved with <see cref="ToSnapshot"/>, with its custom set (stored apart) when it uses
+    /// one. A snapshot naming an unknown variant or game code, or missing its set, is a corrupt record, not a
+    /// user error, so it throws.
     /// </summary>
-    public static Session Restore(SessionSnapshot snapshot)
+    public static Session Restore(SessionSnapshot snapshot, ContentSet? content = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -221,6 +236,24 @@ public sealed class Session
                     Wins = [.. round.Wins.Select(win => win with { WinConditionId = Canonical(win.WinConditionId) })],
                 }));
         session._awardKeys.AddRange(snapshot.AwardKeys ?? []);
+        if (snapshot.ContentName is not null)
+        {
+            if (content is null)
+            {
+                throw new InvalidOperationException($"Stored session {snapshot.Code} uses a custom set that wasn't found.");
+            }
+
+            var custom = ContentVariant.For(variant, content, snapshot.GroupItems);
+            if (!custom.IsSuccess)
+            {
+                throw new InvalidOperationException($"Stored session {snapshot.Code}'s custom set no longer fits: {custom.Error}");
+            }
+
+            session.Content = content;
+            session.GroupItems = snapshot.GroupItems;
+            session.Variant = custom.Value;
+        }
+
         foreach (var alert in snapshot.Alerts)
         {
             session._alerted[(alert.ParticipantId, alert.CardId, Canonical(alert.WinConditionId))] = alert.Lines;
@@ -283,7 +316,7 @@ public sealed class Session
         ClearCalls();
         RoundNumber++;
         CountdownEndsAt = null;
-        _rounds.Add(new RoundSummary(RoundNumber, now, null, [WinConditionId], []));
+        _rounds.Add(new RoundSummary(RoundNumber, now, null, [WinConditionId], [], Content?.Name));
         State = SessionState.Manual;
 
         var events = new List<SessionEvent> { new RoundStarted(RoundNumber) };
@@ -321,6 +354,38 @@ public sealed class Session
         State = SessionState.BetweenRounds;
         events.Add(new CardsCleared(redrawCards));
         return Commit(now, events);
+    }
+
+    /// <summary>
+    /// "Use this set" (ADR 0009), or back to numbers with <paramref name="content"/> <c>null</c>: lobby only,
+    /// since every card is redealt. The card, free space and patterns stay as they are; a set that doesn't
+    /// fit the card is refused with the reason. The last round's calls are cleared, because item ids mean
+    /// something else now. Callers deal every participant a new card.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, bool groupItems, DateTimeOffset now)
+    {
+        if (State != SessionState.BetweenRounds)
+        {
+            return WrongState("change the set");
+        }
+
+        var variant = _standard;
+        if (content is not null)
+        {
+            var custom = ContentVariant.For(_standard, content, groupItems);
+            if (!custom.IsSuccess)
+            {
+                return custom.Error!;
+            }
+
+            variant = custom.Value;
+        }
+
+        Content = content;
+        GroupItems = content is not null && groupItems;
+        Variant = variant;
+        ClearCalls();
+        return Commit(now, new ContentChanged(content?.Name, variant.BallMax, GroupItems));
     }
 
     /// <summary>End the round early; cards and called balls stay visible until the next round.</summary>
@@ -890,7 +955,8 @@ public sealed class Session
     {
         var number = PickFromHopper(random);
         var previous = LastCall?.Number;
-        var call = new BallCall(_calls.Count + 1, number, Variant.Columns[Variant.ColumnOf(number)].Label, now, source);
+        var pair = Content?[number];
+        var call = new BallCall(_calls.Count + 1, number, Variant.LabelOf(number), now, source, pair?.Ball, pair?.Square);
         _calls.Add(call);
         _calledNumbers.Add(number);
         return new BallCalled(call, previous);

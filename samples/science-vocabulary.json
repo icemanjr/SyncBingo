@@ -1,0 +1,106 @@
+{
+  "format": 1,
+  "name": "Science vocabulary (sample)",
+  "groups": [
+    {
+      "name": "Biology",
+      "pairs": [
+        ["An organism that makes its own food using sunlight.", "Producer"],
+        ["An animal that gets its energy by eating plants or other animals.", "Consumer"],
+        ["A living thing, like a mushroom or worm, that breaks down dead plants and animals.", "Decomposer"],
+        ["All the living and nonliving things in one area, working together.", "Ecosystem"],
+        ["The natural home where an animal or plant lives.", "Habitat"],
+        ["The tiny building block that all living things are made of.", "Cell"],
+        ["How plants use sunlight, water and air to make their own food.", "Photosynthesis"],
+        ["An animal that hunts other animals for food.", "Predator"],
+        ["An animal that is hunted and eaten by another animal.", "Prey"],
+        ["Shows who eats whom, from plants all the way to the top hunter.", "Food chain"],
+        ["Yellow powder that flowers share so they can make seeds.", "Pollen"],
+        ["When a seed starts to sprout and grow.", "Germinate"],
+        ["A warm-blooded animal with hair or fur that feeds its babies milk.", "Mammal"],
+        ["A cold-blooded animal with dry, scaly skin, like a snake or a lizard.", "Reptile"],
+        ["When animals travel far each season, like birds flying south.", "Migration"]
+      ]
+    },
+    {
+      "name": "Inventions & Tools",
+      "pairs": [
+        ["An educated guess or prediction that can be tested.", "Hypothesis"],
+        ["A test you carry out to find out whether your guess is right.", "Experiment"],
+        ["Something you notice using your senses, like what you see or hear.", "Observation"],
+        ["The facts and measurements you collect during an experiment.", "Data"],
+        ["What you decide is true after looking at your results.", "Conclusion"],
+        ["The one thing you change in an experiment to see what happens.", "Variable"],
+        ["Facts or results that show whether something is true.", "Evidence"],
+        ["A tool that makes tiny things look much bigger.", "Microscope"],
+        ["A tool that makes faraway things, like stars, look closer.", "Telescope"],
+        ["A tool that measures how hot or cold something is.", "Thermometer"],
+        ["A small magnifying glass you hold to look closely at things.", "Hand lens"],
+        ["A glass cup with a spout, used to hold and pour liquids in a lab.", "Beaker"],
+        ["Glasses you wear to protect your eyes during an experiment.", "Goggles"],
+        ["A tool that compares or measures how much mass an object has.", "Balance"],
+        ["A tool for measuring length in inches or centimeters.", "Ruler"]
+      ]
+    },
+    {
+      "name": "Numbers & Shapes",
+      "pairs": [
+        ["The total distance around the outside edge of a shape.", "Perimeter"],
+        ["How much flat space a shape covers.", "Area"],
+        ["A shape with three sides and three corners.", "Triangle"],
+        ["A shape with four equal sides and four right angles.", "Square"],
+        ["A perfectly round flat shape with no corners.", "Circle"],
+        ["A shape with five sides.", "Pentagon"],
+        ["A shape with six sides, like a cell in a honeycomb.", "Hexagon"],
+        ["A 3D shape with six square faces, like a number cube.", "Cube"],
+        ["A 3D shape that is perfectly round, like a ball.", "Sphere"],
+        ["A corner that makes a perfect L shape.", "Right angle"],
+        ["A number that shows part of a whole, like one half.", "Fraction"],
+        ["A number you can split into two equal groups, like 8.", "Even"],
+        ["A number that has one left over when you split it into pairs, like 7.", "Odd"],
+        ["When one half of a shape is a mirror image of the other half.", "Symmetry"],
+        ["A straight line across a circle that passes through its center.", "Diameter"]
+      ]
+    },
+    {
+      "name": "Geology & Earth",
+      "pairs": [
+        ["The process where liquid water turns into water vapor gas.", "Evaporation"],
+        ["When water vapor cools and turns back into tiny drops, like on a cold glass.", "Condensation"],
+        ["Water that falls from clouds as rain, snow, sleet or hail.", "Precipitation"],
+        ["The usual weather of a place over many years.", "Climate"],
+        ["A mountain that can erupt with hot melted rock.", "Volcano"],
+        ["When the ground suddenly shakes because rocks move underground.", "Earthquake"],
+        ["The remains or print of a plant or animal from long ago, found in rock.", "Fossil"],
+        ["A natural solid such as quartz or salt, found in the earth.", "Mineral"],
+        ["When wind or water slowly carries rock and soil away.", "Erosion"],
+        ["The breaking of rock into smaller pieces by rain, ice and wind.", "Weathering"],
+        ["Sand, mud and pebbles that water carries and drops in layers.", "Sediment"],
+        ["The thin, rocky outer layer of the Earth.", "Crust"],
+        ["A large ball in space that travels around a star, like Earth or Mars.", "Planet"],
+        ["The curved path one object takes around another in space.", "Orbit"],
+        ["The Sun and all the planets and moons that travel around it.", "Solar system"]
+      ]
+    },
+    {
+      "name": "Objects & Forces",
+      "pairs": [
+        ["The pulling force that draws objects toward the center of the Earth.", "Gravity"],
+        ["The force that slows things down when they rub together.", "Friction"],
+        ["A force that moves something away from you.", "Push"],
+        ["A force that moves something toward you.", "Pull"],
+        ["When something changes its place or position.", "Motion"],
+        ["How fast something moves.", "Speed"],
+        ["How much matter, or stuff, is in an object.", "Mass"],
+        ["The ability to do work or to cause change.", "Energy"],
+        ["Matter that keeps its own shape, like ice or a rock.", "Solid"],
+        ["Matter that flows and takes the shape of its container.", "Liquid"],
+        ["Matter that spreads out to fill any space, like air.", "Gas"],
+        ["An object that pulls iron and steel toward it.", "Magnet"],
+        ["The upward push that helps things float in water.", "Buoyancy"],
+        ["A quick back-and-forth movement that can make a sound.", "Vibration"],
+        ["A dark shape made when an object blocks light.", "Shadow"]
+      ]
+    }
+  ]
+}

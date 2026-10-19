@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Schemas } from '../../api/client'
+import { squareFace, type Content } from '../game/faces'
 import { Button, ErrorText, Panel } from '../game/ui'
 import type { HostApi } from './hostApi'
 
@@ -11,12 +12,15 @@ export function CardInspector({
   participantId,
   called,
   columns,
+  content,
   host,
   onClose,
 }: {
   participantId: string
   called: Set<number>
   columns: number
+  /** A custom set (ADR 0009): squares show its text. */
+  content?: Content
   host: HostApi
   onClose: () => void
 }) {
@@ -36,7 +40,9 @@ export function CardInspector({
         <div
           key={card.cardId}
           className="grid gap-1"
-          style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 3rem))` }}
+          style={{
+            gridTemplateColumns: `repeat(${String(columns)}, minmax(0, ${content ? '4.5rem' : '3rem'}))`,
+          }}
         >
           {card.cells.map((number, cell) => {
             const marked = (card.marks & (1 << cell)) !== 0
@@ -44,12 +50,13 @@ export function CardInspector({
             return (
               <div
                 key={cell}
-                aria-label={`${number === 0 ? 'Free' : String(number)}${marked ? ', marked' : ''}${isCalled ? ', called' : ''}`}
-                className={`flex h-12 items-center justify-center rounded-lg border-2 font-bold tabular-nums ${
+                aria-label={`${number === 0 ? 'Free' : squareFace(content, number)}${marked ? ', marked' : ''}${isCalled ? ', called' : ''}`}
+                title={number === 0 ? undefined : squareFace(content, number)}
+                className={`flex h-12 items-center justify-center overflow-hidden rounded-lg border-2 px-0.5 text-center leading-tight font-bold tabular-nums ${content ? 'text-[11px] break-words' : ''} ${
                   marked ? 'border-accent-strong bg-accent text-accent-ink' : 'border-line-soft'
                 } ${isCalled ? '' : 'opacity-60'}`}
               >
-                {number === 0 ? '★' : number}
+                {number === 0 ? '★' : squareFace(content, number)}
                 {isCalled && !marked && <span className="sr-only"> (called, not marked)</span>}
               </div>
             )

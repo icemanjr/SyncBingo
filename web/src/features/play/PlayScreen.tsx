@@ -17,17 +17,10 @@ import { CallBoard } from '../game/CallBoard'
 import { Panel } from '../game/ui'
 import { Card } from './Card'
 import { MarkStylePanel } from './MarkStylePanel'
+import { allSquareFaces } from '../game/faces'
 import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
 import { RulesPanel } from './RulesPanel'
-
-/**
- * Every card face in the set, for **Max** text size (FR-51): one size fitted to the hardest face, so cards
- * look the same for everyone. Standard Bingo's faces are its ball numbers; custom sets will send theirs.
- */
-function setFaces(board: { balls: number[] }[]): string[] {
-  return board.flatMap((group) => group.balls).map(String)
-}
 
 /** The board's group labels, one per card column, or none if the groups aren't the card's columns. */
 function columnLabels(board: { label: string }[], columns: number): string[] | null {
@@ -263,7 +256,7 @@ export function PlayScreen() {
       )}
 
       {card && (
-        <div className="rounded-3xl bg-surface p-3 shadow-card">
+        <div className={`rounded-3xl bg-surface shadow-card ${view.content ? 'p-1.5' : 'p-3'}`}>
           <Card
             card={card}
             columns={view.card.columns}
@@ -272,7 +265,8 @@ export function PlayScreen() {
             called={calls ? new Set(calls.map((c) => c.number)) : null}
             highlightMatches={view.settings.highlightMatches}
             markStyle={markStyle}
-            setFaces={setFaces(view.board)}
+            setFaces={allSquareFaces(view.content, view.board)}
+            content={view.content}
             disabled={!inRound || marking.busy}
             onToggle={toggle}
           />
@@ -437,7 +431,7 @@ export function PlayScreen() {
 
       {open === 'board' && calls && (
         <Panel title="Call board">
-          <CallBoard board={view.board} calls={calls} />
+          <CallBoard board={view.board} calls={calls} content={view.content} />
         </Panel>
       )}
 

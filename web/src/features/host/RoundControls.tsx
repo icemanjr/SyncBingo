@@ -152,9 +152,10 @@ export function CallingCard({ game, host }: { game: Game; host: HostApi }) {
             {before.map((call) => (
               <span
                 key={call.sequence}
-                className="inline-flex h-8 min-w-11 items-center justify-center rounded-full bg-group px-2.5 text-sm font-bold"
+                title={call.call ?? undefined}
+                className="inline-block h-8 max-w-48 min-w-11 truncate rounded-full bg-group px-2.5 text-center text-sm leading-8 font-bold"
               >
-                {call.letter} {call.number}
+                {call.call ?? `${call.letter} ${String(call.number)}`}
               </span>
             ))}
           </div>

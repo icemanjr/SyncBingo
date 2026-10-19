@@ -21,7 +21,8 @@ public sealed class NetworkStack : Stack
 {
     /// <summary>
     /// The AWS-managed prefix list <c>com.amazonaws.global.cloudfront.origin-facing</c>, per Region.
-    /// Its ID differs by Region; look it up with <c>aws ec2 describe-managed-prefix-lists</c>.
+    /// Its ID differs by Region; look it up with <c>aws ec2 describe-managed-prefix-lists</c>
+    /// (us-east-2's checked that way on 2026-10-19).
     /// </summary>
     private static readonly Dictionary<string, string> CloudFrontPrefixLists = new()
     {

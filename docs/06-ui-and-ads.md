@@ -123,7 +123,7 @@ On the play screen, **⚙ My marks** opens a small panel with a live preview cel
 - **Opacity:** a slider from 20% to 80% (45% by default), shown live on the preview cell.
 - **Text size:** Small, **Medium** (the default), Large, or Max, for whatever is in the squares (numbers now; words or short phrases of up to 20 characters with custom sets).
   - Text **wraps at spaces only**, never inside a word, as many lines as the square's height allows.
-  - A square whose text doesn't fit **shrinks on its own**, never below its size's minimum: **8 / 12 / 16 / 20 pt** for Small / Medium / Large / Max.
+  - A square whose text doesn't fit **shrinks on its own**, never below its size's minimum: **6 / 10 / 14 / 18 pt** for Small / Medium / Large / Max (lowered by 2 pt on 2026-10-19: on a 390 px phone a square is 56 px wide, and the old minimums cut off most words of 7 letters or more).
   - Past the minimum, the end is **cut off with "…"**. The full text shows on **hover** (a mouse) or a **long press** (touch, half a second), which never marks the square; a normal tap marks. Screen readers always hear the full text.
   - **Max** is calculated: one size for every square, the largest at which the set's *hardest* face fits whole (one long word can be harder than a short phrase), measured in the card's font and recalculated when the square resizes. Every card in the game uses the same Max.
   - The fitting rules are pure functions (`web/src/features/play/fitText.ts`) with their own tests.

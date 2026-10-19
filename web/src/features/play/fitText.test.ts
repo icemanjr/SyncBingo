@@ -51,7 +51,7 @@ describe('fitting text in a square (FR-51)', () => {
     expect(max).toBe(Math.floor((68 * 100) / (14 * 60)))
   })
 
-  it('keeps Max at 20 pt or more, cutting off what still does not fit', () => {
-    expect(maxSizeForSet(['photosynthesis'], mono, square, pt(20))).toBe(pt(20))
+  it('keeps Max at its floor (18 pt) or more, cutting off what still does not fit', () => {
+    expect(maxSizeForSet(['photosynthesis'], mono, square, pt(18))).toBe(pt(18))
   })
 })

@@ -5,7 +5,7 @@ import { defaultMarkStyle } from './markStyle'
 
 /**
  * jsdom can't lay out or measure text, so these tests stand in a monospace measurer (60 px per character at
- * 100 px) and tiny 20 px squares: even "75" can't fit, so its square is cut off with "…".
+ * 100 px) and tiny 16 px squares: even "75" can't fit at Medium's 10 pt minimum, so its square is cut off with "…".
  */
 describe('a cut-off square (FR-51)', () => {
   beforeEach(() => {
@@ -29,8 +29,8 @@ describe('a cut-off square (FR-51)', () => {
       font: '',
       measureText: (text: string) => ({ width: text.length * 60 }),
     } as unknown as CanvasRenderingContext2D)
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(20)
-    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(20)
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(16)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(16)
   })
 
   afterEach(() => {

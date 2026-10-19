@@ -1,6 +1,6 @@
 # 10 — Cost and Hosting
 
-SyncBingo is a personal project paid for out of pocket; banner ads are only a hope. The goal is a **real site, always on, at SyncBingo.com, for the lowest monthly cost**, while the full AWS design in CDK remains the portfolio showpiece. The running site uses the **Lean** tier (ADR 0011); the **Full** tier is deployed once, on free credits, for screenshots and a demo recording, then torn down.
+SyncBingo is a personal project paid for out of pocket; banner ads are only a hope. The goal is a **real site, always on, at SyncBingo.com, for the lowest monthly cost**, while the full AWS design in CDK remains the portfolio showpiece. The running site uses the **Lean** tier (ADR 0011); the **Full** tier is deployed for a few hours, on free credits, to prove it deploys and works, then torn down the same day. The app looks the same in both, so the evidence worth keeping is the deploy itself, the tests run against it, a failover and the AWS console, not app screenshots.
 
 > **Figures:** every price below is marked **unverified (research notes)** until it is checked against the AWS Pricing Calculator / Pricing API or measured on the real deployment, when it is changed to **verified** with the date. Prices are US East, October 2026.
 
@@ -47,7 +47,10 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 
 **Strategy:**
 1. Launch **Lean** as the live site ✓ (2026-10-15).
-2. Once the game is complete, deploy **Full** once with `cdk deploy -c profile=full`, capture screenshots, a dashboard view and a short demo recording, then `cdk destroy`.
+2. Deploy **Full** for one evening with `infra/scripts/full-up.sh`, then remove it with `infra/scripts/full-down.sh` the same day. In between:
+   - run the end-to-end tests and a small k6 run against its CloudFront address;
+   - stop one of the two tasks during a game, and see the players reconnect to the other with the game intact;
+   - capture the CloudWatch dashboard under that load, the ECS service with two healthy tasks, and the deploy and destroy output.
 3. Keep Lean running. The credits cover roughly the first year of it.
 
 ## 4. Target budgets and cost controls
@@ -140,14 +143,14 @@ From AWS's public price list for us-east-2 (the on-demand offers for ECS, Elasti
 | CloudFront and S3 | within CloudFront's always-free 1 TB and 10 million requests a month; the app is a few MB | ~0 |
 | **Total** | dev; prod adds a second Valkey node (~$70) | **60.63** |
 
-- **About $2 a day,** or $0.083 an hour. A deploy for a few days of screenshots and a recording costs well under $10 of the $100 credits.
+- **About $2 a day,** or $0.083 an hour. An evening's deploy, test and teardown costs well under $1 of the $100 credits; forgetting to tear it down costs $2 a day.
 - **Mostly fixed:** the load balancer and the public addresses are over half the bill whatever the traffic.
 - **Left out on purpose:** a NAT gateway (about $33 a month on its own). The tasks sit in public subnets with a public address instead, and only the load balancer can reach them (docs/07 §2). Container Insights (about $0.50 a task a month) is off too.
 - **Not counted:** data transfer out and cross-zone traffic, which are pennies at demo traffic.
 
 ## 6. Teardown
 
-- **Full:** `cd infra && npx aws-cdk destroy -c profile=full --all`. Then check, in us-east-2 (and us-east-1 for CloudFront logs, if any were turned on):
+- **Full:** `infra/scripts/full-down.sh` destroys the stacks and then checks that no stack, tagged resource in us-east-2, CloudFront distribution or unattached Elastic IP is left. The project's policy denies the tagging API in us-east-1, so CloudFront is checked through its own API. By hand, the same checks are:
   - ECS: no cluster or running tasks (`aws ecs list-clusters`);
   - EC2: no load balancer, and no public IPv4 address left over (`aws elbv2 describe-load-balancers`, `aws ec2 describe-addresses`);
   - ElastiCache: no replication group (`aws elasticache describe-replication-groups`);

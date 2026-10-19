@@ -166,7 +166,7 @@ The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
 1. **Core game (MVP):** sessions, joining, calling, marking, win conditions, rounds, leaderboard, host console, phones, display and TV pairing ✓
    - **1b. Lean launch:** the live site at syncbingo.com on one small instance (Valkey, multi-architecture images, Caddy, deploy pipeline)
 2. **Polish and hardening:** accessibility pass, Playwright and k6 suites, load test on the live box
-3. **Full AWS design:** CDK stacks (both profiles), OIDC pipeline, dashboards; deployed once for the portfolio
+3. **Full AWS design:** CDK stacks (both profiles), OIDC pipeline, dashboards; deployed for an evening to prove it works, then torn down
 4. **Next features:** custom content sets (text) with a set editor, custom variants (ball ranges, card sizes, patterns), a waiting room for late arrivals
 5. **Serious Bingo** (only if the site gets regular traffic): the host takes payment outside the app and assigns card(s) to players, several per player if bought; cards expire each round
 

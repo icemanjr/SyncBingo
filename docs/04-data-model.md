@@ -54,13 +54,12 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 
 | Key | Type | Contents |
 |-----|------|----------|
-| `s:{code}:meta` | hash | `session`: the session snapshot as JSON (state, version, settings, round number, calls, claims, wins, round summaries, alerts already raised); `password`: the password hash |
+| `s:{code}:meta` | hash | `session`: the session snapshot as JSON (state, version, settings, round number, calls, claims, wins, round summaries, alerts already raised); `password`: the password hash; with a custom set (ADR 0009), `content`: the set's file (its ball/square pairs of text and ordered groups, ≤ 64 KB) and `content-id`: a hash of that file. The set sits with the session so the save script writes both together and they expire together; it is written only when it changes (the id differs), and each API instance caches parsed sets by id (at most 200, least recently used dropped), so a mark doesn't re-read 64 KB. The session snapshot records only the set's name and *Group items* |
 | `s:{code}:participants` | hash | field = participantId → `{"v": version, "p": participant snapshot}` (cards, marks, Undo state, auto-fill switch); a save is a Lua compare-and-set on `v` (02 §6) |
 | `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
 | `s:{code}:tokens` | hash | tokenHash → caller: `host`, `display:{id}` or `participant:{id}` |
 | `s:{code}:token-owners` | hash | participantId (or `display:{id}`) → their tokenHash, so removing a player or display revokes the token in the same script |
 | `s:{code}:displays` | hash | display id → `{ displayId, kind (Link / Tv), createdAt }`; at most 10 (FR-28) |
-| `s:{code}:content` | hash | the session's single custom set, if any: its ball/square pairs of text (call face and card face, 24–500, each side unique) and optional named groups; the session itself records only the set's name and *Group items*, whether dealing and the board use the groups. Kept apart from the session because it can be 64 KB and changes only in the lobby. Text only: no images (ADR 0009, amended) |
 | `s:{code}:cards` | set | fingerprints of every card currently in play (`SADD` returns 1 only for the first claimant; `SREM` when a card is replaced or its holder is kicked) |
 | `s:{code}:lock` | string | the per-session lock: `SET NX` with a random owner value and a 10 s lease; released only by its owner (compare-and-delete); a command waits up to 5 s for it |
 | `pairing-code:{code}` · `pairing:{id}` · `pairing-result:{id}` | strings | TV pairing (ADR 0010): the code → its pairing id (`SET NX`, used with `GETDEL`, so once), the pairing while the TV waits (10 min), and an approved result for a TV that connects a moment later (2 min, taken with `GETDEL`; it holds the display token in clear for that short time). Global keys, not in any session's hash tag |

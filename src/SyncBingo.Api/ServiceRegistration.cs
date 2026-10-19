@@ -64,6 +64,7 @@ internal static class ServiceRegistration
         services.AddSingleton<GameQueries>();
         services.AddSingleton<HostCommandHandler>();
         services.AddSingleton<RoundHandler>();
+        services.AddSingleton<ContentHandler>();
         services.AddSingleton<DrawHandler>();
         services.AddSingleton<PlayerCommandHandler>();
         services.AddSingleton<PlayerManagementHandler>();

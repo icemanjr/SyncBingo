@@ -1,9 +1,12 @@
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using SyncBingo.Api.Http;
 using SyncBingo.Application.Calling;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Sessions;
+using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Api.Endpoints;
@@ -13,6 +16,35 @@ internal static class HostEndpoints
 {
     public static void MapHostEndpoints(this RouteGroupBuilder game)
     {
+        // A custom set (FR-44, ADR 0009). The body is the set file itself, as the editor builds it or a host uploads it.
+        game.MapPut("/content", (
+            string code,
+            [FromBody] JsonElement file,
+            [FromQuery] bool? groupItems,
+            ClaimsPrincipal user,
+            ContentHandler content,
+            CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) =>
+                (await content.UseAsync(game, caller, file.GetRawText(), groupItems ?? false, ct)).NoContent()))
+            .Accepts<JsonElement>("application/json")
+            .Produces(StatusCodes.Status204NoContent)
+            .WithMetadata(new RequestSizeLimitAttribute(ContentSetFile.MaxBytes * 2))
+            .RequireRateLimiting(RateLimits.Content)
+            .WithName("UseContent");
+
+        game.MapDelete("/content", (string code, ClaimsPrincipal user, ContentHandler content, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await content.UseNumbersAsync(game, caller, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent)
+            .RequireRateLimiting(RateLimits.Content)
+            .WithName("UseNumbers");
+
+        game.MapGet("/content", (string code, ClaimsPrincipal user, ContentHandler content, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) =>
+                (await content.DownloadAsync(game, caller, ct)).ToHttp(download =>
+                    TypedResults.File(Encoding.UTF8.GetBytes(download.File), "application/json", FileName(download.Name)))))
+            .Produces<JsonElement>(contentType: "application/json")
+            .WithName("DownloadContent");
+
         game.MapPut("/rules", (string code, RulesRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await host.ApplyRulesAsync(game, caller, settings => request.Settings?.ApplyTo(settings) ?? settings, request.WinCondition, ct))
@@ -80,6 +112,14 @@ internal static class HostEndpoints
         game.MapPost("/end", (string code, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await host.EndSessionAsync(game, caller, ct)).NoContent()))
             .Produces(StatusCodes.Status204NoContent).WithName("EndGame");
+    }
+
+    /// <summary>"Times tables 1–5.json": the set's name, without characters file systems refuse.</summary>
+    private static string FileName(string name)
+    {
+        var invalid = Path.GetInvalidFileNameChars().Concat(['/', '\\', ':', '*', '?', '"', '<', '>', '|']).ToHashSet();
+        var safe = new string([.. name.Select(c => invalid.Contains(c) || char.IsControl(c) ? '-' : c)]).Trim(' ', '.');
+        return $"{(safe.Length == 0 ? "SyncBingo set" : safe)}.json";
     }
 
     private static IResult Ball(CommandOutcome outcome) =>

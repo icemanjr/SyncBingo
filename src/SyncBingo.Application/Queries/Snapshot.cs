@@ -35,7 +35,17 @@ public sealed record GameView(
     long Version,
     long Seq,
     string? JoinNote,
-    bool LeaderboardVisible);
+    bool LeaderboardVisible,
+    ContentView? Content = null);
+
+/// <summary>
+/// The custom set in use (ADR 0009), or <c>null</c> for numbers: what each item (ball number) shows when
+/// called and on a card. <see cref="Items"/>[n − 1] is item n; the board's groups list item numbers.
+/// </summary>
+public sealed record ContentView(string Name, bool GroupItems, IReadOnlyList<ItemFaces> Items);
+
+/// <summary>An item's two faces: what is called (<see cref="Ball"/>) and what is marked (<see cref="Square"/>).</summary>
+public sealed record ItemFaces(string Ball, string Square);
 
 /// <summary>
 /// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
@@ -203,7 +213,10 @@ public sealed class GameQueries(ISessionStore store)
             session.Version,
             session.StreamSeqs.For(stream),
             stream == Audience.Players ? null : session.JoinNote,
-            session.LeaderboardVisible);
+            session.LeaderboardVisible,
+            session.Content is { } content
+                ? new ContentView(content.Name, session.GroupItems, [.. content.Pairs.Select(pair => new ItemFaces(pair.Ball, pair.Square))])
+                : null);
     }
 
     private static PlayerView PlayerOf(Participant participant) => new(

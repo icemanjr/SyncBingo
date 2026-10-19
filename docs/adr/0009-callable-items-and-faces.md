@@ -55,7 +55,7 @@ Decided by the owner (2026-10-14):
 - `ContentVariant.For(standard, set, groupItems)` builds the rules: the standard card, patterns and presets, with the set's items as the balls. With Group items, each group becomes a column (`ColumnCardGenerator`, unchanged); without, the variant has no columns and `FreeFormCardGenerator` deals any item into any square. `CardGenerators.For(variant)` picks the dealer.
 - `Session.UseContent(set, groupItems)` is lobby-only. It clears the last round's calls (their ids meant other items) and raises `ContentChanged`; the application then redeals every card, as for *Deal New Cards*.
 - A called ball (`BallCall`) carries both faces, `Call` and `Square`, so clients need no lookup. Its `Letter` is the group's name, or empty when free-form. Each `RoundSummary` records the set's name.
-- The set is stored apart from the session (`s:{code}:content`); the session snapshot records only its name and Group items.
+- The set is stored in the session's meta hash as its file, beside the snapshot, and written only when it changes; the snapshot records only its name and Group items. API instances cache parsed sets by a hash of the file (docs/04 §4).
 
 ## Responsibility for content
 Decided by the owner (2026-10-12):

@@ -64,6 +64,10 @@ describe('the display view', () => {
 })
 
 describe('the legal pages', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('are linked from every page, and say they are drafts', async () => {
     renderAt('/')
 
@@ -73,5 +77,30 @@ describe('the legal pages', () => {
     expect(screen.getByRole('note')).toHaveTextContent('Draft, pending legal review')
     await userEvent.click(screen.getByRole('link', { name: 'Terms' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Terms of Use' })).toBeInTheDocument()
+  })
+
+  it('name the operator and the addresses from the build settings', () => {
+    vi.stubEnv('VITE_OPERATOR_NAME', 'Example Games Ltd')
+    vi.stubEnv('VITE_LEGAL_EMAIL', 'legal@example.com')
+    vi.stubEnv('VITE_SUPPORT_EMAIL', 'help@example.com')
+    renderAt('/terms')
+
+    expect(screen.getByText(/run by Example Games Ltd/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'legal@example.com' })).toHaveAttribute(
+      'href',
+      'mailto:legal@example.com',
+    )
+    expect(screen.getByRole('link', { name: 'help@example.com' })).toHaveAttribute(
+      'href',
+      'mailto:help@example.com',
+    )
+  })
+
+  it('use the live site’s settings by default', () => {
+    renderAt('/privacy')
+
+    expect(screen.getByText(/run by Nathan Holst/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'legal@syncbingo.com' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'support@syncbingo.com' })).toBeInTheDocument()
   })
 })

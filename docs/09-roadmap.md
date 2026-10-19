@@ -42,8 +42,8 @@
 - [ ] Price the synthesized `full` stacks (AWS Pricing Calculator / Pricing API); mark docs/10 figures verified
 - [ ] Deploy **Full** once on free credits: screenshots, dashboards, a demo recording; then `cdk destroy`
 - [ ] Dashboards and alarms; teardown checklist (docs/10)
-- [x] Terms of Use and Privacy pages, plain-language **drafts** of what the app actually does (`/terms`, `/privacy`), linked from every page's footer; placeholders for the operator's name and contact
-- [ ] Legal review of those drafts before relying on them; fill in the placeholders
+- [x] Terms of Use and Privacy pages, plain-language **drafts** of what the app actually does (`/terms`, `/privacy`), linked from every page's footer; the operator's name and the addresses `legal@` and `support@syncbingo.com` come from build settings (`web/.env`)
+- [ ] Legal review of those drafts before relying on them
 
 ## Phase 4 — Next features (soon after launch)
 - [ ] **Custom content, text only** (ADR 0009, FR-44): call faces and card faces, e.g. "2 + 5" called and "7" marked, definitions and words, word lists; a **set editor** in the lobby to add entries one by one (with a *Ball and square match* checkbox), add from another set file, edit and delete entries; clashes skipped and reported; **limits** (24–500 pairs, ball text ≤ 120, square text ≤ 20, ≤ 10 groups with names ≤ 20, file ≤ 64 KB); free-form card generator; upload page with a host-responsibility notice and acknowledgement; custom sets private to the host; one stored set per session, downloadable as a single file and re-uploaded to reuse; switch sets between rounds, redealing every card; optional groups saved in the file and a host "Group items" toggle, independent of card size, free space and patterns; card-size options and a "no free space" option as their own settings

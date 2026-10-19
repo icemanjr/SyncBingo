@@ -516,6 +516,8 @@ export interface components {
             /** Format: date-time */
             calledAt: string;
             source: components["schemas"]["DrawSource"];
+            call?: null | string;
+            square?: null | string;
         };
         BoardGroup: {
             label: string;
@@ -742,6 +744,7 @@ export interface components {
             endedAt: null | string;
             winConditionsUsed: string[];
             wins: components["schemas"]["WinRecord"][];
+            contentName?: null | string;
         };
         RulesRequest: {
             settings?: null | components["schemas"]["SettingsBody"];

@@ -145,6 +145,23 @@ public sealed class ContentSetTests
     }
 
     [Fact]
+    public void The_hosts_group_order_wins_and_groups_named_only_by_entries_follow()
+    {
+        var set = ContentSet.TryCreate("ordered", TimesTables(), ["×5", "×4", "empty"]).Value;
+
+        set.Groups.ShouldBe(["×5", "×4", "empty", "×1", "×2", "×3"]);
+        set.Pairs[0].Group.ShouldBe("×5");
+        set.Pairs[^1].Group.ShouldBe("×3");
+    }
+
+    [Fact]
+    public void Listed_group_names_are_checked_too()
+    {
+        ContentSet.TryCreate("dupes", Words(24), ["Week 1", "week 1"]).Error!.Message.ShouldContain("Two groups are called 'week 1'");
+        ContentSet.TryCreate("blank", Words(24), ["  "]).Error!.Message.ShouldContain("Group names must be printable text of 1–20 characters");
+    }
+
+    [Fact]
     public void A_set_with_some_entries_ungrouped_is_not_fully_grouped()
     {
         var entries = TimesTables();

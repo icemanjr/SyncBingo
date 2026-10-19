@@ -16,7 +16,7 @@ Standard Bingo calls a number and players mark the same number. Hosts such as te
 ## Sets are files the host keeps; changing sets between rounds
 Decided by the owner (2026-10-13):
 - **A set is a dictionary of pairs**: each ball (call face) with its square (card face). Card size, the free space and the win patterns are session settings, **independent of the set**, so changing the set never makes a pattern unusable.
-- **A set may also carry groups** (owner, 2026-10-13): named lists of its pairs, e.g. "×1", "×2", "×3" for times tables. Grouping takes effort, so it is saved in the set file and restored on upload, and can be edited in the set editor. Whether to *use* the groups is a host setting, **Group items** (on / off):
+- **A set may also carry groups** (owner, 2026-10-13): named lists of its pairs, e.g. "×1", "×2", "×3" for times tables. Grouping takes effort, so it is saved in the set file and restored on upload, and can be edited in the set editor. Whether to *use* the groups is a host setting, **Group items** (on / off), chosen with the set when the host presses *Use this set* (amended 2026-10-19: not in Options, since the set and its grouping go together and either change redeals every card):
   - *on*: each card column draws from one group, as B-I-N-G-O does, and the call board shows the groups side by side under their labels;
   - *off*: items are dealt anywhere (free-form) and the board is one block.
   Grouping needs one group per card column, each with enough pairs for its column (5 on a 5 × 5 card, 4 for the column holding the free space). If the set's groups do not fit the current card, the toggle is disabled with the reason, and the set still works ungrouped.
@@ -39,6 +39,13 @@ Decided by the owner (2026-10-14):
 - **Text rules** (2026-10-19): text is tidied first (trimmed, single-spaced, NFKC-normalised), counted in characters as a reader sees them (an emoji is one), capped at three UTF-16 units a character against stacked accent marks, and must be printable (no control, formatting, private-use or unassigned characters, but symbols such as × and ÷, other scripts and emoji are fine). **Uniqueness ignores case:** "Cat" and "cat" are the same square. Group names match regardless of case too.
 - **The editor keeps a draft** (2026-10-19): adding, editing, deleting, merging and uploading change a draft on the host's device, and one **Use this set** sends the whole set, so players get one redeal rather than one per edit (as Options does, with Apply). The draft's add, merge and skip-report logic runs in the browser; the server checks the whole set when it arrives, and its check is the one that counts. The editor is **its own page**, reached from the lobby, since a set can have 500 entries.
 - **The set file** is versioned JSON: `format`, a name, and the pairs (`ball`; `square` only when it differs, so a one-sided entry means both sides match; `group` when grouped). Groups are ordered by where they first appear, and each grouped pair is in exactly one group by construction. Unknown properties are ignored, so a later format can add fields. A file from a newer format is refused with "reload the page". Domain: `ContentSet`, `ContentSetFile`, `ContentText`.
+
+## How the domain plays a set (2026-10-19)
+- `ContentSet` keeps its pairs **grouped**: each group's entries together, in group order, then any ungrouped ones, so a group is a run of item ids just as a B-I-N-G-O column is a range of numbers. Item ids are positions in that order, plus one.
+- `ContentVariant.For(standard, set, groupItems)` builds the rules: the standard card, patterns and presets, with the set's items as the balls. With Group items, each group becomes a column (`ColumnCardGenerator`, unchanged); without, the variant has no columns and `FreeFormCardGenerator` deals any item into any square. `CardGenerators.For(variant)` picks the dealer.
+- `Session.UseContent(set, groupItems)` is lobby-only. It clears the last round's calls (their ids meant other items) and raises `ContentChanged`; the application then redeals every card, as for *Deal New Cards*.
+- A called ball (`BallCall`) carries both faces, `Call` and `Square`, so clients need no lookup. Its `Letter` is the group's name, or empty when free-form. Each `RoundSummary` records the set's name.
+- The set is stored apart from the session (`s:{code}:content`); the session snapshot records only its name and Group items.
 
 ## Responsibility for content
 Decided by the owner (2026-10-12):

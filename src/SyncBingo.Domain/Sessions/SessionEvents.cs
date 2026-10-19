@@ -31,7 +31,11 @@ public enum DrawSource
 }
 
 /// <summary>One called ball. <see cref="Sequence"/> counts calls within the round, from 1.</summary>
-public sealed record BallCall(int Sequence, int Number, string Letter, DateTimeOffset CalledAt, DrawSource Source);
+/// <param name="Letter">The column label, e.g. "N"; a group's name with grouped custom content; empty when dealt free-form.</param>
+/// <param name="Call">With custom content (ADR 0009): what is called, e.g. "2 + 5"; <c>null</c> for numbers.</param>
+/// <param name="Square">With custom content: what players mark, e.g. "7"; <c>null</c> for numbers.</param>
+public sealed record BallCall(
+    int Sequence, int Number, string Letter, DateTimeOffset CalledAt, DrawSource Source, string? Call = null, string? Square = null);
 
 /// <summary>Who an event is for (docs/05 §4). Private messages to one player are notifications, not events.</summary>
 [Flags]
@@ -88,6 +92,12 @@ public sealed record RoundStarted(int Round) : SessionEvent;
 
 /// <summary>"Clear cards": marks and calls are cleared (cards replaced if <see cref="Redraw"/>), back in the lobby.</summary>
 public sealed record CardsCleared(bool Redraw) : SessionEvent;
+
+/// <summary>
+/// The host started using a custom set, or went back to numbers (<paramref name="Name"/> <c>null</c>), in the
+/// lobby (ADR 0009). Every card is redealt and the call board rebuilt; the caller deals the new cards.
+/// </summary>
+public sealed record ContentChanged(string? Name, int Items, bool Grouped) : SessionEvent;
 
 public sealed record RoundEnded(int Round) : SessionEvent;
 

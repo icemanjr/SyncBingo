@@ -69,7 +69,7 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
             return allowed.Error!;
         }
 
-        var newCard = await new ColumnCardGenerator(session.Variant)
+        var newCard = await CardGenerators.For(session.Variant)
             .DealUniqueAsync(random, (fingerprint, ct) => Store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
             .ConfigureAwait(false);
         var replaced = await ParticipantUpdates

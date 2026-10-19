@@ -52,8 +52,11 @@ public sealed class BingoVariant
     /// <summary>Balls are numbered 1 to <see cref="BallMax"/>.</summary>
     public int BallMax { get; }
 
-    /// <summary>One range per card column, left to right.</summary>
+    /// <summary>One range per card column, left to right; empty for free-form dealing, where any item goes anywhere.</summary>
     public ImmutableArray<ColumnRange> Columns { get; }
+
+    /// <summary>Cards are dealt free-form (any item in any square), and balls have no column label.</summary>
+    public bool IsFreeForm => Columns.IsEmpty;
 
     public ImmutableArray<WinPattern> Patterns { get; }
 
@@ -114,6 +117,9 @@ public sealed class BingoVariant
             ? selection!
             : throw new KeyNotFoundException($"Variant '{Id}' has no win pattern selection '{key}'.");
 
+    /// <summary>The label shown with a ball: its column's, e.g. "N" for 37; empty when dealing is free-form.</summary>
+    public string LabelOf(int ball) => IsFreeForm ? string.Empty : Columns[ColumnOf(ball)].Label;
+
     /// <summary>The column a ball belongs to, e.g. 37 is column 2 (N) in 75-ball Bingo.</summary>
     public int ColumnOf(int ball)
     {
@@ -133,6 +139,17 @@ public sealed class BingoVariant
 
     private void ValidateColumns()
     {
+        if (IsFreeForm)
+        {
+            var cellsToFill = Layout.CellCount - (Layout.FreeCell is null ? 0 : 1);
+            if (BallMax < cellsToFill)
+            {
+                throw new ArgumentException($"Free-form dealing needs at least {cellsToFill} balls to fill a card.", "columns");
+            }
+
+            return;
+        }
+
         if (Columns.Length != Layout.Columns)
         {
             throw new ArgumentException($"Expected {Layout.Columns} column ranges but got {Columns.Length}.", "columns");

@@ -79,7 +79,7 @@ public sealed class JoinSessionHandler(
         Card card;
         try
         {
-            card = await new ColumnCardGenerator(session.Variant)
+            card = await CardGenerators.For(session.Variant)
                 .DealUniqueAsync(random, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
                 .ConfigureAwait(false);
         }

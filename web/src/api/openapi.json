@@ -3279,6 +3279,18 @@
           },
           "source": {
             "$ref": "#/components/schemas/DrawSource"
+          },
+          "call": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "square": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4125,6 +4137,12 @@
             "items": {
               "$ref": "#/components/schemas/WinRecord"
             }
+          },
+          "contentName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

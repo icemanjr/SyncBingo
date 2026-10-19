@@ -68,13 +68,14 @@ public sealed record WinRecord(
 
 public sealed record LeaderboardEntry(string ParticipantId, string Name, int Wins);
 
-/// <summary>Session statistics for one round (FR-40).</summary>
+/// <summary>Session statistics for one round (FR-40), with the custom set it used, if any (ADR 0009).</summary>
 public sealed record RoundSummary(
     int Number,
     DateTimeOffset StartedAt,
     DateTimeOffset? EndedAt,
     IReadOnlyList<string> WinConditionsUsed,
-    IReadOnlyList<WinRecord> Wins);
+    IReadOnlyList<WinRecord> Wins,
+    string? ContentName = null);
 
 /// <summary>Every Bingo press, valid or not (host only).</summary>
 public sealed record WinClaimed(Claim Claim) : SessionEvent;

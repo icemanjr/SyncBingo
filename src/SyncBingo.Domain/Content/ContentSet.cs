@@ -1,0 +1,186 @@
+using System.Collections.Immutable;
+
+namespace SyncBingo.Domain.Content;
+
+/// <summary>
+/// One entry as a host types it or a set file holds it: the ball (what is called), the square (what is
+/// marked; <c>null</c> when it is the same as the ball) and, optionally, the group it belongs to.
+/// </summary>
+public sealed record ContentEntry(string Ball, string? Square = null, string? Group = null);
+
+/// <summary>One validated pair of a set: its call face and card face (ADR 0009), and its group, if any.</summary>
+public sealed record ContentPair(string Ball, string Square, string? Group)
+{
+    /// <summary>The ball and the square show the same text, as in a word list.</summary>
+    public bool IsMatched => Ball == Square;
+}
+
+/// <summary>
+/// A host's custom content set (FR-44, ADR 0009): ball and square pairs of text, with optional named
+/// groups. Item ids are positions in <see cref="Pairs"/> plus one, as balls are numbered from 1.
+/// <para>
+/// Built only through <see cref="TryCreate"/>, which checks everything the server must before a set is
+/// used: the limits, printable text, and that each side is unique, so a call can match only one square
+/// and a card never shows the same square twice. Card size, the free space and patterns are session
+/// settings, independent of the set; whether the set fits the current card is checked when it is used.
+/// </para>
+/// </summary>
+public sealed class ContentSet
+{
+    public const int MinPairs = 24;
+    public const int MaxPairs = 500;
+    public const int MaxBallLength = 120;
+    public const int MaxSquareLength = 15;
+    public const int MaxGroups = 10;
+    public const int MaxGroupNameLength = 20;
+    public const int MaxNameLength = 60;
+
+    /// <summary>The most problems one refusal lists; a file full of mistakes says how many more there are.</summary>
+    private const int ProblemsShown = 3;
+
+    private ContentSet(string name, ImmutableArray<ContentPair> pairs, ImmutableArray<string> groups)
+    {
+        Name = name;
+        Pairs = pairs;
+        Groups = groups;
+    }
+
+    /// <summary>What the host called the set, e.g. "Times tables 1–3".</summary>
+    public string Name { get; }
+
+    public ImmutableArray<ContentPair> Pairs { get; }
+
+    /// <summary>The group names in the order they first appear; empty when the set has no groups.</summary>
+    public ImmutableArray<string> Groups { get; }
+
+    /// <summary>Every pair belongs to a group, so the set can be dealt by group (Group items).</summary>
+    public bool IsFullyGrouped => !Groups.IsEmpty && Pairs.All(pair => pair.Group is not null);
+
+    /// <summary>The pair for an item id (1-based, like ball numbers).</summary>
+    public ContentPair this[int itemId] => Pairs[itemId - 1];
+
+    /// <summary>
+    /// Tidies and checks a whole set. On refusal the message names the first few problems, e.g.
+    /// "Square 3 is longer than 15 characters; 'cat' is on two squares (entries 4 and 9)".
+    /// </summary>
+    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+
+        var problems = new List<string>();
+        var setName = ContentText.Tidy(name);
+        if (setName.Length == 0)
+        {
+            setName = "Custom set";
+        }
+        else if (!ContentText.Fits(setName, MaxNameLength) || !ContentText.IsPrintable(setName))
+        {
+            problems.Add($"The set's name must be printable text of up to {MaxNameLength} characters");
+        }
+
+        var list = entries.ToList();
+        if (list.Count is < MinPairs or > MaxPairs)
+        {
+            problems.Add($"A set needs {MinPairs}–{MaxPairs} entries, not {list.Count}");
+        }
+
+        var pairs = ImmutableArray.CreateBuilder<ContentPair>(list.Count);
+        var groups = new List<string>();
+        var groupKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+        var balls = new Dictionary<string, int>(StringComparer.Ordinal);
+        var squares = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            var number = i + 1;
+            var ball = ContentText.Tidy(list[i].Ball);
+            var square = list[i].Square is null ? ball : ContentText.Tidy(list[i].Square);
+            if (square.Length == 0)
+            {
+                square = ball;
+            }
+
+            var group = list[i].Group is null ? null : ContentText.Tidy(list[i].Group);
+            if (group?.Length == 0)
+            {
+                group = null;
+            }
+
+            Check(ball, "Ball", number, MaxBallLength, problems);
+            Check(square, "Square", number, MaxSquareLength, problems);
+            Unique(balls, ball, number, "ball", problems);
+            Unique(squares, square, number, "square", problems);
+
+            if (group is not null)
+            {
+                // Group names match regardless of case, and keep the spelling they first appear with.
+                if (groupKeys.TryGetValue(ContentText.Key(group), out var existing))
+                {
+                    group = existing;
+                }
+                else if (!ContentText.Fits(group, MaxGroupNameLength) || !ContentText.IsPrintable(group))
+                {
+                    problems.Add($"Entry {number}'s group must be printable text of up to {MaxGroupNameLength} characters");
+                }
+                else
+                {
+                    groupKeys.Add(ContentText.Key(group), group);
+                    groups.Add(group);
+                }
+            }
+
+            pairs.Add(new ContentPair(ball, square, group));
+        }
+
+        if (groups.Count > MaxGroups)
+        {
+            problems.Add($"A set can have at most {MaxGroups} groups, not {groups.Count}");
+        }
+
+        if (problems.Count > 0)
+        {
+            var shown = string.Join("; ", problems.Take(ProblemsShown));
+            var more = problems.Count > ProblemsShown ? $" (and {problems.Count - ProblemsShown} more)" : string.Empty;
+            return Result.Failure<ContentSet>(DomainErrorCode.Invalid, $"{shown}{more}.");
+        }
+
+        return Result.Success(new ContentSet(setName, pairs.ToImmutable(), [.. groups]));
+    }
+
+    /// <summary>The set as entries again, e.g. to write its file.</summary>
+    public IEnumerable<ContentEntry> ToEntries() =>
+        Pairs.Select(pair => new ContentEntry(pair.Ball, pair.IsMatched ? null : pair.Square, pair.Group));
+
+    private static void Check(string text, string side, int number, int maxLength, List<string> problems)
+    {
+        if (text.Length == 0)
+        {
+            problems.Add($"{side} {number} is empty");
+        }
+        else if (!ContentText.Fits(text, maxLength))
+        {
+            problems.Add($"{side} {number} is longer than {maxLength} characters");
+        }
+        else if (!ContentText.IsPrintable(text))
+        {
+            problems.Add($"{side} {number} has characters that can't be shown");
+        }
+    }
+
+    private static void Unique(Dictionary<string, int> seen, string text, int number, string side, List<string> problems)
+    {
+        if (text.Length == 0)
+        {
+            return;
+        }
+
+        if (seen.TryGetValue(ContentText.Key(text), out var first))
+        {
+            problems.Add($"'{text}' is on two {side}s (entries {first} and {number})");
+        }
+        else
+        {
+            seen.Add(ContentText.Key(text), number);
+        }
+    }
+}

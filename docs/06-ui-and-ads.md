@@ -121,7 +121,7 @@ On the play screen, **⚙ My marks** opens a small panel with a live preview cel
 - **Shape:** ● circle (default, like a dauber), ★ star, ♥ heart, ■ filled square, or ▢ tint (the whole cell's background).
 - **Colour:** a palette of 6 colours, each checked so a marked number stays readable in both themes, plus a high-contrast option.
 - **Opacity:** a slider from 20% to 80% (45% by default), shown live on the preview cell.
-- **Text size:** Small, **Medium** (the default), Large, or Max, for whatever is in the squares (numbers now; words or short phrases of up to 20 characters with custom sets).
+- **Text size:** Small, **Medium** (the default), Large, or Max, for whatever is in the squares (numbers now; words or short phrases of up to 15 characters with custom sets).
   - Text **wraps at spaces only**, never inside a word, as many lines as the square's height allows.
   - A square whose text doesn't fit **shrinks on its own**, never below its size's minimum: **8 / 12 / 16 / 20 pt** for Small / Medium / Large / Max.
   - Past the minimum, the end is **cut off with "…"**. The full text shows on **hover** (a mouse) or a **long press** (touch, half a second), which never marks the square; a normal tap marks. Screen readers always hear the full text.

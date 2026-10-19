@@ -10,7 +10,7 @@ SyncBingo is a personal project paid for out of pocket; banner ads are only a ho
 |------|-----------|--------------|----------|------------|
 | **Lean** (the live site) | One small instance running Docker Compose: Caddy (TLS + static SPA + reverse proxy), the API, and a **Valkey** container | **$7** + domain *(verified 2026-10-15: Lightsail `micro_3_0`, us-east-2)* | A real, always-on site; the same code and store as Full | One instance, no high availability. A deploy or restart briefly drops connections, but **games survive**: state is in Valkey, and clients reconnect and resync from the snapshot. A box failure ends live games |
 | **Middle** | One Fargate ARM task behind an ALB, ElastiCache Valkey (t4g.micro), S3 + CloudFront | ~$35–45 *(unverified)* | Managed containers and cache, TLS at the edge | The ALB's fixed hourly charge dominates; little gained over Lean for this traffic |
-| **Full** (the reference design, docs/07) | 2 Fargate ARM tasks across AZs, ALB, ElastiCache Valkey, S3 + CloudFront, CloudWatch (DNS on Cloudflare) | ~$50–60 *(unverified)* | High availability, autoscaling, the complete portfolio architecture | Mostly fixed hourly charges whatever the traffic |
+| **Full** (the reference design, docs/07) | 2 Fargate ARM tasks across AZs, ALB, ElastiCache Valkey, S3 + CloudFront, CloudWatch (DNS on Cloudflare) | **~$61** (dev), ~$70 (prod) *(priced 2026-10-16, §5c)* | High availability, autoscaling, the complete portfolio architecture | Mostly fixed hourly charges whatever the traffic |
 
 Middle is documented for comparison; it is not planned.
 
@@ -41,7 +41,7 @@ Text-only custom sets (ADR 0009, amended) keep data transfer and storage out of 
 
 Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed in with a social login, rather than a classic account with a root user.
 
-- **Region:** fixed at **us-east-2 (Ohio)**. AWS assigns it from the contact address (every US address gets us-east-2), and new-experience projects can't create Regional resources anywhere else. Oregon would be closer to the maintainer in Utah, but the extra 20–30 ms doesn't matter for a Bingo game. Choosing a Region would mean activating advanced features, which isn't worth it. So Lean runs in us-east-2. **For Phase 3:** CloudFront requires its ACM certificate in us-east-1, which these project rules may not allow; check this before building the Full stacks.
+- **Region:** fixed at **us-east-2 (Ohio)**. AWS assigns it from the contact address (every US address gets us-east-2), and new-experience projects can't create Regional resources anywhere else. Oregon would be closer to the maintainer in Utah, but the extra 20–30 ms doesn't matter for a Bingo game. Choosing a Region would mean activating advanced features, which isn't worth it. So Lean runs in us-east-2. **For Phase 3:** CloudFront requires its ACM certificate in us-east-1, which these project rules may not allow. So the Full stacks serve the site on CloudFront's own `*.cloudfront.net` address by default, which needs no certificate of ours; a custom domain is optional (`-c domain=… -c certificateArn=…`), once a us-east-1 certificate turns out to be allowed.
 - **Plan:** **Paid**, upgraded on day one, with $100 of credits, which are used first. On the Free plan the project would have closed after 6 months (2027-04-15) unless upgraded in time.
 - **Services:** Lightsail, Budgets, ECS, ElastiCache, CloudFront and S3 are all available to such projects.
 
@@ -55,7 +55,7 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 | Tier | Target |
 |------|--------|
 | Lean | **≤ $7/month** plus the domain ✓ (the `micro_3_0` plan, $7) |
-| Full | **≤ $60/month**, and only for the days it is deployed |
+| Full | **≤ $70/month** (priced at ~$61 in dev, §5c), and only for the days it is deployed |
 
 - **Spend limit (AWS Settings): $30/month.** Past the limit, AWS pauses the project, which takes the site down, so it sits well above the normal ~$7–8. Of its early controls, only *Stop new resource launches* is on. *Pause idle resources* is off, because a party site is idle most of the day. *Pause top cost drivers* is off, because that would be the server itself. The limit emails at 50%, 75% and 90% ($15, $22.50, $27).
 - **AWS Budgets: `syncbingo-monthly-10`,** a $10 monthly cost budget that excludes credits and refunds, so it tracks real usage. It emails on actual and on forecast spend above $10, which is earlier than the spend limit's first email at $15. The planned $25 alert was dropped, because the spend limit's emails cover it.
@@ -67,7 +67,7 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 | Capacity of the Lean box (target ~10 sessions × 30 players) | ✓ 2026-10-16, §5b | Phase 2 |
 | Bytes per game | ✓ 2026-10-15, §5a | Phase 1b |
 | Lean instance size and price | ✓ 2026-10-15. Lightsail plans in us-east-2: nano $5 (0.5 GB), **micro $7 (1 GB)**, small $12 (2 GB). Nano is too small for .NET + Valkey (256 MB cap) + Caddy. The IPv6-only plans ($1.50–2 cheaper) are ruled out, because many phone and venue networks are IPv4-only. At idle on micro, the containers use about 130 MB of 909 MB | Phase 1b |
-| Full stack price | AWS Pricing Calculator / Pricing API on the synthesized `profile=full` stacks | Phase 3 |
+| Full stack price | ✓ 2026-10-16, §5c | Phase 3 |
 
 ## 5a. Measured: data and memory per game (2026-10-15)
 
@@ -125,8 +125,36 @@ Created 2026-10-15 through AWS's **new sign-up experience**: a *project* signed 
 - **Delivery times** include the network from Utah to Ohio (about 30 ms). The server's own share is a few milliseconds.
 - **To run it again** (off-hours only on the live site): `k6 run -e BASE=https://syncbingo.com load/bingo.js`. `GAMES`, `PLAYERS`, `BALLS` and `CALL_EVERY` change its size.
 
+## 5c. Priced: the Full stacks (2026-10-16)
+
+From AWS's public price list for us-east-2 (the on-demand offers for ECS, ElastiCache, ELB, VPC and CloudWatch), applied to what `cdk synth -c profile=full` produces, at 730 hours a month:
+
+| Part | What the stacks make | $/month |
+|------|----------------------|--------:|
+| Fargate | 2 arm64 tasks of 0.25 vCPU and 0.5 GB ($0.03238 per vCPU-hour, $0.00356 per GB-hour) | 14.42 |
+| Load balancer | $0.0225 an hour | 16.43 |
+| Load balancer capacity | 1 LCU on average ($0.008 an hour), generous for a demo | 5.84 |
+| Public IPv4 | 4 addresses ($0.005 an hour each): 2 tasks, and the load balancer in 2 zones | 14.60 |
+| ElastiCache | 1 Valkey `cache.t4g.micro` node ($0.0128 an hour); prod has 2 | 9.34 |
+| CloudWatch | 5 alarms and 1 dashboard: within the always-free 10 alarms and 3 dashboards; logs kept a week | ~0 |
+| CloudFront and S3 | within CloudFront's always-free 1 TB and 10 million requests a month; the app is a few MB | ~0 |
+| **Total** | dev; prod adds a second Valkey node (~$70) | **60.63** |
+
+- **About $2 a day,** or $0.083 an hour. A deploy for a few days of screenshots and a recording costs well under $10 of the $100 credits.
+- **Mostly fixed:** the load balancer and the public addresses are over half the bill whatever the traffic.
+- **Left out on purpose:** a NAT gateway (about $33 a month on its own). The tasks sit in public subnets with a public address instead, and only the load balancer can reach them (docs/07 §2). Container Insights (about $0.50 a task a month) is off too.
+- **Not counted:** data transfer out and cross-zone traffic, which are pennies at demo traffic.
+
 ## 6. Teardown
 
-- **Full:** `cdk destroy -c profile=full --all`. Check afterwards: no running tasks, ALB, ElastiCache cluster, NAT gateway or elastic IPs; ECR images and CloudWatch log groups deleted or set to expire.
+- **Full:** `cd infra && npx aws-cdk destroy -c profile=full --all`. Then check, in us-east-2 (and us-east-1 for CloudFront logs, if any were turned on):
+  - ECS: no cluster or running tasks (`aws ecs list-clusters`);
+  - EC2: no load balancer, and no public IPv4 address left over (`aws elbv2 describe-load-balancers`, `aws ec2 describe-addresses`);
+  - ElastiCache: no replication group (`aws elasticache describe-replication-groups`);
+  - CloudFront: the distribution is gone (disabling takes a few minutes before it can be deleted);
+  - S3: the site bucket is gone (dev empties it on destroy; prod keeps it, so delete it by hand);
+  - CloudWatch: the log group is gone or expiring (kept a week);
+  - IAM: the GitHub OIDC provider and deploy role are gone, unless something else uses them.
+  - The CDK bootstrap stack (`CDKToolkit`) and its bucket can stay: they cost cents.
 - **Lean:** stop or delete the instance and release its static IP (an unattached static IP is billed).
 - Leave the Budgets alerts in place.

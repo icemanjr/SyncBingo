@@ -9,6 +9,10 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.13" />
     <PackageVersion Include="StackExchange.Redis" Version="3.4.5" />
   </ItemGroup>
+  <ItemGroup Label="Infrastructure">
+    <PackageVersion Include="Amazon.CDK.Lib" Version="2.273.0" />
+    <PackageVersion Include="Constructs" Version="10.8.1" />
+  </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.4.0" />

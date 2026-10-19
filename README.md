@@ -123,6 +123,12 @@ docker compose --profile tests run --rm tests
 
 Planned: `docker compose --profile dev up` for hot reload.
 
+Build the AWS templates for either profile (needs Node; creates nothing in AWS, see [`infra/README.md`](infra/README.md)):
+
+```bash
+cd infra && npx aws-cdk synth -c profile=full     # or -c profile=lean
+```
+
 Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 
 ## Testing

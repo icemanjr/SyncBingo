@@ -23,6 +23,11 @@ jobs:
         with:
           global-json-file: global.json
 
+      # The infrastructure tests synthesize CDK stacks, which runs the jsii runtime on Node.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       - name: Restore
         run: dotnet restore
 
@@ -123,6 +128,34 @@ jobs:
           docker compose -f docker-compose.lean.yml config --quiet
 
   # Real browsers play real games against the whole stack, built from this commit (docs/08).
+  cdk:
+    name: CDK synth (Lean and Full)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      CDK_VERSION: 2.1145.0
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # No AWS credentials: synth only builds the templates (docs/07 §3). --strict fails on any warning.
+      - name: Synth the Lean profile
+        run: npx --yes aws-cdk@$CDK_VERSION synth --strict --quiet -c profile=lean
+
+      - name: Synth the Full profile, dev and prod
+        run: |
+          npx --yes aws-cdk@$CDK_VERSION synth --strict --quiet -c profile=full -c stage=dev
+          npx --yes aws-cdk@$CDK_VERSION synth --strict --quiet -c profile=full -c stage=prod
+
   e2e:
     name: End-to-end tests
     runs-on: ubuntu-latest

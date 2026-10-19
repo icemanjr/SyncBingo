@@ -64,8 +64,10 @@ public sealed class ContentSet
     /// <summary>
     /// Tidies and checks a whole set. On refusal the message names the first few problems, e.g.
     /// "Square 3 is longer than 15 characters; 'cat' is on two squares (entries 4 and 9)".
+    /// <paramref name="groupOrder"/> lists the groups in the order the host arranged them (the set file's
+    /// order), including any still empty; groups named only by entries follow, in the order they appear.
     /// </summary>
-    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries)
+    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries, IEnumerable<string>? groupOrder = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
@@ -89,6 +91,23 @@ public sealed class ContentSet
         var pairs = ImmutableArray.CreateBuilder<ContentPair>(list.Count);
         var groups = new List<string>();
         var groupKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var listed in groupOrder ?? [])
+        {
+            var group = ContentText.Tidy(listed);
+            if (group.Length == 0 || !ContentText.Fits(group, MaxGroupNameLength) || !ContentText.IsPrintable(group))
+            {
+                problems.Add($"Group names must be printable text of 1–{MaxGroupNameLength} characters");
+            }
+            else if (!groupKeys.TryAdd(ContentText.Key(group), group))
+            {
+                problems.Add($"Two groups are called '{group}'");
+            }
+            else
+            {
+                groups.Add(group);
+            }
+        }
+
         var balls = new Dictionary<string, int>(StringComparer.Ordinal);
         var squares = new Dictionary<string, int>(StringComparer.Ordinal);
 

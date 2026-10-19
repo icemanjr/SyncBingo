@@ -1,11 +1,36 @@
 using SyncBingo.Domain.Content;
+using SyncBingo.Domain.Rules;
 using static SyncBingo.Domain.Tests.Content.ContentTestKit;
 
 namespace SyncBingo.Domain.Tests.Content;
 
-/// <summary>The set file a host downloads and uploads again (ADR 0009).</summary>
+/// <summary>The set file a host downloads and uploads again (ADR 0009): groups in order, each with its pairs.</summary>
 public sealed class ContentSetFileTests
 {
+    /// <summary>Standard Bingo written as a set: five groups, B to O, of fifteen numbers each.</summary>
+    private static string NormalBingo()
+    {
+        var groups = "BINGO".Select((letter, column) =>
+        {
+            var pairs = string.Join(", ", Enumerable.Range((column * 15) + 1, 15).Select(number => $"[\"{number}\"]"));
+            return $$"""{ "name": "{{letter}}", "pairs": [{{pairs}}] }""";
+        });
+        return $$"""{ "format": 1, "name": "Normal Bingo", "groups": [{{string.Join(", ", groups)}}] }""";
+    }
+
+    [Fact]
+    public void Standard_Bingo_as_a_set_file_plays_like_standard_Bingo()
+    {
+        var set = ContentSetFile.Read(NormalBingo()).Value;
+
+        set.Name.ShouldBe("Normal Bingo");
+        set.Groups.ShouldBe(["B", "I", "N", "G", "O"]);
+        set[37].ShouldBe(new ContentPair("37", "37", "N"));
+
+        var variant = ContentVariant.For(StandardVariants.Classic75, set, groupItems: true).Value;
+        variant.Columns.ShouldBe(StandardVariants.Classic75.Columns);
+    }
+
     [Fact]
     public void A_written_set_reads_back_the_same()
     {
@@ -20,38 +45,90 @@ public sealed class ContentSetFileTests
     }
 
     [Fact]
-    public void The_file_is_readable_and_leaves_out_what_it_can()
+    public void The_file_is_laid_out_like_the_card_one_pair_to_a_line()
     {
-        var entries = Words(23);
+        var entries = Words(22).Select(entry => entry with { Group = "words" }).ToList();
         entries.Add(new ContentEntry("2 × 3", "6"));
+        entries.Add(new ContentEntry("loose"));
 
         var json = ContentSetFile.Write(Valid(entries, "Mixed"));
 
-        json.ShouldContain("\"format\": 1");
-        json.ShouldContain("\"ball\": \"2 × 3\""); // not ×
-        json.ShouldContain("{\n      \"ball\": \"word 1\"\n    }"); // a matched entry has no square, and no group
+        json.ShouldStartWith("""
+            {
+              "format": 1,
+              "name": "Mixed",
+              "groups": [
+                {
+                  "name": "words",
+                  "pairs": [
+                    ["word 1"],
+                    ["word 2"],
+            """.ReplaceLineEndings("\n"));
+        json.ShouldEndWith("""
+              ],
+              "pairs": [
+                ["2 × 3", "6"],
+                ["loose"]
+              ]
+            }
+
+            """.ReplaceLineEndings("\n"));
     }
 
     [Fact]
-    public void A_hand_written_file_works()
+    public void Groups_keep_the_order_they_are_listed_in_including_empty_ones()
     {
-        var pairs = string.Join(",", Enumerable.Range(1, 24).Select(i => $$"""{ "ball": "{{i}} + 1", "square": "{{i + 1}}" }"""));
-        var json = $$"""{ "format": 1, "name": "Adding one", "pairs": [{{pairs}}], "comment": "ignored" }""";
+        var pairs = string.Join(", ", Enumerable.Range(1, 24).Select(i => $"[\"w{i}\"]"));
+        var json = $$"""
+            { "format": 1, "groups": [
+                { "name": "later", "pairs": [] },
+                { "name": "words", "pairs": [{{pairs}}] }
+            ] }
+            """;
 
-        var set = ContentSetFile.Read(json);
+        var set = ContentSetFile.Read(json).Value;
+
+        set.Groups.ShouldBe(["later", "words"]);
+        ContentSetFile.Read(ContentSetFile.Write(set)).Value.Groups.ShouldBe(["later", "words"]);
+    }
+
+    [Fact]
+    public void A_set_without_groups_is_just_its_pairs()
+    {
+        var pairs = string.Join(", ", Enumerable.Range(1, 24).Select(i => $"[\"{i} + 1\", \"{i + 1}\"]"));
+
+        var set = ContentSetFile.Read($$"""{ "format": 1, "name": "Adding one", "pairs": [{{pairs}}], "comment": "ignored" }""");
 
         set.IsSuccess.ShouldBeTrue(set.Error?.Message);
         set.Value[3].ShouldBe(new ContentPair("3 + 1", "4", null));
+        set.Value.Groups.ShouldBeEmpty();
+        ContentSetFile.Write(set.Value).ShouldNotContain("\"groups\"");
+    }
+
+    [Fact]
+    public void Two_groups_with_the_same_name_are_refused()
+    {
+        var json = NormalBingo().Replace("\"name\": \"I\"", "\"name\": \"b\"", StringComparison.Ordinal);
+
+        ContentSetFile.Read(json).Error!.Message.ShouldContain("Two groups are called 'b'");
     }
 
     [Theory]
     [InlineData("not json")]
     [InlineData("[]")]
     [InlineData("""{ "name": "no format", "pairs": [] }""")]
-    [InlineData("""{ "format": 1, "name": "no pairs" }""")]
-    [InlineData("""{ "format": 1, "pairs": [ { "square": "no ball" } ] }""")]
+    [InlineData("""{ "format": 1, "name": "no pairs or groups" }""")]
+    [InlineData("""{ "format": 1, "pairs": [ { "ball": "the old format" } ] }""")]
+    [InlineData("""{ "format": 1, "pairs": [ [] ] }""")]
+    [InlineData("""{ "format": 1, "pairs": [ ["a", "b", "c"] ] }""")]
+    [InlineData("""{ "format": 1, "pairs": [ [1] ] }""")]
     [InlineData("""{ "format": 1, "pairs": [ null ] }""")]
+    [InlineData("""{ "format": 1, "groups": [ { "pairs": [] } ] }""")]
+    [InlineData("""{ "format": 1, "groups": [ { "name": "no pairs" } ] }""")]
+    [InlineData("""{ "format": 1, "groups": { "name": "not a list" } }""")]
+    [InlineData("""{ "format": 1, "name": 7, "pairs": [] }""")]
     [InlineData("""{ "format": "1", "pairs": [] }""")]
+    [InlineData("""{ "format": 1.5, "pairs": [] }""")]
     [InlineData("""{ "format": 0, "pairs": [] }""")]
     public void Anything_else_is_not_a_set_file(string json) =>
         ContentSetFile.Read(json).Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
@@ -62,7 +139,7 @@ public sealed class ContentSetFileTests
 
     [Fact]
     public void A_valid_file_still_has_to_be_a_valid_set() =>
-        ContentSetFile.Read("""{ "format": 1, "pairs": [ { "ball": "only one" } ] }""")
+        ContentSetFile.Read("""{ "format": 1, "pairs": [ ["only one"] ] }""")
             .Error!.Message.ShouldContain("A set needs 24–500 entries, not 1");
 
     [Fact]
@@ -74,15 +151,15 @@ public sealed class ContentSetFileTests
     }
 
     [Fact]
-    public void The_largest_set_fits_in_a_file()
+    public void A_full_set_of_typical_entries_fits_in_a_file()
     {
-        // 500 pairs with a 120-character ball, a 15-character square and a group each: the worst case.
+        // 500 pairs with a 60-character definition on the ball and a short word on the square, in 10 groups.
         var entries = Enumerable.Range(1, 500).Select(i =>
-            new ContentEntry($"{i:000} {new string('b', 116)}", $"{i:000} {new string('s', 11)}", $"group {i % 10}"));
+            new ContentEntry($"{i:000} {new string('d', 56)}", $"word {i:000}", $"group {i % 10}"));
 
         var json = ContentSetFile.Write(Valid(entries));
 
-        System.Text.Encoding.UTF8.GetByteCount(json).ShouldBeLessThan(ContentSetFile.MaxBytes * 2);
-        ContentSetFile.Read(json).IsSuccess.ShouldBeFalse("this worst case is over 64 KB, so the limit really binds");
+        System.Text.Encoding.UTF8.GetByteCount(json).ShouldBeLessThan(ContentSetFile.MaxBytes);
+        ContentSetFile.Read(json).IsSuccess.ShouldBeTrue();
     }
 }

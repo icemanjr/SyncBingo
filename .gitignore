@@ -5,6 +5,8 @@
 
 # dotenv files
 .env
+# ...except the web app's public build settings (operator name, contact addresses): never secrets.
+!web/.env
 
 # User-specific files
 *.rsuser

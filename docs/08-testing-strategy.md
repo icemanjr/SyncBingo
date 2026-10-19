@@ -49,6 +49,7 @@
 3. Host switches Normal → Blackout mid-round, then clears cards; a late joiner is admitted only between rounds.
 4. Participant phone "sleeps" (page reload) and recovers.
 5. Layout: ad slots reserve space and the card never shifts when an ad loads.
+6. Accessibility: every screen, light and dark, has no WCAG 2.1 A/AA violations by axe-core, and reduced motion switches animation off (`accessibility.spec.ts`).
 
 These live in `e2e/tests/` (Playwright, one game per test, run in parallel): `joining.spec.ts` (1, the between-rounds half of 3, and 4), `round.spec.ts` (2 with a real line found by calling balls, a false Bingo that needs confirming, the pattern change from 3, and leaving the game), `display.spec.ts` (the TV view follows the calls) and `layout.spec.ts` (5, on a phone and on a laptop). They find controls by role and accessible name, never by layout or CSS, so a redesign doesn't break them. CI runs them on every PR against the stack built from that commit, and images are published only after they pass. Writing them found two real problems: nginx kept a stale address for the API after it restarted (fixed, docs/07), and a timing assumption in a test about when a refused join is answered.
 

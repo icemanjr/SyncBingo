@@ -117,7 +117,7 @@ describe('the play screen', () => {
     await userEvent.click(await screen.findByRole('gridcell', { name: 'B 1' }))
 
     expect(await screen.findByRole('gridcell', { name: 'B 1, marked' })).toHaveAttribute(
-      'aria-pressed',
+      'aria-selected',
       'true',
     )
     expect(api.sent.find((s) => s.path.endsWith('/marks'))?.body).toEqual({

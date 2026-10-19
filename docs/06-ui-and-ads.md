@@ -328,6 +328,10 @@ The host opens **Open display ⧉ → Connect a TV** and types the code (or scan
 - Screen-reader labels on every cell, e.g. "B 7, called, marked".
 - The host can optionally speak the ball aloud with the browser's speech synthesis (nice-to-have).
 
+- **Checked automatically (2026-10-16):** `e2e/tests/accessibility.spec.ts` plays a real game and scans every screen with axe-core against WCAG 2.1 A and AA, in light and in dark, on every PR: landing, create, join, the host's lobby, Options and round (laptop and phone), the player's card and rules panel, and the TV.
+- **The first scan found one problem:** the player's card wasn't a valid grid. Its squares now sit in rows and announce a mark as "selected". Everything else passed.
+- **Reduced motion:** with the device's reduced-motion setting on, animations and transitions are switched off everywhere, by one global rule, and the BINGO button doesn't move when pressed.
+
 ## 4. States to design
 
 Connecting/reconnecting banner · round countdown in the last-ball slot · "Bingo sent to host" confirmation · claims list on the host console (qualified yes/no, award / dismiss / remove) · wrong password · name taken · round in progress · win highlight · empty hopper · host disconnected · session ended/expired.

@@ -291,7 +291,7 @@ export function PlayScreen() {
                 setSent(true)
               })
             }
-            className="min-h-18 w-full rounded-[22px] bg-accent font-display text-4xl font-extrabold tracking-wide text-accent-ink shadow-[0_6px_0_var(--accent-strong)] transition-transform focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent active:translate-y-1 active:shadow-[0_2px_0_var(--accent-strong)] disabled:opacity-50"
+            className="min-h-18 w-full rounded-[22px] bg-accent font-display text-4xl font-extrabold tracking-wide text-accent-ink shadow-[0_6px_0_var(--accent-strong)] transition-transform focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent motion-safe:active:translate-y-1 motion-safe:active:shadow-[0_2px_0_var(--accent-strong)] disabled:opacity-50"
           >
             BINGO!
           </button>

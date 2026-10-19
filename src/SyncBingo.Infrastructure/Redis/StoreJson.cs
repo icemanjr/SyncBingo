@@ -17,9 +17,8 @@ internal static class StoreJson
 
     public static string Write(Session session) => JsonSerializer.Serialize(session.ToSnapshot(), Options);
 
-    public static Session ReadSession(string json) =>
-        Session.Restore(JsonSerializer.Deserialize<SessionSnapshot>(json, Options)
-            ?? throw new InvalidOperationException("Stored session is empty."));
+    public static SessionSnapshot ReadSnapshot(string json) =>
+        JsonSerializer.Deserialize<SessionSnapshot>(json, Options) ?? throw new InvalidOperationException("Stored session is empty.");
 
     /// <summary>A participant with its version, as one hash field so both are read together.</summary>
     public static string Write(Participant participant, long version) =>

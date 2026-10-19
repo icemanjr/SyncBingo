@@ -57,9 +57,10 @@ public sealed record CountdownStarted(int Round, DateTimeOffset EndsAt);
 
 public sealed record ClearCardsRequest(bool RedrawCards);
 
-public sealed record BallBody(int Number, string Letter, int Sequence)
+/// <summary>The ball just drawn; with a custom set, what to call and what players mark (ADR 0009).</summary>
+public sealed record BallBody(int Number, string Letter, int Sequence, string? Call = null, string? Square = null)
 {
-    public static BallBody From(BallCall call) => new(call.Number, call.Letter, call.Sequence);
+    public static BallBody From(BallCall call) => new(call.Number, call.Letter, call.Sequence, call.Call, call.Square);
 }
 
 public sealed record AwardRequest(string ParticipantId, int? CardId = null, int? Wins = null, int? ClaimId = null);

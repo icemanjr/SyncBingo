@@ -40,6 +40,12 @@ public sealed class RateLimitOptions
 
     /// <summary>Pairing codes a host may try per minute, so a host token can't be used to guess codes.</summary>
     public int ApprovalsPerMinute { get; set; } = 10;
+
+    /// <summary>
+    /// Custom set changes (use a set, or back to numbers) a host may make per hour (ADR 0009): each one
+    /// redeals every card, and a set can be 64 KB. Far more than a teacher switching sets between rounds.
+    /// </summary>
+    public int ContentChangesPerHour { get; set; } = 30;
 }
 
 internal static class RateLimits
@@ -48,6 +54,7 @@ internal static class RateLimits
     public const string Player = "player";
     public const string Pairing = "pairing";
     public const string Approve = "approve";
+    public const string Content = "content";
 
     public static IServiceCollection AddSyncBingoRateLimits(this IServiceCollection services, RateLimitOptions limits)
     {
@@ -67,6 +74,9 @@ internal static class RateLimits
             options.AddPolicy(Approve, http => RateLimitPartition.GetFixedWindowLimiter(
                 http.Request.Headers.Authorization.ToString(),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.ApprovalsPerMinute, Window = TimeSpan.FromMinutes(1) }));
+            options.AddPolicy(Content, http => RateLimitPartition.GetFixedWindowLimiter(
+                http.Request.Headers.Authorization.ToString(),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.ContentChangesPerHour, Window = TimeSpan.FromHours(1) }));
             options.AddPolicy(Player, http => RateLimitPartition.GetTokenBucketLimiter(
                 http.Request.Headers.Authorization.ToString(),
                 _ => new TokenBucketRateLimiterOptions

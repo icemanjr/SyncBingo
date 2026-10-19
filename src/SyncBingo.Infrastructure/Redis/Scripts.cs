@@ -16,9 +16,20 @@ internal static class Scripts
         redis.call('HSET', KEYS[1], 'session', ARGV[2], 'password', ARGV[3])
         """ + Touch;
 
-    /// <summary>ARGV[2] session JSON. Only an existing session is saved; one that expired stays gone.</summary>
+    /// <summary>
+    /// ARGV[2] session JSON; ARGV[3] the custom set's content id, or '' when the session uses none;
+    /// ARGV[4] the set's file, or '' when Redis already has it under that id. Only an existing session is
+    /// saved; one that expired stays gone. The set lives in the meta hash with the session, so they're
+    /// written together and expire together. -1 = the set is needed but wasn't sent.
+    /// </summary>
     public const string Save = """
         if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+        if ARGV[3] == '' then
+          redis.call('HDEL', KEYS[1], 'content', 'content-id')
+        elseif redis.call('HGET', KEYS[1], 'content-id') ~= ARGV[3] then
+          if ARGV[4] == '' then return -1 end
+          redis.call('HSET', KEYS[1], 'content', ARGV[4], 'content-id', ARGV[3])
+        end
         redis.call('HSET', KEYS[1], 'session', ARGV[2])
         """ + Touch;
 

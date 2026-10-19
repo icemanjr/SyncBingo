@@ -1,6 +1,7 @@
 using StackExchange.Redis;
 using SyncBingo.Application;
 using SyncBingo.Application.Ports;
+using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Sessions;
 
@@ -9,10 +10,14 @@ namespace SyncBingo.Infrastructure.Redis;
 /// <summary>
 /// <see cref="ISessionStore"/> on Redis (ADR 0003, docs/04 §4). Every check-and-write is a
 /// Lua script, so it is atomic; every write refreshes the idle expiry of all the session's
-/// keys; and a session past its maximum lifetime reads as gone, however recently it was used.
+/// keys; and a session past its maximum lifetime reads as gone, however recently it was used. A custom set
+/// (ADR 0009) is kept in the session's meta hash, written only when it changes, and read through a
+/// <see cref="ContentCache"/>.
 /// </summary>
 public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOptions options, TimeProvider time) : ISessionStore
 {
+    private readonly ContentCache _contents = new();
+
     private IDatabase Db => redis.GetDatabase();
 
     public async Task<bool> TryCreateAsync(Session session, string passwordHash, CancellationToken cancellationToken)
@@ -52,16 +57,18 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
     {
         ArgumentNullException.ThrowIfNull(code);
 
-        var json = await Db.HashGetAsync(Keys(code).Meta, "session").ConfigureAwait(false);
-        if (json.IsNull)
+        var meta = Keys(code).Meta;
+        var fields = await Db.HashGetAsync(meta, ["session", "content-id"]).ConfigureAwait(false);
+        if (fields[0].IsNull)
         {
             return null;
         }
 
-        var session = StoreJson.ReadSession(json.ToString());
-        if (time.GetUtcNow() < session.CreatedAt + options.MaxLifetime)
+        var snapshot = StoreJson.ReadSnapshot(fields[0].ToString());
+        if (time.GetUtcNow() < snapshot.CreatedAt + options.MaxLifetime)
         {
-            return session;
+            var content = snapshot.ContentName is null ? null : await ReadContentAsync(meta, fields[1]).ConfigureAwait(false);
+            return Session.Restore(snapshot, content);
         }
 
         await Db.KeyDeleteAsync(Keys(code).All).ConfigureAwait(false);
@@ -74,7 +81,57 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
 
         // An ended game keeps only a few minutes; the domain refuses every command on it, so nothing extends that.
         var expiry = session.State == SessionState.Ended ? options.EndedExpiry : options.IdleExpiry;
-        return RunWithExpiryAsync(Scripts.Save, session.Code, expiry, StoreJson.Write(session));
+        return SaveAsync(session, expiry);
+    }
+
+    private async Task SaveAsync(Session session, TimeSpan expiry)
+    {
+        var content = session.Content is null ? null : _contents.Describe(session.Content);
+        RedisValue[] values =
+        [
+            (long)expiry.TotalMilliseconds,
+            StoreJson.Write(session),
+            content?.Id ?? string.Empty,
+            content is null || content.InRedis ? string.Empty : content.File,
+        ];
+        var result = (long)await Db.ScriptEvaluateAsync(Scripts.Save, Keys(session.Code).All, values).ConfigureAwait(false);
+        if (result == -1)
+        {
+            // Redis lost the set this one was read as (it can't happen under the session lock): send it in full.
+            content!.InRedis = false;
+            await SaveAsync(session, expiry).ConfigureAwait(false);
+            return;
+        }
+
+        if (content is not null && result == 1)
+        {
+            _contents.Add(content.Id, content.File, session.Content!);
+        }
+    }
+
+    /// <summary>The session's custom set, from the cache by its id, or else from Redis (then cached).</summary>
+    private async Task<ContentSet> ReadContentAsync(RedisKey meta, RedisValue id)
+    {
+        if (!id.IsNull && _contents.TryGet(id.ToString(), out var cached))
+        {
+            return cached!;
+        }
+
+        var stored = await Db.HashGetAsync(meta, ["content", "content-id"]).ConfigureAwait(false);
+        if (stored[0].IsNull || stored[1].IsNull)
+        {
+            throw new InvalidOperationException("Stored session uses a custom set that wasn't found.");
+        }
+
+        var file = stored[0].ToString();
+        var set = ContentSetFile.Read(file);
+        if (!set.IsSuccess)
+        {
+            throw new InvalidOperationException($"Stored custom set can't be read: {set.Error}");
+        }
+
+        _contents.Add(stored[1].ToString(), file, set.Value);
+        return set.Value;
     }
 
     public async Task<string?> GetPasswordHashAsync(GameCode code, CancellationToken cancellationToken)

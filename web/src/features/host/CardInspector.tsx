@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Schemas } from '../../api/client'
-import { squareFace, type Content } from '../game/faces'
+import { cardFace } from '../game/faces'
 import { Button, ErrorText, Panel } from '../game/ui'
 import type { HostApi } from './hostApi'
 
@@ -12,15 +12,12 @@ export function CardInspector({
   participantId,
   called,
   columns,
-  content,
   host,
   onClose,
 }: {
   participantId: string
   called: Set<number>
   columns: number
-  /** A custom set (ADR 0009): squares show its text. */
-  content?: Content
   host: HostApi
   onClose: () => void
 }) {
@@ -41,7 +38,7 @@ export function CardInspector({
           key={card.cardId}
           className="grid gap-1"
           style={{
-            gridTemplateColumns: `repeat(${String(columns)}, minmax(0, ${content ? '4.5rem' : '3rem'}))`,
+            gridTemplateColumns: `repeat(${String(columns)}, minmax(0, ${card.faces ? '4.5rem' : '3rem'}))`,
           }}
         >
           {card.cells.map((number, cell) => {
@@ -50,13 +47,13 @@ export function CardInspector({
             return (
               <div
                 key={cell}
-                aria-label={`${number === 0 ? 'Free' : squareFace(content, number)}${marked ? ', marked' : ''}${isCalled ? ', called' : ''}`}
-                title={number === 0 ? undefined : squareFace(content, number)}
-                className={`flex h-12 items-center justify-center overflow-hidden rounded-lg border-2 px-0.5 text-center leading-tight font-bold tabular-nums ${content ? 'text-[11px] break-words' : ''} ${
+                aria-label={`${number === 0 ? 'Free' : cardFace(card, cell)}${marked ? ', marked' : ''}${isCalled ? ', called' : ''}`}
+                title={number === 0 ? undefined : cardFace(card, cell)}
+                className={`flex h-12 items-center justify-center overflow-hidden rounded-lg border-2 px-0.5 text-center leading-tight font-bold tabular-nums ${card.faces ? 'text-[11px] break-words' : ''} ${
                   marked ? 'border-accent-strong bg-accent text-accent-ink' : 'border-line-soft'
                 } ${isCalled ? '' : 'opacity-60'}`}
               >
-                {number === 0 ? '★' : squareFace(content, number)}
+                {number === 0 ? '★' : cardFace(card, cell)}
                 {isCalled && !marked && <span className="sr-only"> (called, not marked)</span>}
               </div>
             )

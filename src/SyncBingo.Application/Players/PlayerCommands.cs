@@ -1,4 +1,5 @@
 using SyncBingo.Application.Ports;
+using SyncBingo.Application.Queries;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Cards;
@@ -83,7 +84,7 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
 
         await Store.ReleaseCardAsync(code, replaced.Value.OldCard.Fingerprint, cancellationToken).ConfigureAwait(false);
         await publisher.NotifyAsync(
-                code, new Recipient.Participant(caller.ParticipantId!), new CardReplaced(cardId, newCard.Cells), cancellationToken)
+                code, new Recipient.Participant(caller.ParticipantId!), new CardReplaced(cardId, session.Content is null ? newCard.Cells : CardView.Placeholders(newCard)), cancellationToken)
             .ConfigureAwait(false);
         return Result.Success(newCard);
     }

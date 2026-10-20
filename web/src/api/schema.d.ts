@@ -564,6 +564,7 @@ export interface components {
             cells: number[];
             /** Format: uint32 */
             marks: number;
+            faces?: null | string[];
         };
         Claim: {
             /** Format: int32 */
@@ -601,7 +602,8 @@ export interface components {
         ContentView: {
             name: string;
             groupItems: boolean;
-            items: components["schemas"]["ItemFaces"][];
+            board: string[];
+            squares: string[];
         };
         CountdownRequest: {
             startInAuto: boolean;
@@ -675,10 +677,6 @@ export interface components {
             participants: components["schemas"]["ParticipantSummary"][];
             pendingClaims: components["schemas"]["Claim"][];
             rounds: components["schemas"]["RoundSummary"][];
-        };
-        ItemFaces: {
-            ball: string;
-            square: string;
         };
         Joined: {
             participantId: string;

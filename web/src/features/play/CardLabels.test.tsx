@@ -10,7 +10,7 @@ function renderCard(columnLabels: string[] | null) {
       columns={2}
       columnLabels={columnLabels}
       freeCell={null}
-      called={null}
+      isCalled={null}
       highlightMatches={false}
       markStyle={defaultMarkStyle}
       setFaces={[]}

@@ -1,5 +1,6 @@
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
+using SyncBingo.Application.Queries;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Cards;
 using SyncBingo.Domain.Sessions;
@@ -137,7 +138,7 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
 
             foreach (var replacement in replaced.Value)
             {
-                notifications.Add((new Recipient.Participant(stored.Participant.Id), new CardReplaced(replacement.CardId, replacement.NewCard.Cells)));
+                notifications.Add((new Recipient.Participant(stored.Participant.Id), new CardReplaced(replacement.CardId, session.Content is null ? replacement.NewCard.Cells : CardView.Placeholders(replacement.NewCard))));
             }
         }
 

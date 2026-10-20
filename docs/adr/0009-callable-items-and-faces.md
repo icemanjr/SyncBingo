@@ -57,6 +57,13 @@ Decided by the owner (2026-10-14):
 - A called ball (`BallCall`) carries both faces, `Call` and `Square`, so clients need no lookup. Its `Letter` is the group's name, or empty when free-form. Each `RoundSummary` records the set's name.
 - The set is stored in the session's meta hash as its file, beside the snapshot, and written only when it changes; the snapshot records only its name and Group items. API instances cache parsed sets by a hash of the file (docs/04 §4).
 
+## Players never receive the answer key (2026-10-20)
+With a vocabulary set, the pairing of each clue (ball) with its word (square) is the answer key. Calls carry both texts once called, but nothing tells a player in advance which clue goes with which square:
+- the snapshot's `content` has the board's ball text by item and the squares in **alphabetical** order (for sizing text), never the pairs;
+- a **player's** card arrives as square text (`faces`) with placeholder cells, never item numbers; matching item numbers to the board would be the key for that card. The app tells a called square by its text (squares are unique in a set), and marking, auto-fill and claims work on cell positions on the server as before;
+- the **host's** card inspection sees real items. The owner noted few young players could read a network tab; it is done anyway because it follows rule 7 (a participant receives only what is theirs) and costs little.
+- Downloading the set (the full key) is host-only unless the host allows players to, off by default, in the lobby only (planned).
+
 ## Responsibility for content
 Decided by the owner (2026-10-12):
 - **SyncBingo is responsible for** the ads it shows and any **built-in content sets** it ships (pre-created card sets). Those are reviewed as suitable for children.

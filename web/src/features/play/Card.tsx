@@ -8,7 +8,7 @@ import {
   type Fitted,
   type Measure,
 } from './fitText'
-import { squareFace, type Content } from '../game/faces'
+import { cardFace } from '../game/faces'
 import { letterBackground } from '../game/letters'
 import { Mark } from './Mark'
 import { textSizes, type MarkStyle } from './markStyle'
@@ -48,22 +48,20 @@ export function Card({
   columns,
   columnLabels,
   freeCell,
-  called,
+  isCalled,
   highlightMatches,
   markStyle,
   setFaces,
-  content,
   disabled,
   onToggle,
 }: {
   card: Schemas['CardView']
-  /** The custom set in use (ADR 0009): squares show its text, and the card uses tighter gaps for room. */
-  content?: Content
   columns: number
   /** A label above each column (B-I-N-G-O), when the call board's groups match the card's columns. */
   columnLabels: string[] | null
   freeCell: number | null
-  called: Set<number> | null
+  /** Whether a cell's square has been called (`calledTest`), or null when the player can't see calls. */
+  isCalled: ((cell: number) => boolean) | null
   highlightMatches: boolean
   markStyle: MarkStyle
   /** Every card face in the set; Max text size is fitted to the hardest of them, so all cards match. */
@@ -78,9 +76,9 @@ export function Card({
   const press = useRef<{ timer?: ReturnType<typeof setTimeout>; longPressed: boolean }>({
     longPressed: false,
   })
-  const faces = card.cells.map((item, cell) =>
-    cell === freeCell ? '★' : squareFace(content, item),
-  )
+  // With a custom set (ADR 0009) the card brings its squares' text, and the card uses tighter gaps for room.
+  const text = card.faces != null
+  const faces = card.cells.map((_, cell) => (cell === freeCell ? '★' : cardFace(card, cell)))
 
   // Cheap enough to work out on each render: measurements are cached per text.
   const fitted = fitSquares(faces, setFaces, size, metrics)
@@ -93,7 +91,7 @@ export function Card({
     <div
       role="grid"
       aria-label="Your card"
-      className={`grid ${content ? 'gap-1' : 'gap-2'}`}
+      className={`grid ${text ? 'gap-1' : 'gap-2'}`}
       style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(3rem, 1fr))` }}
     >
       {/* Seen, not read out: each square's name starts with its letter instead ("B 7"). */}
@@ -112,18 +110,18 @@ export function Card({
         <div key={row} role="row" className="contents">
           {card.cells
             .slice(row * columns, (row + 1) * columns)
-            .map((number, i) => square(number, row * columns + i))}
+            .map((_, i) => square(row * columns + i))}
         </div>
       ))}
     </div>
   )
 
-  function square(number: number, cell: number) {
+  function square(cell: number) {
     const face = faces[cell] ?? ''
     const fit = fitted[cell]
     const marked = (card.marks & (2 ** cell)) !== 0
     const free = cell === freeCell
-    const match = highlightMatches && !marked && called?.has(number) === true
+    const match = highlightMatches && !marked && isCalled?.(cell) === true
     const letter = columnLabels?.[cell % columns]
     const label = `${free ? 'Free space' : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
     return (

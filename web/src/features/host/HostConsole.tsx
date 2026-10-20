@@ -394,7 +394,6 @@ export function HostConsole() {
             participantId={inspecting}
             called={called}
             columns={view.card.columns}
-            content={view.content}
             host={host}
             onClose={() => {
               setInspecting(undefined)

@@ -1,5 +1,7 @@
 using SyncBingo.Application.Ports;
 using SyncBingo.Domain;
+using SyncBingo.Domain.Cards;
+using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Sessions;
 
@@ -39,13 +41,12 @@ public sealed record GameView(
     ContentView? Content = null);
 
 /// <summary>
-/// The custom set in use (ADR 0009), or <c>null</c> for numbers: what each item (ball number) shows when
-/// called and on a card. <see cref="Items"/>[n − 1] is item n; the board's groups list item numbers.
+/// The custom set in use (ADR 0009), or <c>null</c> for numbers. Never the answer key: <see cref="Board"/> is
+/// each item's ball text (<c>Board[n − 1]</c> is item n, as the board's groups list item numbers), and
+/// <see cref="Squares"/> every square's text in alphabetical order, to size text for Max (FR-51) without
+/// saying which square goes with which ball. Calls carry both of their own texts.
 /// </summary>
-public sealed record ContentView(string Name, bool GroupItems, IReadOnlyList<ItemFaces> Items);
-
-/// <summary>An item's two faces: what is called (<see cref="Ball"/>) and what is marked (<see cref="Square"/>).</summary>
-public sealed record ItemFaces(string Ball, string Square);
+public sealed record ContentView(string Name, bool GroupItems, IReadOnlyList<string> Board, IReadOnlyList<string> Squares);
 
 /// <summary>
 /// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
@@ -100,7 +101,34 @@ public sealed record VisibleSettings(
 /// <summary>A participant's own view: only ever their own cards (ADR 0001, CLAUDE.md rule 7).</summary>
 public sealed record PlayerView(string ParticipantId, string Name, bool AutoFillOn, IReadOnlyList<CardView> Cards);
 
-public sealed record CardView(int CardId, IReadOnlyList<int> Cells, uint Marks);
+/// <summary>
+/// A card. <see cref="Faces"/> is each square's text with a custom set (ADR 0009). For a player in such a
+/// game, <see cref="Cells"/> holds only placeholders (cell position + 1; the free cell 0), never item numbers:
+/// item numbers and the board's ball text together would be the answer key (which clue goes with which word).
+/// A player's app knows a square was called when its text matches a called ball's square text.
+/// </summary>
+public sealed record CardView(int CardId, IReadOnlyList<int> Cells, uint Marks, IReadOnlyList<string>? Faces = null)
+{
+    /// <summary>A card as its holder may see it: with a set, faces and placeholder cells (see above).</summary>
+    public static CardView ForPlayer(int cardId, Card card, uint marks, ContentSet? content) =>
+        content is null
+            ? new CardView(cardId, [.. card.Cells], marks)
+            : new CardView(cardId, Placeholders(card), marks, FacesOf(card, content));
+
+    /// <summary>A card as the host sees it when checking a claim: real item numbers and, with a set, the faces.</summary>
+    public static CardView ForHost(int cardId, Card card, uint marks, ContentSet? content) =>
+        new(cardId, [.. card.Cells], marks, content is null ? null : FacesOf(card, content));
+
+    /// <summary>Cell position + 1, the free cell 0: what a player's card shows instead of item numbers with a set.</summary>
+    public static IReadOnlyList<int> Placeholders(Card card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        return [.. card.Cells.Select((item, cell) => item == Card.FreeCellNumber ? Card.FreeCellNumber : cell + 1)];
+    }
+
+    private static string[] FacesOf(Card card, ContentSet content) =>
+        [.. card.Cells.Select(item => item == Card.FreeCellNumber ? string.Empty : content[item].Square)];
+}
 
 /// <summary>What only the host sees: every setting, the players, open claims and the round history.</summary>
 public sealed record HostView(
@@ -148,7 +176,7 @@ public sealed class GameQueries(ISessionStore store)
                 var settings = session.Settings;
                 var seesCalls = settings.ShowBallToPlayers || settings.HighlightMatches || settings.ShowCallBoard;
                 return Result.Success(new GameSnapshot(
-                    Public(session, seesCalls, session.LeaderboardVisible, Audience.Players), PlayerOf(stored.Participant), null));
+                    Public(session, seesCalls, session.LeaderboardVisible, Audience.Players), PlayerOf(stored.Participant, session.Content), null));
             case CallerRole.Display:
                 return Result.Success(new GameSnapshot(Public(session, showCalls: true, session.LeaderboardVisible, Audience.Display), null, null));
             default:
@@ -166,13 +194,14 @@ public sealed class GameQueries(ISessionStore store)
             return forbidden;
         }
 
-        if (await store.GetAsync(code, cancellationToken).ConfigureAwait(false) is null)
+        var session = await store.GetAsync(code, cancellationToken).ConfigureAwait(false);
+        if (session is null)
         {
             return Errors.SessionNotFound();
         }
 
         var stored = await store.GetParticipantAsync(code, participantId, cancellationToken).ConfigureAwait(false);
-        return stored is null ? Errors.PlayerNotFound() : Result.Success(PlayerOf(stored.Participant));
+        return stored is null ? Errors.PlayerNotFound() : Result.Success(HostInspection(stored.Participant, session.Content));
     }
 
     /// <summary>Wins per player and the round summaries, for the host (FR-40, FR-41).</summary>
@@ -215,15 +244,25 @@ public sealed class GameQueries(ISessionStore store)
             stream == Audience.Players ? null : session.JoinNote,
             session.LeaderboardVisible,
             session.Content is { } content
-                ? new ContentView(content.Name, session.GroupItems, [.. content.Pairs.Select(pair => new ItemFaces(pair.Ball, pair.Square))])
+                ? new ContentView(
+                    content.Name,
+                    session.GroupItems,
+                    [.. content.Pairs.Select(pair => pair.Ball)],
+                    [.. content.Pairs.Select(pair => pair.Square).Order(StringComparer.OrdinalIgnoreCase)])
                 : null);
     }
 
-    private static PlayerView PlayerOf(Participant participant) => new(
+    private static PlayerView PlayerOf(Participant participant, ContentSet? content) => new(
         participant.Id,
         participant.Name.Display,
         participant.AutoFillOn,
-        [.. participant.Cards.Select(card => new CardView(card.Id, [.. card.Card.Cells], card.Marks))]);
+        [.. participant.Cards.Select(card => CardView.ForPlayer(card.Id, card.Card, card.Marks, content))]);
+
+    private static PlayerView HostInspection(Participant participant, ContentSet? content) => new(
+        participant.Id,
+        participant.Name.Display,
+        participant.AutoFillOn,
+        [.. participant.Cards.Select(card => CardView.ForHost(card.Id, card.Card, card.Marks, content))]);
 
     private static HostView HostOf(Session session, IReadOnlyList<StoredParticipant> participants) => new(
         session.Settings,

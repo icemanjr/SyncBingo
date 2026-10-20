@@ -100,6 +100,11 @@ export function hostApi(code: string, token: string) {
       unwrap(
         api.PUT('/api/sessions/{code}/join-note', { params: { path }, headers, body: { note } }),
       ),
+    /** "Call board shows" (FR-29): which face of a custom set's items every call board shows. */
+    setBoardSide: (side: Schemas['BoardSide']) =>
+      unwrap(
+        api.PUT('/api/sessions/{code}/board-side', { params: { path }, headers, body: { side } }),
+      ),
   }
 }
 

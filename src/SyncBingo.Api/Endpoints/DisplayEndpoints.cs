@@ -37,6 +37,10 @@ internal static class DisplayEndpoints
             .RequireRateLimiting(RateLimits.Approve)
             .Produces(StatusCodes.Status204NoContent).WithName("ApproveTvPairing");
 
+        game.MapPut("/board-side", (string code, BoardSideRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await host.SetBoardSideAsync(game, caller, request.Side, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("SetBoardSide");
+
         game.MapPut("/join-note", (string code, JoinNoteRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) => (await host.SetJoinNoteAsync(game, caller, request.Note, ct)).NoContent()))
             .Produces(StatusCodes.Status204NoContent).WithName("SetJoinNote");

@@ -67,6 +67,23 @@ public sealed class ContentApiTests : IAsyncDisposable
         content.GetProperty("labels").EnumerateArray().Select(label => label.GetString()).ShouldBe(["B", "I", "N", "G", "O"]);
     }
 
+    [Fact]
+    public async Task The_host_can_show_the_square_side_on_every_board()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        await UseAsync(code, hostToken, Sums());
+
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/board-side", avaToken, new { side = "Square" }))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/board-side", hostToken, new { side = "Square" }))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var content = (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("content");
+        content.GetProperty("boardSide").GetString().ShouldBe("Square");
+        content.GetProperty("board")[0].GetString().ShouldBe("2", "item 1's square, not its ball '1 + 1'");
+    }
+
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

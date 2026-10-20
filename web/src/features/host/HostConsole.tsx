@@ -347,7 +347,12 @@ export function HostConsole() {
       )}
       {open === 'displays' && (
         <Dialog label="Displays" onClose={close}>
-          <DisplayMenu host={host} joinNote={view.joinNote} onClose={close} />
+          <DisplayMenu
+            host={host}
+            joinNote={view.joinNote}
+            content={view.content}
+            onClose={close}
+          />
         </Dialog>
       )}
       {open === 'leaderboard' && (

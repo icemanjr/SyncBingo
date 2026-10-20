@@ -47,8 +47,15 @@ public sealed record GameView(
 /// saying which square goes with which ball. Calls carry both of their own texts.
 /// </summary>
 /// <see cref="Labels"/> are the groups' short labels, in board order, for the card's column headers.
+/// <see cref="BoardSide"/> says which face <see cref="Board"/> holds (FR-29): ball text by default, square text
+/// when the host chose it.
 public sealed record ContentView(
-    string Name, bool GroupItems, IReadOnlyList<string> Board, IReadOnlyList<string> Squares, IReadOnlyList<string> Labels);
+    string Name,
+    bool GroupItems,
+    IReadOnlyList<string> Board,
+    IReadOnlyList<string> Squares,
+    IReadOnlyList<string> Labels,
+    BoardSide BoardSide = BoardSide.Ball);
 
 /// <summary>
 /// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
@@ -249,9 +256,10 @@ public sealed class GameQueries(ISessionStore store)
                 ? new ContentView(
                     content.Name,
                     session.GroupItems,
-                    [.. content.Pairs.Select(pair => pair.Ball)],
+                    [.. content.Pairs.Select(pair => session.BoardSide == BoardSide.Square ? pair.Square : pair.Ball)],
                     [.. content.Pairs.Select(pair => pair.Square).Order(StringComparer.OrdinalIgnoreCase)],
-                    session.GroupItems ? [.. content.Labels] : [])
+                    session.GroupItems ? [.. content.Labels] : [],
+                    session.BoardSide)
                 : null);
     }
 

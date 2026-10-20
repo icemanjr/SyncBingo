@@ -69,6 +69,9 @@ public sealed record VisibleRequest(bool Visible);
 
 public sealed record JoinNoteRequest(string? Note);
 
+/// <summary>"Call board shows" (FR-29): <c>Ball</c> or <c>Square</c>.</summary>
+public sealed record BoardSideRequest(BoardSide Side);
+
 /// <summary>A TV's pairing (ADR 0010): it listens on <c>/hubs/pairing?pairingId=</c> and shows <see cref="PairingCode"/>.</summary>
 public sealed record PairingCreated(string PairingId, string PairingCode, DateTimeOffset ExpiresAt);
 

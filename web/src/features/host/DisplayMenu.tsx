@@ -12,10 +12,13 @@ import type { HostApi } from './hostApi'
 export function DisplayMenu({
   host,
   joinNote,
+  content,
   onClose,
 }: {
   host: HostApi
   joinNote: string | null
+  /** The custom set in use (ADR 0009), if any: then the host chooses which side the call boards show. */
+  content?: Schemas['ContentView'] | null
   onClose: () => void
 }) {
   const [displays, setDisplays] = useState<Schemas['DisplayRecord'][]>([])
@@ -148,6 +151,41 @@ export function DisplayMenu({
             </Button>
           </div>
         </form>
+
+        {content && (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="font-semibold">Call board shows</legend>
+            <p id="board-side-help" className="text-sm text-ink-muted">
+              On every call board: the TV, yours and players&apos;. Showing the balls keeps the
+              board from becoming a list of answers; showing the squares is easier to scan when the
+              balls are long clues.
+            </p>
+            {(
+              [
+                ['Ball', 'Balls (what is called)'],
+                ['Square', 'Squares (what players mark)'],
+              ] as const
+            ).map(([side, label]) => (
+              <label key={side} className="flex min-h-12 items-center gap-3">
+                <input
+                  type="radio"
+                  name="board-side"
+                  value={side}
+                  checked={content.boardSide === side}
+                  disabled={busy}
+                  aria-describedby="board-side-help"
+                  className="h-5 w-5 accent-accent"
+                  onChange={() =>
+                    void run(async () => {
+                      await host.setBoardSide(side)
+                    })
+                  }
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+        )}
 
         <div>
           <h3 className="font-semibold">Connected ({displays.length})</h3>

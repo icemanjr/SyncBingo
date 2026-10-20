@@ -159,3 +159,53 @@ public sealed class ContentSessionTests
             .Message.ShouldContain("custom set that wasn't found");
     }
 }
+
+/// <summary>"Call board shows" (FR-29): which face of a set's items the boards show.</summary>
+public sealed class BoardSideTests
+{
+    [Fact]
+    public void Boards_show_the_ball_side_until_the_host_chooses_otherwise() =>
+        NewSession().BoardSide.ShouldBe(BoardSide.Ball);
+
+    [Theory]
+    [InlineData(SessionState.BetweenRounds)]
+    [InlineData(SessionState.Starting)]
+    [InlineData(SessionState.Manual)]
+    [InlineData(SessionState.Auto)]
+    public void The_host_switches_it_at_any_time_but_after_the_game(SessionState state)
+    {
+        var session = InState(state);
+
+        var events = session.SetBoardSide(BoardSide.Square, Now).Value;
+
+        events.ShouldHaveSingleItem().ShouldBeOfType<BoardSideChanged>().Side.ShouldBe(BoardSide.Square);
+        events[0].Audience.ShouldBe(Audience.Everyone, "every board changes");
+        session.BoardSide.ShouldBe(BoardSide.Square);
+    }
+
+    [Fact]
+    public void Not_once_the_game_has_ended() =>
+        InState(SessionState.Ended).SetBoardSide(BoardSide.Square, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
+
+    [Fact]
+    public void Choosing_the_side_already_shown_changes_nothing()
+    {
+        var session = NewSession();
+
+        session.SetBoardSide(BoardSide.Ball, Now).Value.ShouldBeEmpty();
+        session.Version.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Only_the_two_sides() =>
+        NewSession().SetBoardSide((BoardSide)7, Now).Error!.Code.ShouldBe(DomainErrorCode.Invalid);
+
+    [Fact]
+    public void A_stored_session_keeps_it()
+    {
+        var session = NewSession();
+        session.SetBoardSide(BoardSide.Square, Now);
+
+        Session.Restore(session.ToSnapshot()).BoardSide.ShouldBe(BoardSide.Square);
+    }
+}

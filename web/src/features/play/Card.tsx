@@ -8,6 +8,7 @@ import {
   type Fitted,
   type Measure,
 } from './fitText'
+import { squareFace, type Content } from '../game/faces'
 import { letterBackground } from '../game/letters'
 import { Mark } from './Mark'
 import { textSizes, type MarkStyle } from './markStyle'
@@ -51,10 +52,13 @@ export function Card({
   highlightMatches,
   markStyle,
   setFaces,
+  content,
   disabled,
   onToggle,
 }: {
   card: Schemas['CardView']
+  /** The custom set in use (ADR 0009): squares show its text, and the card uses tighter gaps for room. */
+  content?: Content
   columns: number
   /** A label above each column (B-I-N-G-O), when the call board's groups match the card's columns. */
   columnLabels: string[] | null
@@ -74,7 +78,9 @@ export function Card({
   const press = useRef<{ timer?: ReturnType<typeof setTimeout>; longPressed: boolean }>({
     longPressed: false,
   })
-  const faces = card.cells.map((number, cell) => (cell === freeCell ? '★' : String(number)))
+  const faces = card.cells.map((item, cell) =>
+    cell === freeCell ? '★' : squareFace(content, item),
+  )
 
   // Cheap enough to work out on each render: measurements are cached per text.
   const fitted = fitSquares(faces, setFaces, size, metrics)
@@ -87,7 +93,7 @@ export function Card({
     <div
       role="grid"
       aria-label="Your card"
-      className="grid gap-2"
+      className={`grid ${content ? 'gap-1' : 'gap-2'}`}
       style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(3rem, 1fr))` }}
     >
       {/* Seen, not read out: each square's name starts with its letter instead ("B 7"). */}
@@ -95,9 +101,10 @@ export function Card({
         <span
           key={label}
           aria-hidden="true"
-          className={`flex h-9 items-center justify-center rounded-xl font-display text-xl font-extrabold text-white ${letterBackground(label)}`}
+          title={label}
+          className={`flex h-9 min-w-0 items-center justify-center rounded-xl px-1 font-display font-extrabold text-white ${label.length > 2 ? 'text-sm' : 'text-xl'} ${letterBackground(label)}`}
         >
-          {label}
+          <span className="truncate">{label}</span>
         </span>
       ))}
       {Array.from({ length: Math.ceil(card.cells.length / columns) }, (_, row) => (

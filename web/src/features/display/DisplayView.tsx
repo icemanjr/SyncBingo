@@ -121,7 +121,13 @@ export function DisplayView() {
           </div>
         ) : (
           <section aria-label="Call board" className="rounded-[28px] bg-surface p-6 shadow-card">
-            <CallBoard board={view.board} calls={calls} big showLastBall={false} />
+            <CallBoard
+              board={view.board}
+              calls={calls}
+              content={view.content}
+              big
+              showLastBall={false}
+            />
           </section>
         )}
         {latestWin && (

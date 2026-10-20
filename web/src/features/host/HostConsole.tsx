@@ -309,7 +309,12 @@ export function HostConsole() {
                   {calls.length} of {calls.length + view.ballsRemaining} called
                 </span>
               </div>
-              <CallBoard board={view.board} calls={calls} showLastBall={false} />
+              <CallBoard
+                board={view.board}
+                calls={calls}
+                content={view.content}
+                showLastBall={false}
+              />
             </section>
           </div>
           <div className="contents lg:flex lg:flex-col lg:gap-4">
@@ -389,6 +394,7 @@ export function HostConsole() {
             participantId={inspecting}
             called={called}
             columns={view.card.columns}
+            content={view.content}
             host={host}
             onClose={() => {
               setInspecting(undefined)

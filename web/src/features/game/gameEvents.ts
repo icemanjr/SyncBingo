@@ -91,6 +91,12 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
         }),
         refetch: true, // cards and marks change too
       }
+    case 'ContentChanged':
+      // A new set (or numbers again, ADR 0009): new balls, board and cards, all from the snapshot.
+      return {
+        ...with_({ calls: game.calls ? [] : null, nextBallFrom: null }),
+        refetch: true,
+      }
     case 'WinConditionChanged':
       return with_({ winCondition: data.winConditionId ?? game.winCondition })
     case 'RulesUpdated':

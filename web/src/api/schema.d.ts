@@ -604,6 +604,7 @@ export interface components {
             groupItems: boolean;
             board: string[];
             squares: string[];
+            labels: string[];
         };
         CountdownRequest: {
             startInAuto: boolean;

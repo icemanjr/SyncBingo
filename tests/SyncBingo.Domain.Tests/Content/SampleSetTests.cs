@@ -43,7 +43,7 @@ public sealed class SampleSetTests
         var set = ContentSetFile.Read(File.ReadAllText(Path.Combine(Samples(), "science-vocabulary.json"))).Value;
 
         set.Groups.ShouldBe(["Biology", "Inventions & Tools", "Numbers & Shapes", "Geology & Earth", "Objects & Forces"]);
-        set.Groups.Select(group => group[0]).ShouldBe(['B', 'I', 'N', 'G', 'O']);
+        set.Labels.ShouldBe(["B", "I", "N", "G", "O"], "each group's first letter, so the card's columns read B-I-N-G-O");
         set.Pairs.ShouldAllBe(pair => !pair.IsMatched, "a clue on the ball, the word on the square");
         foreach (var group in set.Groups)
         {

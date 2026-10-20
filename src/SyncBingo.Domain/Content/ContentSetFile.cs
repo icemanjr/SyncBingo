@@ -7,14 +7,15 @@ namespace SyncBingo.Domain.Content;
 /// <summary>
 /// The file a host keeps a set in (ADR 0009): versioned JSON, small enough to email or keep on a USB stick,
 /// and laid out like the card. Groups are listed in the order their columns are dealt, each with its pairs;
-/// entries outside any group go in the top-level <c>pairs</c>. A pair is a short list: <c>["cat"]</c> when the
+/// entries outside any group go in the top-level <c>pairs</c>. A group's optional <c>label</c> (up to 5
+/// characters) heads its card column; without one, the name's first letter does. A pair is a short list: <c>["cat"]</c> when the
 /// ball and the square match, <c>["2 + 5", "7"]</c> when the ball calls one thing and the square shows another.
 /// <code>
 /// {
 ///   "format": 1,
 ///   "name": "Normal Bingo",
 ///   "groups": [
-///     { "name": "B", "pairs": [ ["1"], ["2"], … ] },
+///     { "name": "Biology", "label": "B", "pairs": [ ["An organism that makes its own food using sunlight.", "Producer"], … ] },
 ///     { "name": "I", "pairs": [ ["16"], … ] }
 ///   ],
 ///   "pairs": [
@@ -71,7 +72,8 @@ public static class ContentSetFile
             for (var i = 0; i < set.Groups.Length; i++)
             {
                 var name = set.Groups[i];
-                file.Append(i == 0 ? "\n" : ",\n").Append("    {\n      \"name\": ").Append(Quote(name)).Append(",\n      \"pairs\": ");
+                file.Append(i == 0 ? "\n" : ",\n").Append("    {\n      \"name\": ").Append(Quote(name))
+                    .Append(",\n      \"label\": ").Append(Quote(set.Labels[i])).Append(",\n      \"pairs\": ");
                 AppendPairs(file, set.Pairs.Where(pair => pair.Group == name), "      ");
                 file.Append("\n    }");
             }
@@ -124,7 +126,7 @@ public static class ContentSetFile
         }
 
         var entries = new List<ContentEntry>();
-        var groupOrder = new List<string>();
+        var groupOrder = new List<ContentGroup>();
         if (hasGroups)
         {
             if (groupsElement.ValueKind != JsonValueKind.Array)
@@ -143,7 +145,18 @@ public static class ContentSetFile
                     return NotASetFile();
                 }
 
-                groupOrder.Add(groupName.GetString()!);
+                string? label = null;
+                if (group.TryGetProperty("label", out var labelElement))
+                {
+                    if (labelElement.ValueKind != JsonValueKind.String)
+                    {
+                        return NotASetFile();
+                    }
+
+                    label = labelElement.GetString();
+                }
+
+                groupOrder.Add(new ContentGroup(groupName.GetString()!, label));
             }
         }
 

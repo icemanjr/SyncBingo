@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 
 namespace SyncBingo.Domain.Content;
 
@@ -7,6 +8,15 @@ namespace SyncBingo.Domain.Content;
 /// marked; <c>null</c> when it is the same as the ball) and, optionally, the group it belongs to.
 /// </summary>
 public sealed record ContentEntry(string Ball, string? Square = null, string? Group = null);
+
+/// <summary>
+/// A group as the host arranged it: its name and, optionally, a short label of up to 5 characters for the
+/// card's column headers (e.g. "B" for "Biology"). Without a label, the name's first letter is used.
+/// </summary>
+public sealed record ContentGroup(string Name, string? Label = null)
+{
+    public static implicit operator ContentGroup(string name) => new(name);
+}
 
 /// <summary>One validated pair of a set: its call face and card face (ADR 0009), and its group, if any.</summary>
 public sealed record ContentPair(string Ball, string Square, string? Group)
@@ -35,16 +45,18 @@ public sealed class ContentSet
     public const int MaxSquareLength = 15;
     public const int MaxGroups = 10;
     public const int MaxGroupNameLength = 20;
+    public const int MaxLabelLength = 5;
     public const int MaxNameLength = 60;
 
     /// <summary>The most problems one refusal lists; a file full of mistakes says how many more there are.</summary>
     private const int ProblemsShown = 3;
 
-    private ContentSet(string name, ImmutableArray<ContentPair> pairs, ImmutableArray<string> groups)
+    private ContentSet(string name, ImmutableArray<ContentPair> pairs, ImmutableArray<string> groups, ImmutableArray<string> labels)
     {
         Name = name;
         Pairs = pairs;
         Groups = groups;
+        Labels = labels;
     }
 
     /// <summary>What the host called the set, e.g. "Times tables 1–3".</summary>
@@ -54,6 +66,19 @@ public sealed class ContentSet
 
     /// <summary>The group names in the order they first appear; empty when the set has no groups.</summary>
     public ImmutableArray<string> Groups { get; }
+
+    /// <summary>Each group's short label for card column headers, in the order of <see cref="Groups"/>.</summary>
+    public ImmutableArray<string> Labels { get; }
+
+    /// <summary>A group's short label.</summary>
+    public string LabelOf(string group) => Labels[Groups.IndexOf(group)];
+
+    /// <summary>The label a group gets when none is given: the first letter of its name, upper case ("Biology" → "B").</summary>
+    public static string DefaultLabel(string group)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+        return group.Length == 0 ? string.Empty : StringInfo.GetNextTextElement(group).ToUpperInvariant();
+    }
 
     /// <summary>Every pair belongs to a group, so the set can be dealt by group (Group items).</summary>
     public bool IsFullyGrouped => !Groups.IsEmpty && Pairs.All(pair => pair.Group is not null);
@@ -67,7 +92,7 @@ public sealed class ContentSet
     /// <paramref name="groupOrder"/> lists the groups in the order the host arranged them (the set file's
     /// order), including any still empty; groups named only by entries follow, in the order they appear.
     /// </summary>
-    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries, IEnumerable<string>? groupOrder = null)
+    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries, IEnumerable<ContentGroup>? groupOrder = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
@@ -91,9 +116,20 @@ public sealed class ContentSet
         var pairs = ImmutableArray.CreateBuilder<ContentPair>(list.Count);
         var groups = new List<string>();
         var groupKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var listed in groupOrder ?? [])
         {
-            var group = ContentText.Tidy(listed);
+            var group = ContentText.Tidy(listed.Name);
+            var label = ContentText.Tidy(listed.Label);
+            if (label.Length > 0 && (!ContentText.Fits(label, MaxLabelLength) || !ContentText.IsPrintable(label)))
+            {
+                problems.Add($"Group '{group}'s label must be printable text of up to {MaxLabelLength} characters");
+            }
+            else if (label.Length > 0)
+            {
+                labels[group] = label;
+            }
+
             if (group.Length == 0 || !ContentText.Fits(group, MaxGroupNameLength) || !ContentText.IsPrintable(group))
             {
                 problems.Add($"Group names must be printable text of 1–{MaxGroupNameLength} characters");
@@ -169,7 +205,8 @@ public sealed class ContentSet
         // A group is then a run of item ids, as a B-I-N-G-O column is a range of numbers (ADR 0009).
         var order = groups.Select((group, index) => (group, index)).ToDictionary(g => g.group, g => g.index, StringComparer.Ordinal);
         var ordered = pairs.OrderBy(pair => pair.Group is null ? int.MaxValue : order[pair.Group]);
-        return Result.Success(new ContentSet(setName, [.. ordered], [.. groups]));
+        return Result.Success(new ContentSet(
+            setName, [.. ordered], [.. groups], [.. groups.Select(group => labels.GetValueOrDefault(group) ?? DefaultLabel(group))]));
     }
 
     /// <summary>The set as entries again, e.g. to write its file.</summary>

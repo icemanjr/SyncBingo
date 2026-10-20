@@ -154,6 +154,34 @@ public sealed class ContentSetTests
         set.Pairs[^1].Group.ShouldBe("×3");
     }
 
+    [Theory]
+    [InlineData("Biology", "B")]
+    [InlineData("inventions & tools", "I")]
+    [InlineData("×2", "×")]
+    [InlineData("élan", "É")]
+    [InlineData("🎉 party", "🎉")]
+    public void A_group_without_a_label_is_labelled_with_its_first_letter(string group, string label) =>
+        ContentSet.TryCreate("labels", Words(24), [group]).Value.LabelOf(group).ShouldBe(label);
+
+    [Fact]
+    public void A_host_can_choose_a_label_of_up_to_five_characters()
+    {
+        var set = ContentSet.TryCreate("labels", TimesTables(), [new ContentGroup("×1", "1×"), new ContentGroup("×2", " Twos ")]).Value;
+
+        set.LabelOf("×1").ShouldBe("1×");
+        set.LabelOf("×2").ShouldBe("Twos");
+        set.LabelOf("×3").ShouldBe("×", "a group named only by its entries gets the default");
+    }
+
+    [Fact]
+    public void A_label_longer_than_five_characters_is_refused() =>
+        ContentSet.TryCreate("labels", TimesTables(), [new ContentGroup("×1", "Ones!!")])
+            .Error!.Message.ShouldContain("Group '×1's label must be printable text of up to 5 characters");
+
+    [Fact]
+    public void A_blank_label_means_the_default() =>
+        ContentSet.TryCreate("labels", TimesTables(), [new ContentGroup("×1", "  ")]).Value.LabelOf("×1").ShouldBe("×");
+
     [Fact]
     public void Listed_group_names_are_checked_too()
     {

@@ -46,7 +46,9 @@ public sealed record GameView(
 /// <see cref="Squares"/> every square's text in alphabetical order, to size text for Max (FR-51) without
 /// saying which square goes with which ball. Calls carry both of their own texts.
 /// </summary>
-public sealed record ContentView(string Name, bool GroupItems, IReadOnlyList<string> Board, IReadOnlyList<string> Squares);
+/// <see cref="Labels"/> are the groups' short labels, in board order, for the card's column headers.
+public sealed record ContentView(
+    string Name, bool GroupItems, IReadOnlyList<string> Board, IReadOnlyList<string> Squares, IReadOnlyList<string> Labels);
 
 /// <summary>
 /// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
@@ -248,7 +250,8 @@ public sealed class GameQueries(ISessionStore store)
                     content.Name,
                     session.GroupItems,
                     [.. content.Pairs.Select(pair => pair.Ball)],
-                    [.. content.Pairs.Select(pair => pair.Square).Order(StringComparer.OrdinalIgnoreCase)])
+                    [.. content.Pairs.Select(pair => pair.Square).Order(StringComparer.OrdinalIgnoreCase)],
+                    session.GroupItems ? [.. content.Labels] : [])
                 : null);
     }
 

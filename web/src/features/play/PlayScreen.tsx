@@ -260,7 +260,13 @@ export function PlayScreen() {
           <Card
             card={card}
             columns={view.card.columns}
-            columnLabels={columnLabels(view.board, view.card.columns)}
+            columnLabels={
+              view.content
+                ? view.content.labels.length === view.card.columns
+                  ? view.content.labels
+                  : null
+                : columnLabels(view.board, view.card.columns)
+            }
             freeCell={view.card.freeCell}
             isCalled={calledTest(card, calls)}
             highlightMatches={view.settings.highlightMatches}

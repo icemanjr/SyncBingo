@@ -17,7 +17,7 @@ import { CallBoard } from '../game/CallBoard'
 import { Panel } from '../game/ui'
 import { Card } from './Card'
 import { MarkStylePanel } from './MarkStylePanel'
-import { allSquareFaces } from '../game/faces'
+import { allSquareFaces, calledTest } from '../game/faces'
 import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
 import { RulesPanel } from './RulesPanel'
@@ -262,11 +262,10 @@ export function PlayScreen() {
             columns={view.card.columns}
             columnLabels={columnLabels(view.board, view.card.columns)}
             freeCell={view.card.freeCell}
-            called={calls ? new Set(calls.map((c) => c.number)) : null}
+            isCalled={calledTest(card, calls)}
             highlightMatches={view.settings.highlightMatches}
             markStyle={markStyle}
             setFaces={allSquareFaces(view.content, view.board)}
-            content={view.content}
             disabled={!inRound || marking.busy}
             onToggle={toggle}
           />

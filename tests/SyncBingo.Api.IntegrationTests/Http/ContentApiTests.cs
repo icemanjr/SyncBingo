@@ -46,11 +46,55 @@ public sealed class ContentApiTests : IAsyncDisposable
         var content = snapshot.GetProperty("game").GetProperty("content");
         content.GetProperty("name").GetString().ShouldBe("Sums");
         content.GetProperty("groupItems").GetBoolean().ShouldBeFalse();
-        content.GetProperty("items")[0].GetProperty("ball").GetString().ShouldBe("1 + 1");
-        content.GetProperty("items")[0].GetProperty("square").GetString().ShouldBe("2");
+        content.GetProperty("board")[0].GetString().ShouldBe("1 + 1");
         snapshot.GetProperty("game").GetProperty("ballsRemaining").GetInt32().ShouldBe(30);
+        var card = snapshot.GetProperty("you").GetProperty("cards")[0];
+        var faces = card.GetProperty("faces").EnumerateArray().Select(face => face.GetString()!).ToList();
+        faces.Where(face => face.Length > 0).ShouldAllBe(face => int.Parse(face, System.Globalization.CultureInfo.InvariantCulture) >= 2);
+        faces[12].ShouldBe(string.Empty, "the free space");
+    }
+
+    [Fact]
+    public async Task A_player_never_receives_the_answer_key()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        await UseAsync(code, hostToken, Sums());
+
+        var snapshot = await SnapshotAsync(code, avaToken);
+
+        // The card's cells are positions, not items: with them and the board's ball text, a player could
+        // look up which clue goes with each of their squares.
         var cells = snapshot.GetProperty("you").GetProperty("cards")[0].GetProperty("cells").EnumerateArray().Select(cell => cell.GetInt32()).ToList();
-        cells.ShouldAllBe(item => item >= 0 && item <= 30, "every card holds the set's items, numbered 1–30");
+        cells.ShouldBe([.. Enumerable.Range(1, 25).Select(cell => cell == 13 ? 0 : cell)]);
+
+        // The set's squares come alphabetically, pairing with nothing, and no pairs are sent at all.
+        var content = snapshot.GetProperty("game").GetProperty("content");
+        var squares = content.GetProperty("squares").EnumerateArray().Select(square => square.GetString()!).ToList();
+        squares.ShouldBe(squares.Order(StringComparer.OrdinalIgnoreCase));
+        content.TryGetProperty("items", out _).ShouldBeFalse();
+        snapshot.GetRawText().ShouldNotContain("\"square\":\"2\",\"ball\"");
+    }
+
+    [Fact]
+    public async Task The_host_checking_a_claim_sees_the_real_card()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var (avaId, avaToken) = await JoinWithIdAsync(code, "Ava");
+        await UseAsync(code, hostToken, Sums());
+
+        using var inspected = await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/participants/{avaId}/card", hostToken);
+
+        var card = (await Json(inspected)).GetProperty("cards")[0];
+        var cells = card.GetProperty("cells").EnumerateArray().Select(cell => cell.GetInt32()).ToList();
+        var faces = card.GetProperty("faces").EnumerateArray().Select(face => face.GetString()!).ToList();
+        for (var cell = 0; cell < 25; cell++)
+        {
+            faces[cell].ShouldBe(cell == 12 ? string.Empty : $"{cells[cell] + 1}", "item n's square is n + 1");
+        }
+
+        var mine = (await SnapshotAsync(code, avaToken)).GetProperty("you").GetProperty("cards")[0].GetProperty("faces");
+        mine.GetRawText().ShouldBe(card.GetProperty("faces").GetRawText(), "the same squares the player sees");
     }
 
     [Fact]
@@ -180,6 +224,14 @@ public sealed class ContentApiTests : IAsyncDisposable
         using var response = await _client.SendAsync(HttpMethod.Post, "/api/sessions", body: new { password = "secret" });
         var body = await Json(response);
         return (body.GetProperty("code").GetString()!.Replace("-", "", StringComparison.Ordinal), body.GetProperty("hostToken").GetString()!);
+    }
+
+    private async Task<(string Id, string Token)> JoinWithIdAsync(string code, string name)
+    {
+        using var response = await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/join", body: new { password = "secret", name });
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var body = await Json(response);
+        return (body.GetProperty("participantId").GetString()!, body.GetProperty("token").GetString()!);
     }
 
     private async Task<string> JoinAsync(string code, string name)

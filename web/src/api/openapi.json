@@ -3703,6 +3703,15 @@
           "marks": {
             "type": "integer",
             "format": "uint32"
+          },
+          "faces": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3814,7 +3823,8 @@
         "required": [
           "name",
           "groupItems",
-          "items"
+          "board",
+          "squares"
         ],
         "type": "object",
         "properties": {
@@ -3824,10 +3834,16 @@
           "groupItems": {
             "type": "boolean"
           },
-          "items": {
+          "board": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemFaces"
+              "type": "string"
+            }
+          },
+          "squares": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -4124,21 +4140,6 @@
             "items": {
               "$ref": "#/components/schemas/RoundSummary"
             }
-          }
-        }
-      },
-      "ItemFaces": {
-        "required": [
-          "ball",
-          "square"
-        ],
-        "type": "object",
-        "properties": {
-          "ball": {
-            "type": "string"
-          },
-          "square": {
-            "type": "string"
           }
         }
       },

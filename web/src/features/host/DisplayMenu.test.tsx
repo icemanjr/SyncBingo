@@ -17,6 +17,7 @@ const content = {
   squares: [],
   labels: [],
   boardSide: 'Ball' as const,
+  playersMayDownload: false,
 }
 
 describe('Displays: call board shows (FR-29)', () => {

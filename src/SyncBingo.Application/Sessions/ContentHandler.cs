@@ -34,20 +34,34 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
     public Task<Result<CommandOutcome>> UseNumbersAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
         ChangeAsync(code, caller, content: null, groupItems: false, cancellationToken);
 
-    /// <summary>The set in use, as its file; the host only.</summary>
+    /// <summary>Lets players download the set in use, or stops them (off whenever a set is first used).</summary>
+    public Task<Result<CommandOutcome>> SetSharingAsync(GameCode code, Caller caller, bool playersMayDownload, CancellationToken cancellationToken) =>
+        runner.RunAsync(code, caller, (session, now) => session.SetContentSharing(playersMayDownload, now), cancellationToken);
+
+    /// <summary>
+    /// The set in use, as its file: the host any time; a player only when the host allows it and the game
+    /// is in the lobby (the file pairs every clue with its word).
+    /// </summary>
     public async Task<Result<ContentDownload>> DownloadAsync(GameCode code, Caller caller, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(caller);
 
-        if (caller.RequireHost() is { } forbidden)
+        if (caller.Role is not (CallerRole.Host or CallerRole.Participant))
         {
-            return forbidden;
+            return new DomainError(DomainErrorCode.Forbidden, "Only the host and players can download the set.");
         }
 
         var session = await runner.Store.GetAsync(code, cancellationToken).ConfigureAwait(false);
         if (session is null)
         {
             return Errors.SessionNotFound();
+        }
+
+        if (caller.Role == CallerRole.Participant && session.Content is not null && !session.PlayersCanDownloadNow)
+        {
+            return new DomainError(
+                DomainErrorCode.Forbidden,
+                session.PlayersMayDownload ? "The set can be downloaded between rounds." : "The host hasn't shared this set.");
         }
 
         // Not 404 when there is no set: clients read a 404 as "the game is over".

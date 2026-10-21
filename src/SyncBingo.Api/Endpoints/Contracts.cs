@@ -69,6 +69,9 @@ public sealed record VisibleRequest(bool Visible);
 
 public sealed record JoinNoteRequest(string? Note);
 
+/// <summary>"Players can download this set" (ADR 0009).</summary>
+public sealed record ContentSharingRequest(bool PlayersMayDownload);
+
 /// <summary>"Call board shows" (FR-29): <c>Ball</c> or <c>Square</c>.</summary>
 public sealed record BoardSideRequest(BoardSide Side);
 

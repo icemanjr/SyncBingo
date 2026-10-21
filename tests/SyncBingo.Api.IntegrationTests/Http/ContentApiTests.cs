@@ -194,7 +194,37 @@ public sealed class ContentApiTests : IAsyncDisposable
         var avaToken = await JoinAsync(code, "Ava");
 
         (await UseAsync(code, avaToken, Sums())).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
-        (await _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/content", avaToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/content/sharing", avaToken, new { playersMayDownload = true }))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Players_download_the_set_only_when_the_host_shares_it_and_only_in_the_lobby()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        await UseAsync(code, hostToken, Sums(name: "Shared sums"));
+        var download = () => _client.SendAsync(HttpMethod.Get, $"/api/sessions/{code}/content", avaToken);
+
+        using (var privateSet = await download())
+        {
+            privateSet.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            (await Json(privateSet)).GetProperty("detail").GetString().ShouldBe("The host hasn't shared this set.");
+        }
+
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/content/sharing", hostToken, new { playersMayDownload = true }))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("content").GetProperty("playersMayDownload").GetBoolean().ShouldBeTrue();
+        using (var shared = await download())
+        {
+            shared.StatusCode.ShouldBe(HttpStatusCode.OK);
+            (await shared.Content.ReadAsStringAsync(Ct)).ShouldContain("\"name\": \"Shared sums\"");
+        }
+
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/rounds/countdown", hostToken, new { startInAuto = false })).Dispose();
+        using var duringRound = await download();
+        duringRound.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Json(duringRound)).GetProperty("detail").GetString().ShouldBe("The set can be downloaded between rounds.");
     }
 
     [Fact]

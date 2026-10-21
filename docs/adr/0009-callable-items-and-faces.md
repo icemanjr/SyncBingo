@@ -62,7 +62,7 @@ With a vocabulary set, the pairing of each clue (ball) with its word (square) is
 - the snapshot's `content` has the board's ball text by item and the squares in **alphabetical** order (for sizing text), never the pairs;
 - a **player's** card arrives as square text (`faces`) with placeholder cells, never item numbers; matching item numbers to the board would be the key for that card. The app tells a called square by its text (squares are unique in a set), and marking, auto-fill and claims work on cell positions on the server as before;
 - the **host's** card inspection sees real items. The owner noted few young players could read a network tab; it is done anyway because it follows rule 7 (a participant receives only what is theirs) and costs little.
-- Downloading the set (the full key) is host-only unless the host allows players to, off by default, in the lobby only (planned).
+- Downloading the set (the full key) is host-only unless the host ticks **Players can download this set** (owner, 2026-10-20) on the lobby's *Custom set* card: off by default and off again whenever the set changes, any time before the game ends, but players can download only **between rounds**. It is for a teacher sharing a set with another who joined as a player.
 
 ## Responsibility for content
 Decided by the owner (2026-10-12):

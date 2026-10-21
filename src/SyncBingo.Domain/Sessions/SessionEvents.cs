@@ -135,6 +135,9 @@ public sealed record SessionEnded : SessionEvent;
 /// <summary>The host's note shown with the join QR (FR-49), e.g. the password or a hint; <c>null</c> when cleared.</summary>
 public sealed record JoinNoteChanged(string? Note) : SessionEvent;
 
+/// <summary>The host let players download the set in use, or stopped them (ADR 0009).</summary>
+public sealed record ContentSharingChanged(bool PlayersMayDownload) : SessionEvent;
+
 /// <summary>The host chose which side of a custom set's items the call boards show (FR-29).</summary>
 public sealed record BoardSideChanged(BoardSide Side) : SessionEvent;
 

@@ -60,6 +60,7 @@ public sealed class ContentSetFileTests
               "groups": [
                 {
                   "name": "words",
+                  "label": "W",
                   "pairs": [
                     ["word 1"],
                     ["word 2"],
@@ -104,6 +105,25 @@ public sealed class ContentSetFileTests
         set.Value.Groups.ShouldBeEmpty();
         ContentSetFile.Write(set.Value).ShouldNotContain("\"groups\"");
     }
+
+    [Fact]
+    public void A_groups_short_label_is_kept_and_written_back()
+    {
+        var json = NormalBingo().Replace("\"name\": \"N\"", "\"name\": \"N\", \"label\": \"Mid\"", StringComparison.Ordinal);
+
+        var set = ContentSetFile.Read(json).Value;
+
+        set.Labels.ShouldBe(["B", "I", "Mid", "G", "O"]);
+        ContentSetFile.Write(set).ShouldContain("\"label\": \"Mid\"");
+        ContentSetFile.Read(ContentSetFile.Write(set)).Value.Labels.ShouldBe(set.Labels);
+    }
+
+    [Theory]
+    [InlineData("\"label\": 5")]
+    [InlineData("\"label\": null")]
+    public void A_label_must_be_text(string label) =>
+        ContentSetFile.Read(NormalBingo().Replace("\"name\": \"B\"", $"\"name\": \"B\", {label}", StringComparison.Ordinal))
+            .Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
 
     [Fact]
     public void Two_groups_with_the_same_name_are_refused()

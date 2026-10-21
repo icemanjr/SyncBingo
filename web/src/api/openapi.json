@@ -3824,7 +3824,8 @@
           "name",
           "groupItems",
           "board",
-          "squares"
+          "squares",
+          "labels"
         ],
         "type": "object",
         "properties": {
@@ -3841,6 +3842,12 @@
             }
           },
           "squares": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
             "type": "array",
             "items": {
               "type": "string"

@@ -55,6 +55,30 @@ public sealed class ContentApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_grouped_set_sends_its_short_labels_for_the_cards_columns()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        var sample = await File.ReadAllTextAsync(Path.Combine(RepoRoot(), "samples", "science-vocabulary.json"), Ct);
+
+        (await UseAsync(code, hostToken, sample, groupItems: true)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var content = (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("content");
+        content.GetProperty("labels").EnumerateArray().Select(label => label.GetString()).ShouldBe(["B", "I", "N", "G", "O"]);
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (!File.Exists(Path.Combine(dir!.FullName, "SyncBingo.slnx")))
+        {
+            dir = dir.Parent;
+        }
+
+        return dir.FullName;
+    }
+
+    [Fact]
     public async Task A_player_never_receives_the_answer_key()
     {
         var (code, hostToken) = await NewGameAsync();

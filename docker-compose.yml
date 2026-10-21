@@ -42,6 +42,7 @@ services:
     working_dir: /e2e
     volumes:
       - ./e2e:/e2e:Z
+      - ./samples:/samples:ro,Z # the sample sets the custom-set test plays with
       - /e2e/node_modules # the container's own packages, not the host's
     # On the host's network, so the browser uses http://localhost:8080 like a person would, and the
     # links the API hands out (join, display) point at the same place.

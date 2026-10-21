@@ -10,6 +10,7 @@ import { LandingPage } from './features/landing/LandingPage'
 import { PrivacyPage, TermsPage } from './features/legal/LegalPages'
 import { JoinPage } from './features/play/JoinPage'
 import { PlayScreen } from './features/play/PlayScreen'
+import { SetEditor } from './features/sets/SetEditor'
 
 /** The site's pages (docs/06 §1). */
 export function AppRoutes() {
@@ -52,6 +53,14 @@ export function AppRoutes() {
         element={
           <Layout wide>
             <HostConsole />
+          </Layout>
+        }
+      />
+      <Route
+        path="/host/:code/set"
+        element={
+          <Layout>
+            <SetEditor />
           </Layout>
         }
       />

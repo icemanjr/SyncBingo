@@ -113,6 +113,7 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
         ...with_({ leaderboardVisible: data.visible ?? game.leaderboardVisible }),
         refetch: true,
       } // players now get the entries
+    case 'ContentSharingChanged': // players' apps show or hide "Download this set"
     case 'BoardSideChanged': // every board shows the other face of the set's items (FR-29)
     case 'SettingsChanged':
     case 'WinClaimed':

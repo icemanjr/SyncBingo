@@ -100,6 +100,15 @@ export function hostApi(code: string, token: string) {
       unwrap(
         api.PUT('/api/sessions/{code}/join-note', { params: { path }, headers, body: { note } }),
       ),
+    /** "Players can download this set" (ADR 0009). */
+    setContentSharing: (playersMayDownload: boolean) =>
+      unwrap(
+        api.PUT('/api/sessions/{code}/content/sharing', {
+          params: { path },
+          headers,
+          body: { playersMayDownload },
+        }),
+      ),
     /** "Call board shows" (FR-29): which face of a custom set's items every call board shows. */
     setBoardSide: (side: Schemas['BoardSide']) =>
       unwrap(

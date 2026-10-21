@@ -38,6 +38,12 @@ internal static class HostEndpoints
             .RequireRateLimiting(RateLimits.Content)
             .WithName("UseNumbers");
 
+        game.MapPut("/content/sharing", (string code, ContentSharingRequest request, ClaimsPrincipal user, ContentHandler content, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await content.SetSharingAsync(game, caller, request.PlayersMayDownload, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent)
+            .WithName("SetContentSharing");
+
+        // The host any time; a player when the host shares the set, in the lobby.
         game.MapGet("/content", (string code, ClaimsPrincipal user, ContentHandler content, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await content.DownloadAsync(game, caller, ct)).ToHttp(download =>

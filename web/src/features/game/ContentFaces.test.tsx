@@ -17,6 +17,7 @@ const sums: Content = {
   board: Array.from({ length: 30 }, (_, i) => (i === 2 ? definition : `${String(i + 1)} + 1`)),
   squares: ['10', '2', 'mitochondria'],
   labels: [],
+  playersMayDownload: false,
 }
 
 /** A player's card in a set game: placeholder cells (positions), the text in faces. */

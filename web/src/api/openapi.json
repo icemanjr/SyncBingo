@@ -1574,6 +1574,109 @@
         }
       }
     },
+    "/api/sessions/{code}/content/sharing": {
+      "put": {
+        "tags": [
+          "SyncBingo.Api"
+        ],
+        "operationId": "SetContentSharing",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentSharingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/sessions/{code}/rules": {
       "put": {
         "tags": [
@@ -3940,6 +4043,17 @@
           }
         }
       },
+      "ContentSharingRequest": {
+        "required": [
+          "playersMayDownload"
+        ],
+        "type": "object",
+        "properties": {
+          "playersMayDownload": {
+            "type": "boolean"
+          }
+        }
+      },
       "ContentView": {
         "required": [
           "name",
@@ -3976,6 +4090,10 @@
           },
           "boardSide": {
             "$ref": "#/components/schemas/BoardSide"
+          },
+          "playersMayDownload": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

@@ -21,6 +21,7 @@ import { LeaderboardPanel } from './LeaderboardPanel'
 import { OptionsPanel } from './OptionsPanel'
 import { PlayersPanel } from './PlayersPanel'
 import { CallingCard, RoundActions, StartCard } from './RoundControls'
+import { SetCard } from './SetCard'
 
 /**
  * The host console (docs/06, the design reference). In the lobby: how to join (QR, code, join note) beside
@@ -250,6 +251,9 @@ export function HostConsole() {
                 setOpen('options')
               }}
             />
+            {view.content && token && (
+              <SetCard code={code} token={token} content={view.content} host={host} />
+            )}
             {playersPanel}
             {view.round > 0 && <RoundActions game={view} host={host} />}
           </div>

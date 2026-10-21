@@ -36,7 +36,8 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/cards/clear` | `{ redrawCards: bool }` | *Clear cards*: ends any running round, clears marks and calls, optional redraw, back to the lobby (FR-34); 409 during a countdown. |
 | `PUT /sessions/{code}/content?groupItems=bool` | the set file itself (JSON, ADR 0009) | *Use this set* (FR-44): the editor's whole draft or an uploaded file. Checked in full (limits, unique sides, fits the card), then used: clears the last round's calls and deals every player a new card (`CardReplaced`), and raises `ContentChanged`. Lobby only (409 otherwise); 422 with what to fix; 413 above 128 KB. 204 |
 | `DELETE /sessions/{code}/content` | — | Back to numbers: the standard balls and a new card for everyone. Lobby only. 204 |
-| `GET /sessions/{code}/content` | — | Downloads the set in use as its file (`application/json`, named after the set), for the host to keep. 409 when the game uses numbers (not 404, which clients read as "the game is over") |
+| `GET /sessions/{code}/content` | — | Downloads the set in use as its file (`application/json`, named after the set): the host any time; a **player** only when the host shares it and only between rounds (403 otherwise, saying why). 409 when the game uses numbers (not 404, which clients read as "the game is over") |
+| `PUT /sessions/{code}/content/sharing` | `{ playersMayDownload: bool }` | *Players can download this set* (ADR 0009): off by default and off again when the set changes; any state but Ended. Raises `ContentSharingChanged` to everyone; the snapshot's `content.playersMayDownload` says it. 204 |
 | `POST /sessions/{code}/rounds/current/end` | – | End round early; cards and calls stay visible. |
 | `POST /sessions/{code}/auto` | – | Auto mode: draws a ball at once and starts the timer (409 unless in manual mode). |
 | `POST /sessions/{code}/pause` | – | Back to manual mode (409 unless in auto mode). |

@@ -63,6 +63,18 @@ public sealed class Session
     /// <summary>Which face of a custom set's items the call boards show (FR-29); the ball side by default.</summary>
     public BoardSide BoardSide { get; private set; }
 
+    /// <summary>
+    /// The host lets players download the set in use (ADR 0009), e.g. a teacher sharing a set with another
+    /// who joined as a player. Off by default, and off again whenever the set changes.
+    /// </summary>
+    public bool PlayersMayDownload { get; private set; }
+
+    /// <summary>
+    /// A player may download the set now: the host allows it and the game is in the lobby, so the file (which
+    /// pairs every clue with its word) is never at hand during a round.
+    /// </summary>
+    public bool PlayersCanDownloadNow => Content is not null && PlayersMayDownload && State == SessionState.BetweenRounds;
+
     public SessionState State { get; private set; } = SessionState.BetweenRounds;
 
     public bool IsInRound => State is SessionState.Manual or SessionState.Auto;
@@ -189,7 +201,8 @@ public sealed class Session
         JoinNote,
         Content?.Name,
         GroupItems,
-        BoardSide);
+        BoardSide,
+        PlayersMayDownload);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>, with its custom set (stored apart) when it uses
@@ -227,6 +240,7 @@ public sealed class Session
             StreamSeqs = snapshot.StreamSeqs,
             JoinNote = snapshot.JoinNote,
             BoardSide = snapshot.BoardSide,
+            PlayersMayDownload = snapshot.PlayersMayDownload,
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
@@ -388,6 +402,7 @@ public sealed class Session
 
         Content = content;
         GroupItems = content is not null && groupItems;
+        PlayersMayDownload = false; // a new set starts private
         Variant = variant;
         ClearCalls();
         return Commit(now, new ContentChanged(content?.Name, variant.BallMax, GroupItems));
@@ -792,6 +807,32 @@ public sealed class Session
     /// board shows. Presentation, not a rule, so like the join note it changes in any state but Ended, at
     /// once; everyone hears, since every board changes.
     /// </summary>
+    /// <summary>
+    /// "Players can download this set" (ADR 0009): any time before the game ends; downloads themselves work
+    /// only in the lobby (<see cref="PlayersCanDownloadNow"/>). Everyone hears, so players' apps show or hide
+    /// the button.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> SetContentSharing(bool playersMayDownload, DateTimeOffset now)
+    {
+        if (State == SessionState.Ended)
+        {
+            return WrongState("change who can download the set");
+        }
+
+        if (Content is null)
+        {
+            return Failure(DomainErrorCode.WrongState, "This game uses numbers, not a custom set.");
+        }
+
+        if (playersMayDownload == PlayersMayDownload)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        PlayersMayDownload = playersMayDownload;
+        return Commit(now, new ContentSharingChanged(playersMayDownload));
+    }
+
     public Result<IReadOnlyList<SessionEvent>> SetBoardSide(BoardSide side, DateTimeOffset now)
     {
         if (State == SessionState.Ended)

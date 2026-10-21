@@ -209,3 +209,72 @@ public sealed class BoardSideTests
         Session.Restore(session.ToSnapshot()).BoardSide.ShouldBe(BoardSide.Square);
     }
 }
+
+/// <summary>"Players can download this set" (ADR 0009): off by default, and only in the lobby.</summary>
+public sealed class ContentSharingTests
+{
+    private static Session WithSet()
+    {
+        var session = NewSession();
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(30)), groupItems: false, Now);
+        return session;
+    }
+
+    [Fact]
+    public void A_set_starts_private()
+    {
+        var session = WithSet();
+
+        session.PlayersMayDownload.ShouldBeFalse();
+        session.PlayersCanDownloadNow.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void The_host_shares_it_and_players_can_download_in_the_lobby()
+    {
+        var session = WithSet();
+
+        var events = session.SetContentSharing(true, Now).Value;
+
+        events.ShouldHaveSingleItem().ShouldBeOfType<ContentSharingChanged>().PlayersMayDownload.ShouldBeTrue();
+        events[0].Audience.ShouldBe(Audience.Everyone);
+        session.PlayersCanDownloadNow.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Not_during_a_countdown_or_a_round()
+    {
+        var session = WithSet();
+        session.SetContentSharing(true, Now);
+
+        session.StartCountdown(startInAuto: false, Now);
+        session.PlayersCanDownloadNow.ShouldBeFalse();
+        session.StartRound(new SeededRandom(1), Now + Session.CountdownLength);
+        session.PlayersCanDownloadNow.ShouldBeFalse();
+        session.PlayersMayDownload.ShouldBeTrue("the host's choice stands; the lobby opens it again");
+    }
+
+    [Fact]
+    public void A_new_set_is_private_again()
+    {
+        var session = WithSet();
+        session.SetContentSharing(true, Now);
+
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(40)), groupItems: false, Now);
+
+        session.PlayersMayDownload.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void There_is_nothing_to_share_with_numbers() =>
+        NewSession().SetContentSharing(true, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
+
+    [Fact]
+    public void A_stored_session_keeps_it()
+    {
+        var session = WithSet();
+        session.SetContentSharing(true, Now);
+
+        Session.Restore(session.ToSnapshot(), session.Content).PlayersMayDownload.ShouldBeTrue();
+    }
+}

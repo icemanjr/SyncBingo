@@ -27,6 +27,11 @@ export function DisplayMenu({
   const [note, setNote] = useState(joinNote ?? '')
   const [message, setMessage] = useState<string>()
   const { busy, error, run } = useAction()
+  // The host's choice shows at once; the server's value takes over when it agrees (or the change fails).
+  const shownSide = content?.boardSide ?? 'Ball'
+  const [pendingSide, setPendingSide] = useState<Schemas['BoardSide']>()
+  if (pendingSide !== undefined && pendingSide === shownSide) setPendingSide(undefined)
+  const side = pendingSide ?? shownSide
 
   const reload = () =>
     run(async () => {
@@ -165,21 +170,27 @@ export function DisplayMenu({
                 ['Ball', 'Balls (what is called)'],
                 ['Square', 'Squares (what players mark)'],
               ] as const
-            ).map(([side, label]) => (
-              <label key={side} className="flex min-h-12 items-center gap-3">
+            ).map(([value, label]) => (
+              <label key={value} className="flex min-h-12 items-center gap-3">
                 <input
                   type="radio"
                   name="board-side"
-                  value={side}
-                  checked={content.boardSide === side}
+                  value={value}
+                  checked={side === value}
                   disabled={busy}
                   aria-describedby="board-side-help"
                   className="h-5 w-5 accent-accent"
-                  onChange={() =>
+                  onChange={() => {
+                    setPendingSide(value)
                     void run(async () => {
-                      await host.setBoardSide(side)
+                      try {
+                        await host.setBoardSide(value)
+                      } catch (failed) {
+                        setPendingSide(undefined)
+                        throw failed
+                      }
                     })
-                  }
+                  }}
                 />
                 {label}
               </label>

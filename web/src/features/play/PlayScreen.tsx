@@ -17,6 +17,7 @@ import { CallBoard } from '../game/CallBoard'
 import { Panel } from '../game/ui'
 import { Card } from './Card'
 import { MarkStylePanel } from './MarkStylePanel'
+import { downloadSet } from '../game/downloadSet'
 import { allSquareFaces, calledTest } from '../game/faces'
 import { useMarkStyle } from './markStyle'
 import { playerApi } from './playerApi'
@@ -414,6 +415,19 @@ export function PlayScreen() {
             />
             Auto-fill missed numbers
           </label>
+        )}
+        {view.state === 'BetweenRounds' && view.content?.playersMayDownload && (
+          <Button
+            look="secondary"
+            disabled={extras.busy}
+            onClick={() =>
+              void extras.run(async () => {
+                await downloadSet(code, me.token)
+              })
+            }
+          >
+            Download this set
+          </Button>
         )}
         {view.state === 'BetweenRounds' &&
           view.settings.redrawPolicy === 'ParticipantsMayRedraw' &&

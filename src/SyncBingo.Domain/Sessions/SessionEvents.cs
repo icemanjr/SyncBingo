@@ -134,3 +134,17 @@ public sealed record SessionEnded : SessionEvent;
 
 /// <summary>The host's note shown with the join QR (FR-49), e.g. the password or a hint; <c>null</c> when cleared.</summary>
 public sealed record JoinNoteChanged(string? Note) : SessionEvent;
+
+/// <summary>The host chose which side of a custom set's items the call boards show (FR-29).</summary>
+public sealed record BoardSideChanged(BoardSide Side) : SessionEvent;
+
+/// <summary>
+/// Which face of a custom set's items the call boards show (FR-29, ADR 0009): the ball side (what is
+/// called; the default, so a board of words can't be used as an answer list) or the square side (what is
+/// marked, easier to scan when the balls are long definitions). Numbers look the same either way.
+/// </summary>
+public enum BoardSide
+{
+    Ball,
+    Square,
+}

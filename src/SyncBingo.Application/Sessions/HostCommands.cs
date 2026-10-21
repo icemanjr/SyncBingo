@@ -52,6 +52,10 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
     public Task<Result<CommandOutcome>> SetJoinNoteAsync(GameCode code, Caller caller, string? note, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.SetJoinNote(note, now), cancellationToken);
 
+    /// <summary>Which face of a custom set the call boards show (FR-29).</summary>
+    public Task<Result<CommandOutcome>> SetBoardSideAsync(GameCode code, Caller caller, BoardSide side, CancellationToken cancellationToken) =>
+        runner.RunAsync(code, caller, (session, now) => session.SetBoardSide(side, now), cancellationToken);
+
     public Task<Result<CommandOutcome>> ShowLeaderboardAsync(GameCode code, Caller caller, bool visible, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.ShowLeaderboard(visible, now), cancellationToken);
 

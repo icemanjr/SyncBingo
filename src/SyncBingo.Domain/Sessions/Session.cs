@@ -60,6 +60,9 @@ public sealed class Session
     /// <summary>The custom set is dealt by group, one per card column (Group items).</summary>
     public bool GroupItems { get; private set; }
 
+    /// <summary>Which face of a custom set's items the call boards show (FR-29); the ball side by default.</summary>
+    public BoardSide BoardSide { get; private set; }
+
     public SessionState State { get; private set; } = SessionState.BetweenRounds;
 
     public bool IsInRound => State is SessionState.Manual or SessionState.Auto;
@@ -185,7 +188,8 @@ public sealed class Session
         [.. _awardKeys],
         JoinNote,
         Content?.Name,
-        GroupItems);
+        GroupItems,
+        BoardSide);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>, with its custom set (stored apart) when it uses
@@ -222,6 +226,7 @@ public sealed class Session
             NextBallFrom = snapshot.NextBallFrom,
             StreamSeqs = snapshot.StreamSeqs,
             JoinNote = snapshot.JoinNote,
+            BoardSide = snapshot.BoardSide,
         };
         session._calls.AddRange(snapshot.Calls);
         session._calledNumbers.UnionWith(snapshot.Calls.Select(call => call.Number));
@@ -780,6 +785,32 @@ public sealed class Session
         _wins.Add(win);
         ReplaceCurrentRound(CurrentRound! with { Wins = [.. CurrentRound!.Wins, win] });
         return Commit(now, new WinAwarded(win));
+    }
+
+    /// <summary>
+    /// The host's "Call board shows" (FR-29), under Displays: which face of a custom set's items every call
+    /// board shows. Presentation, not a rule, so like the join note it changes in any state but Ended, at
+    /// once; everyone hears, since every board changes.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> SetBoardSide(BoardSide side, DateTimeOffset now)
+    {
+        if (State == SessionState.Ended)
+        {
+            return WrongState("change the call board");
+        }
+
+        if (!Enum.IsDefined(side))
+        {
+            return Failure(DomainErrorCode.Invalid, "The call board shows the ball side or the square side.");
+        }
+
+        if (side == BoardSide)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        BoardSide = side;
+        return Commit(now, new BoardSideChanged(side));
     }
 
     /// <summary>

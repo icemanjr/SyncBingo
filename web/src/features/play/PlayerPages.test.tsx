@@ -239,7 +239,10 @@ describe('the play screen', () => {
 
     expect(await screen.findByRole('heading', { name: 'This game has ended' })).toBeInTheDocument()
     expect(screen.queryByText(/removed you/)).not.toBeInTheDocument()
-    expect(seats.load(code)).toBeUndefined()
+    // Forgotten in an effect just after the page renders, so wait for it rather than race it.
+    await waitFor(() => {
+      expect(seats.load(code)).toBeUndefined()
+    })
   })
 
   it('shows the last ball when the host shows it', async () => {

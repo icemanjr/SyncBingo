@@ -17,7 +17,7 @@ internal sealed class TestApp
         Runner = new SessionCommandRunner(Store, Publisher, Scheduler, Clock);
         Create = new CreateSessionHandler(Store, new FakePasswordHasher(), Tokens, new SeededRandom(1), Clock);
         Join = new JoinSessionHandler(Store, new FakePasswordHasher(), Tokens, Publisher, new SeededRandom(2), Clock);
-        Host = new HostCommandHandler(Runner);
+        Host = new HostCommandHandler(Runner, new SeededRandom(6));
         Round = new RoundHandler(Runner, new SeededRandom(3));
         Draws = new ScriptedDraws(this);
         Draw = new DrawHandler(Runner, Draws);

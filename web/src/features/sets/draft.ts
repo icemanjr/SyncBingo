@@ -337,6 +337,10 @@ export function setProblems(
     problems.push(
       `A set needs ${String(limits.minEntries)}–${String(limits.maxEntries)} entries; this one has ${String(count)}.`,
     )
+  else if (count < rows * cardColumns - (freeColumn === null ? 0 : 1))
+    problems.push(
+      `This card needs at least ${String(rows * cardColumns - (freeColumn === null ? 0 : 1))} entries; the set has ${String(count)}.`,
+    )
   if (!fits(tidy(draft.name), limits.name))
     problems.push(`The set’s name can be up to ${String(limits.name)} characters.`)
   if (useGroups) {

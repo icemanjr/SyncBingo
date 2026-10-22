@@ -1,5 +1,7 @@
+using SyncBingo.Application.Ports;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain;
+using SyncBingo.Domain.Cards;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Tests;
@@ -103,6 +105,22 @@ public sealed class RoundCountdownTests
         await _app.StartRoundAsync(code);
 
         (await _app.PlayerAsync(code, id)).Cards[0].Marks.ShouldBe(0u, "the earned free space starts unmarked");
+    }
+
+    [Fact]
+    public async Task Taking_the_free_space_away_deals_everyone_a_card_with_a_ball_in_the_centre()
+    {
+        var code = await _app.NewGameAsync();
+        var id = await _app.JoinAsync(code, "Ava");
+        (await _app.PlayerAsync(code, id)).Cards[0].Card.Cells[12].ShouldBe(Card.FreeCellNumber);
+
+        (await _app.Host.ApplyRulesAsync(code, Caller.Host, s => s with { FreeSpace = FreeSpace.None }, null, TestApp.Ct))
+            .IsSuccess.ShouldBeTrue();
+
+        var card = (await _app.PlayerAsync(code, id)).Cards[0];
+        card.Card.Cells.ShouldNotContain(Card.FreeCellNumber);
+        card.Marks.ShouldBe(0u);
+        _app.Publisher.Notifications.ShouldContain(sent => sent.Notification is CardReplaced);
     }
 
     [Fact]

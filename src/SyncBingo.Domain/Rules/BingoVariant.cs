@@ -69,6 +69,13 @@ public sealed class BingoVariant
     /// </summary>
     public uint InitialMarks => Layout.FreeCellMask;
 
+    /// <summary>
+    /// The same rules on a card with no free space (FR-26 <c>None</c>): the free cell becomes an ordinary
+    /// square. Patterns are unchanged, since the free cell only ever counted as called.
+    /// </summary>
+    public BingoVariant WithoutFreeCell() =>
+        Layout.FreeCell is null ? this : new(Id, new CardLayout(Layout.Rows, Layout.Columns, freeCell: null), BallMax, Columns, Patterns, Presets);
+
     public WinPattern GetPattern(string id) =>
         _patternsById.TryGetValue(id, out var pattern)
             ? pattern

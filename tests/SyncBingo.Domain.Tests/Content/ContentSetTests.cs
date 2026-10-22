@@ -147,9 +147,9 @@ public sealed class ContentSetTests
     [Fact]
     public void The_hosts_group_order_wins_and_groups_named_only_by_entries_follow()
     {
-        var set = ContentSet.TryCreate("ordered", TimesTables(), ["×5", "×4", "empty"]).Value;
+        var set = ContentSet.TryCreate("ordered", TimesTables(), ["×5", "×4"]).Value;
 
-        set.Groups.ShouldBe(["×5", "×4", "empty", "×1", "×2", "×3"]);
+        set.Groups.ShouldBe(["×5", "×4", "×1", "×2", "×3"]);
         set.Pairs[0].Group.ShouldBe("×5");
         set.Pairs[^1].Group.ShouldBe("×3");
     }
@@ -199,11 +199,11 @@ public sealed class ContentSetTests
     }
 
     [Fact]
-    public void At_most_ten_groups()
+    public void At_most_five_groups_one_per_column_of_the_widest_card()
     {
-        var entries = Words(24).Select((entry, i) => entry with { Group = $"g{i % 11}" });
+        var entries = Words(24).Select((entry, i) => entry with { Group = $"g{i % 6}" });
 
-        Refusal(entries).ShouldContain("A set can have at most 10 groups, not 11");
+        Refusal(entries).ShouldContain("A set can have at most 5 groups, not 6");
     }
 
     [Fact]

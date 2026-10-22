@@ -16,16 +16,16 @@ internal static class HostEndpoints
 {
     public static void MapHostEndpoints(this RouteGroupBuilder game)
     {
-        // A custom set (FR-44, ADR 0009). The body is the set file itself, as the editor builds it or a host uploads it.
+        // A custom set (FR-44, ADR 0009). The body is the set file itself, as the editor builds it or a host uploads it;
+        // a set with groups is dealt by group.
         game.MapPut("/content", (
             string code,
             [FromBody] JsonElement file,
-            [FromQuery] bool? groupItems,
             ClaimsPrincipal user,
             ContentHandler content,
             CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await content.UseAsync(game, caller, file.GetRawText(), groupItems ?? false, ct)).NoContent()))
+                (await content.UseAsync(game, caller, file.GetRawText(), ct)).NoContent()))
             .Accepts<JsonElement>("application/json")
             .Produces(StatusCodes.Status204NoContent)
             .WithMetadata(new RequestSizeLimitAttribute(ContentSetFile.MaxBytes * 2))

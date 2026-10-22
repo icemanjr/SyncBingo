@@ -1,9 +1,9 @@
 import type { Draft } from '../features/sets/draft'
 
-/** A set being edited, with its Group items choice: kept per game so a reload or a sleeping laptop loses nothing. */
+/** A set being edited, with its Use groups choice: kept per game so a reload or a sleeping laptop loses nothing. */
 export interface StoredDraft {
   draft: Draft
-  groupItems: boolean
+  useGroups: boolean
 }
 
 const key = (code: string) => `syncbingo:set-draft:${code}`
@@ -13,7 +13,13 @@ export const setDrafts = {
   load(code: string): StoredDraft | undefined {
     try {
       const saved = localStorage.getItem(key(code))
-      return saved ? (JSON.parse(saved) as StoredDraft) : undefined
+      if (!saved) return undefined
+      // Drafts saved before 2026-10-22 called the choice groupItems.
+      const stored = JSON.parse(saved) as Pick<StoredDraft, 'draft'> & {
+        useGroups?: boolean
+        groupItems?: boolean
+      }
+      return { draft: stored.draft, useGroups: stored.useGroups ?? stored.groupItems ?? false }
     } catch {
       return undefined
     }

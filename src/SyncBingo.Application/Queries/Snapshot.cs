@@ -46,6 +46,7 @@ public sealed record GameView(
 /// <see cref="Squares"/> every square's text in alphabetical order, to size text for Max (FR-51) without
 /// saying which square goes with which ball. Calls carry both of their own texts.
 /// </summary>
+/// <see cref="GroupItems"/>: the set has groups, so it is dealt by group, one per card column.
 /// <see cref="Labels"/> are the groups' short labels, in board order, for the card's column headers.
 /// <see cref="BoardSide"/> says which face <see cref="Board"/> holds (FR-29): ball text by default, square text
 /// when the host chose it. <see cref="PlayersMayDownload"/>: the host lets players download the set (in the lobby).

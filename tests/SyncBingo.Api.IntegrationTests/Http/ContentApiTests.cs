@@ -61,7 +61,7 @@ public sealed class ContentApiTests : IAsyncDisposable
         var avaToken = await JoinAsync(code, "Ava");
         var sample = await File.ReadAllTextAsync(Path.Combine(RepoRoot(), "samples", "science-vocabulary.json"), Ct);
 
-        (await UseAsync(code, hostToken, sample, groupItems: true)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await UseAsync(code, hostToken, sample)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
         var content = (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("content");
         content.GetProperty("labels").EnumerateArray().Select(label => label.GetString()).ShouldBe(["B", "I", "N", "G", "O"]);
@@ -257,10 +257,13 @@ public sealed class ContentApiTests : IAsyncDisposable
     {
         var (code, hostToken) = await NewGameAsync();
 
-        using var response = await UseAsync(code, hostToken, Sums(), groupItems: true);
+        var fourGroups = $$"""{ "format": 1, "groups": [{{string.Join(", ", Enumerable.Range(1, 4).Select(g =>
+            $$"""{ "name": "g{{g}}", "pairs": [{{string.Join(", ", Enumerable.Range(1, 6).Select(i => $"[\"{g}.{i}\"]"))}}] }"""))}}] }""";
+
+        using var response = await UseAsync(code, hostToken, fourGroups);
 
         response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
-        (await Json(response)).GetProperty("detail").GetString().ShouldBe("Group items needs every entry in a group.");
+        (await Json(response)).GetProperty("detail").GetString().ShouldBe("A set with groups needs 5 groups, one for each card column; this set has 4.");
     }
 
     [Fact]
@@ -280,9 +283,9 @@ public sealed class ContentApiTests : IAsyncDisposable
         }
     }
 
-    private async Task<HttpResponseMessage> UseAsync(string code, string token, string file, bool groupItems = false)
+    private async Task<HttpResponseMessage> UseAsync(string code, string token, string file)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri($"/api/sessions/{code}/content?groupItems={groupItems}", UriKind.Relative))
+        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri($"/api/sessions/{code}/content", UriKind.Relative))
         {
             Content = new StringContent(file, Encoding.UTF8, "application/json"),
         };

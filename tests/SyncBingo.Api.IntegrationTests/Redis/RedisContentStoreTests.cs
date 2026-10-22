@@ -20,7 +20,7 @@ public sealed class RedisContentStoreTests(RedisFixture redis)
         var store = redis.Store(_time);
         var session = RedisFixture.NewSession(_time.Now);
         await store.TryCreateAsync(session, "hashed", Ct);
-        session.UseContent(Words(), groupItems: false, _time.Now).IsSuccess.ShouldBeTrue();
+        session.UseContent(Words(), _time.Now).IsSuccess.ShouldBeTrue();
 
         await store.SaveAsync(session, Ct);
         var restored = (await redis.Store(_time).GetAsync(session.Code, Ct))!; // a new store: nothing cached
@@ -36,7 +36,7 @@ public sealed class RedisContentStoreTests(RedisFixture redis)
         var store = redis.Store(_time);
         var session = RedisFixture.NewSession(_time.Now);
         await store.TryCreateAsync(session, "hashed", Ct);
-        session.UseContent(Words(), groupItems: false, _time.Now);
+        session.UseContent(Words(), _time.Now);
         await store.SaveAsync(session, Ct);
 
         var first = (await store.GetAsync(session.Code, Ct))!;
@@ -55,13 +55,13 @@ public sealed class RedisContentStoreTests(RedisFixture redis)
         var meta = (RedisKey)$"bingo:s:{{{session.Code.Value}}}:meta";
         var db = redis.Connection.GetDatabase();
 
-        session.UseContent(Words(), groupItems: false, _time.Now);
+        session.UseContent(Words(), _time.Now);
         await store.SaveAsync(session, Ct);
         (await db.HashGetAsync(meta, "content")).ToString().ShouldContain("\"name\": \"Words\"");
         var id = (await db.HashGetAsync(meta, "content-id")).ToString();
         id.Length.ShouldBe(32);
 
-        session.UseContent(null, groupItems: false, _time.Now);
+        session.UseContent(null, _time.Now);
         await store.SaveAsync(session, Ct);
         (await db.HashExistsAsync(meta, "content")).ShouldBeFalse();
         (await db.HashExistsAsync(meta, "content-id")).ShouldBeFalse();
@@ -73,7 +73,7 @@ public sealed class RedisContentStoreTests(RedisFixture redis)
         var store = redis.Store(_time);
         var session = RedisFixture.NewSession(_time.Now);
         await store.TryCreateAsync(session, "hashed", Ct);
-        session.UseContent(Words(), groupItems: false, _time.Now);
+        session.UseContent(Words(), _time.Now);
         await store.SaveAsync(session, Ct);
         session.StartCountdown(startInAuto: false, _time.Now);
         session.StartRound(new SyncBingo.Domain.CryptoRandomSource(), _time.Now + Session.CountdownLength);
@@ -91,10 +91,10 @@ public sealed class RedisContentStoreTests(RedisFixture redis)
         var store = redis.Store(_time);
         var session = RedisFixture.NewSession(_time.Now);
         await store.TryCreateAsync(session, "hashed", Ct);
-        session.UseContent(Words("First"), groupItems: false, _time.Now);
+        session.UseContent(Words("First"), _time.Now);
         await store.SaveAsync(session, Ct);
 
-        session.UseContent(Words("Second"), groupItems: false, _time.Now);
+        session.UseContent(Words("Second"), _time.Now);
         await store.SaveAsync(session, Ct);
 
         (await redis.Store(_time).GetAsync(session.Code, Ct))!.Content!.Name.ShouldBe("Second");

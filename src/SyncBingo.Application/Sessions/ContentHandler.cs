@@ -16,7 +16,7 @@ public sealed record ContentDownload(string Name, string File);
 public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource random)
 {
     /// <summary>Reads and checks the set file (before taking the lock), then uses it and redeals every card.</summary>
-    public Task<Result<CommandOutcome>> UseAsync(GameCode code, Caller caller, string file, bool groupItems, CancellationToken cancellationToken)
+    public Task<Result<CommandOutcome>> UseAsync(GameCode code, Caller caller, string file, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(caller);
         ArgumentNullException.ThrowIfNull(file);
@@ -27,12 +27,12 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
         }
 
         var set = ContentSetFile.Read(file);
-        return set.IsSuccess ? ChangeAsync(code, caller, set.Value, groupItems, cancellationToken) : Task.FromResult<Result<CommandOutcome>>(set.Error!);
+        return set.IsSuccess ? ChangeAsync(code, caller, set.Value, cancellationToken) : Task.FromResult<Result<CommandOutcome>>(set.Error!);
     }
 
     /// <summary>Back to numbers: the standard balls and a new card for everyone.</summary>
     public Task<Result<CommandOutcome>> UseNumbersAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
-        ChangeAsync(code, caller, content: null, groupItems: false, cancellationToken);
+        ChangeAsync(code, caller, content: null, cancellationToken);
 
     /// <summary>Lets players download the set in use, or stops them (off whenever a set is first used).</summary>
     public Task<Result<CommandOutcome>> SetSharingAsync(GameCode code, Caller caller, bool playersMayDownload, CancellationToken cancellationToken) =>
@@ -71,13 +71,13 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
     }
 
     private Task<Result<CommandOutcome>> ChangeAsync(
-        GameCode code, Caller caller, ContentSet? content, bool groupItems, CancellationToken cancellationToken) =>
+        GameCode code, Caller caller, ContentSet? content, CancellationToken cancellationToken) =>
         runner.RunAsync(
             code,
             caller,
             async (session, now, ct) =>
             {
-                var changed = session.UseContent(content, groupItems, now);
+                var changed = session.UseContent(content, now);
                 if (!changed.IsSuccess)
                 {
                     return changed.Error!;

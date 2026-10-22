@@ -4,8 +4,8 @@ namespace SyncBingo.Domain.Content;
 
 /// <summary>
 /// The rules a game plays with a custom set (ADR 0009): the standard card, patterns and presets, with the
-/// set's items as the balls. With <c>groupItems</c>, each card column draws from one group, as B-I-N-G-O
-/// columns draw from their ranges; without, cards are dealt free-form.
+/// set's items as the balls. A set with groups is dealt by group, each card column drawing from one group as
+/// B-I-N-G-O columns draw from their ranges; a set without groups is dealt free-form.
 /// </summary>
 public static class ContentVariant
 {
@@ -14,7 +14,7 @@ public static class ContentVariant
     /// <summary>
     /// Builds the variant, or says why the set doesn't fit the card: never altering the set to make it fit.
     /// </summary>
-    public static Result<BingoVariant> For(BingoVariant standard, ContentSet set, bool groupItems)
+    public static Result<BingoVariant> For(BingoVariant standard, ContentSet set)
     {
         ArgumentNullException.ThrowIfNull(standard);
         ArgumentNullException.ThrowIfNull(set);
@@ -27,16 +27,16 @@ public static class ContentVariant
         }
 
         List<ColumnRange> columns = [];
-        if (groupItems)
+        if (!set.Groups.IsEmpty)
         {
             if (!set.IsFullyGrouped)
             {
-                return Refuse("Group items needs every entry in a group.");
+                return Refuse("A set with groups needs every entry in a group.");
             }
 
             if (set.Groups.Length != layout.Columns)
             {
-                return Refuse($"Group items needs {layout.Columns} groups, one for each card column; this set has {set.Groups.Length}.");
+                return Refuse($"A set with groups needs {layout.Columns} groups, one for each card column; this set has {set.Groups.Length}.");
             }
 
             // Pairs are kept in group order (ContentSet), so each group is a run of item ids.

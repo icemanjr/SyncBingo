@@ -43,7 +43,8 @@ public sealed class ContentSet
     public const int MaxPairs = 500;
     public const int MaxBallLength = 120;
     public const int MaxSquareLength = 15;
-    public const int MaxGroups = 10;
+    /// <summary>Groups are card columns, so a set has at most as many as the widest card (ADR 0009).</summary>
+    public const int MaxGroups = 5;
     public const int MaxGroupNameLength = 20;
     public const int MaxLabelLength = 5;
     public const int MaxNameLength = 60;
@@ -208,6 +209,13 @@ public sealed class ContentSet
         return Result.Success(new ContentSet(
             setName, [.. ordered], [.. groups], [.. groups.Select(group => labels.GetValueOrDefault(group) ?? DefaultLabel(group))]));
     }
+
+    /// <summary>
+    /// The same pairs, in the same order (so item ids are unchanged), without their groups: dealt free-form. For
+    /// sessions saved before a set's groups always meant dealing by group (ADR 0009, amended 2026-10-22).
+    /// </summary>
+    public ContentSet WithoutGroups() =>
+        Groups.IsEmpty ? this : new(Name, [.. Pairs.Select(pair => pair with { Group = null })], [], []);
 
     /// <summary>The set as entries again, e.g. to write its file.</summary>
     public IEnumerable<ContentEntry> ToEntries() =>

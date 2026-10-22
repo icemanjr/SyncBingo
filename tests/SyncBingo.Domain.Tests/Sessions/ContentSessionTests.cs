@@ -20,7 +20,7 @@ public sealed class ContentSessionTests
     {
         var session = NewSession();
 
-        var events = session.UseContent(Sums(), groupItems: false, Now).Value;
+        var events = session.UseContent(Sums(), Now).Value;
 
         events.ShouldHaveSingleItem().ShouldBeOfType<ContentChanged>().ShouldBe(
             new ContentChanged("Sums and words", 24, false) with { Seq = events[0].Seq, Audience = events[0].Audience, Streams = events[0].Streams });
@@ -39,7 +39,7 @@ public sealed class ContentSessionTests
     {
         var session = InState(state);
 
-        var result = session.UseContent(Sums(), groupItems: false, Now);
+        var result = session.UseContent(Sums(), Now);
 
         result.Error!.Code.ShouldBe(DomainErrorCode.WrongState);
         session.Content.ShouldBeNull();
@@ -50,9 +50,12 @@ public sealed class ContentSessionTests
     {
         var session = NewSession();
 
-        var result = session.UseContent(Sums(), groupItems: true, Now);
+        var entries = ContentTestKit.TimesTables();
+        entries.Add(new ContentEntry("loose"));
 
-        result.Error!.Message.ShouldBe("Group items needs every entry in a group.");
+        var result = session.UseContent(ContentTestKit.Valid(entries), Now);
+
+        result.Error!.Message.ShouldBe("A set with groups needs every entry in a group.");
         session.Content.ShouldBeNull();
         session.Version.ShouldBe(0);
     }
@@ -61,7 +64,7 @@ public sealed class ContentSessionTests
     public void A_called_ball_carries_what_is_called_and_what_is_marked()
     {
         var session = NewSession();
-        session.UseContent(Sums(), groupItems: false, Now);
+        session.UseContent(Sums(), Now);
         session.NextRound(Now);
 
         var calls = Enumerable.Range(0, 24).Select(_ => session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).Value.OfType<BallCalled>().Single().Call).ToList();
@@ -77,7 +80,7 @@ public sealed class ContentSessionTests
     public void Grouped_balls_are_labelled_with_their_group()
     {
         var session = NewSession();
-        session.UseContent(ContentTestKit.Valid(ContentTestKit.TimesTables()), groupItems: true, Now);
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.TimesTables()), Now);
         session.NextRound(Now);
 
         var call = session.DrawBall(DrawSource.Manual, new SeededRandom(3), Now).Value.OfType<BallCalled>().Single().Call;
@@ -95,7 +98,7 @@ public sealed class ContentSessionTests
         session.EndRound(Now);
         session.Calls.ShouldNotBeEmpty();
 
-        session.UseContent(Sums(), groupItems: false, Now);
+        session.UseContent(Sums(), Now);
 
         session.Calls.ShouldBeEmpty();
         session.BallsRemaining.ShouldBe(24);
@@ -107,7 +110,7 @@ public sealed class ContentSessionTests
         var session = NewSession();
         session.NextRound(Now);
         session.ClearCards(redrawCards: false, Now);
-        session.UseContent(Sums(), groupItems: false, Now);
+        session.UseContent(Sums(), Now);
         session.NextRound(Now);
 
         session.Rounds.Select(round => round.ContentName).ShouldBe([null, "Sums and words"]);
@@ -117,9 +120,9 @@ public sealed class ContentSessionTests
     public void Back_to_numbers()
     {
         var session = NewSession();
-        session.UseContent(Sums(), groupItems: false, Now);
+        session.UseContent(Sums(), Now);
 
-        var events = session.UseContent(null, groupItems: true, Now).Value;
+        var events = session.UseContent(null, Now).Value;
 
         events.ShouldHaveSingleItem().ShouldBeOfType<ContentChanged>().Name.ShouldBeNull();
         session.Content.ShouldBeNull();
@@ -133,7 +136,7 @@ public sealed class ContentSessionTests
     {
         var session = NewSession();
         var set = ContentTestKit.Valid(ContentTestKit.TimesTables(), "Tables");
-        session.UseContent(set, groupItems: true, Now);
+        session.UseContent(set, Now);
         session.NextRound(Now);
         session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now);
 
@@ -150,10 +153,26 @@ public sealed class ContentSessionTests
     }
 
     [Fact]
+    public void A_session_saved_with_a_grouped_set_dealt_free_form_comes_back_free_form()
+    {
+        // Before 2026-10-22 a host could turn Group items off for a set with groups; such sessions keep their cards.
+        var session = NewSession();
+        var set = ContentTestKit.Valid(ContentTestKit.TimesTables(), "Tables");
+        session.UseContent(set, Now);
+        var snapshot = session.ToSnapshot() with { GroupItems = false };
+
+        var restored = Session.Restore(snapshot, set);
+
+        restored.GroupItems.ShouldBeFalse();
+        restored.Variant.IsFreeForm.ShouldBeTrue();
+        restored.Content!.Pairs.Select(pair => pair.Ball).ShouldBe(set.Pairs.Select(pair => pair.Ball));
+    }
+
+    [Fact]
     public void A_stored_session_missing_its_set_is_a_corrupt_record()
     {
         var session = NewSession();
-        session.UseContent(Sums(), groupItems: false, Now);
+        session.UseContent(Sums(), Now);
 
         Should.Throw<InvalidOperationException>(() => Session.Restore(session.ToSnapshot()))
             .Message.ShouldContain("custom set that wasn't found");
@@ -216,7 +235,7 @@ public sealed class ContentSharingTests
     private static Session WithSet()
     {
         var session = NewSession();
-        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(30)), groupItems: false, Now);
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(30)), Now);
         return session;
     }
 
@@ -260,7 +279,7 @@ public sealed class ContentSharingTests
         var session = WithSet();
         session.SetContentSharing(true, Now);
 
-        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(40)), groupItems: false, Now);
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(40)), Now);
 
         session.PlayersMayDownload.ShouldBeFalse();
     }

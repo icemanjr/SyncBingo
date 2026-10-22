@@ -95,11 +95,19 @@ const pairsBlock = (entries: DraftEntry[], indent: string): string =>
         )
         .join(',\n')}\n${indent}]`
 
-/** The draft as its file, in the server's layout: groups in order, each with its pairs, then the ungrouped ones. */
-export function writeSetFile(draft: Draft): string {
+/**
+ * The draft as its file, in the server's layout: groups in order, each with its pairs, then the ungrouped ones.
+ * Without `useGroups` the file has no groups, so the set is dealt free-form (the draft keeps them, hidden).
+ */
+export function writeSetFile(draft: Draft, useGroups = true): string {
   const lines = [
     `{\n  "format": ${String(fileFormat)},\n  "name": ${quote(tidy(draft.name) || 'Custom set')}`,
   ]
+  if (!useGroups) {
+    lines.push(`,\n  "pairs": ${pairsBlock(draft.entries, '  ')}`)
+    return `${lines.join('')}\n}\n`
+  }
+
   if (draft.groups.length > 0) {
     const groups = draft.groups.map(
       (group) =>

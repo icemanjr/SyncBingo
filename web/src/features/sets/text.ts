@@ -36,7 +36,7 @@ export const limits = {
   maxEntries: 500,
   ball: 120,
   square: 15,
-  groups: 10,
+  groups: 5,
   groupName: 20,
   label: 5,
   name: 60,

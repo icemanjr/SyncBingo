@@ -3,19 +3,20 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   addEntry,
-  addGroup,
   checkEntry,
-  deleteGroup,
   describe as describeProblem,
   describeMerge,
   editEntry,
   emptyDraft,
+  fitGroups,
   mergeDraft,
   moveEntry,
   moveGroup,
+  removeUngrouped,
   renameGroup,
   setLabel,
   setProblems,
+  ungroupedOf,
   type Draft,
 } from './draft'
 import { readSetFile, writeSetFile } from './setFile'
@@ -35,6 +36,18 @@ function words(count: number): Draft {
   let draft = emptyDraft()
   for (let i = 1; i <= count; i++) draft = addEntry(draft, `word ${String(i)}`, null, null).draft
   return draft
+}
+
+/** A draft with one group per name, as Use groups makes them (named in order). */
+function grouped(...names: string[]): Draft {
+  const draft = fitGroups(emptyDraft(), names.length)
+  return {
+    ...draft,
+    groups: draft.groups.map((group, i) => {
+      const name = names[i] ?? group.name
+      return { ...group, name, label: defaultLabel(name) }
+    }),
+  }
 }
 
 const read = (text: string): Draft => {
@@ -118,15 +131,47 @@ describe('entries', () => {
 })
 
 describe('groups', () => {
-  it('adds groups labelled with their first letter, refusing a second of the same name', () => {
-    const draft = addGroup(emptyDraft(), 'Biology').draft
+  it('fits the groups to the card: one per column, named by its letter', () => {
+    const draft = fitGroups(emptyDraft(), 5)
 
-    expect(draft.groups[0]).toMatchObject({ name: 'Biology', label: 'B' })
-    expect(addGroup(draft, 'biology').problem).toBe('There is already a group called “biology”.')
+    expect(draft.groups.map((g) => [g.name, g.label])).toEqual([
+      ['B', 'B'],
+      ['I', 'I'],
+      ['N', 'N'],
+      ['G', 'G'],
+      ['O', 'O'],
+    ])
+  })
+
+  it('adds empty groups at the end when the card has more columns than the set has groups', () => {
+    let draft = grouped('Biology', 'Geology', 'Physics')
+    draft = { ...draft, groups: draft.groups.slice(0, 3) }
+
+    const fitted = fitGroups(draft, 5)
+
+    expect(fitted.groups.map((g) => g.name)).toEqual(['Biology', 'Geology', 'Physics', 'G', 'O'])
+    expect(setProblems(fitted, true)).toContain('“G” has 0 entries; its column needs at least 5.')
+  })
+
+  it('makes the pairs of groups past the last column ungrouped, for the host to move or remove', () => {
+    const draft = read(sample)
+
+    const fitted = fitGroups(draft, 3)
+
+    expect(fitted.groups.map((g) => g.label)).toEqual(['B', 'I', 'N'])
+    expect(fitted.entries).toHaveLength(75)
+    expect(ungroupedOf(fitted)).toHaveLength(30)
+    expect(setProblems(fitted, true, 3, 1, 3)).toEqual([
+      '30 ungrouped pairs: move them into a group, or remove them.',
+    ])
+
+    const trimmed = removeUngrouped(fitted)
+    expect(trimmed.entries).toHaveLength(45)
+    expect(setProblems(trimmed, true, 3, 1, 3)).toEqual([])
   })
 
   it('renames a group for all its entries, and its default label follows the name', () => {
-    let draft = addGroup(emptyDraft(), 'Biology').draft
+    let draft = grouped('Biology')
     const group = must(draft.groups[0]).id
     draft = addEntry(draft, 'cell', null, group).draft
 
@@ -134,10 +179,14 @@ describe('groups', () => {
 
     expect(draft.groups[0]).toMatchObject({ name: 'Life science', label: 'L' })
     expect(must(draft.entries[0]).groupId).toBe(group)
+    const two = grouped('A', 'B')
+    expect(renameGroup(two, must(two.groups[0]).id, 'b').problem).toBe(
+      'There is already a group called “b”.',
+    )
   })
 
   it('keeps a label the host chose when the group is renamed', () => {
-    let draft = addGroup(emptyDraft(), 'Biology').draft
+    let draft = grouped('Biology')
     const group = must(draft.groups[0]).id
     draft = setLabel(draft, group, 'Bio').draft
 
@@ -146,8 +195,8 @@ describe('groups', () => {
     expect(must(setLabel(draft, group, '  ').draft.groups[0]).label).toBe('B')
   })
 
-  it('reorders groups and moves entries between them', () => {
-    let draft = addGroup(addGroup(emptyDraft(), 'A').draft, 'B').draft
+  it('reorders groups and moves entries between them, or out to the ungrouped pairs', () => {
+    let draft = grouped('A', 'B')
     const [a, b] = draft.groups.map((g) => g.id) as [string, string]
     draft = addEntry(draft, 'x', null, a).draft
 
@@ -157,23 +206,13 @@ describe('groups', () => {
     expect(draft.groups.map((g) => g.name)).toEqual(['B', 'A'])
     expect(must(draft.entries[0]).groupId).toBe(b)
     expect(moveGroup(draft, b, -1)).toBe(draft) // already first
-  })
-
-  it('deleting a group keeps its entries, ungrouped', () => {
-    let draft = addGroup(emptyDraft(), 'A').draft
-    draft = addEntry(draft, 'x', null, must(draft.groups[0]).id).draft
-
-    draft = deleteGroup(draft, must(draft.groups[0]).id)
-
-    expect(draft.groups).toEqual([])
-    expect(must(draft.entries[0]).groupId).toBeNull()
+    expect(ungroupedOf(moveEntry(draft, must(draft.entries[0]).id, null))).toHaveLength(1)
   })
 })
 
 describe('add from file (FR-44)', () => {
   it('merges groups by name and skips duplicates and clashes, reporting them', () => {
-    let week1 = addGroup(emptyDraft(), 'Words').draft
-    week1 = { ...week1, name: 'Week 1' }
+    let week1 = { ...grouped('Words'), name: 'Week 1' }
     week1 = addEntry(week1, 'cat', null, must(week1.groups[0]).id).draft
     week1 = addEntry(week1, 'a pet that barks', 'dog', must(week1.groups[0]).id).draft
     const week2 = read(
@@ -202,20 +241,15 @@ describe('what stops a draft being used', () => {
     expect(setProblems(words(24), false)).toEqual([])
   })
 
-  it('with Group items, needs five groups that fill their columns and every entry grouped', () => {
+  it('with Use groups, needs five groups that fill their columns and every entry grouped', () => {
     const draft = read(sample)
     expect(setProblems(draft, true)).toEqual([])
 
     const loose = addEntry(draft, 'an extra clue', 'Extra', null).draft
     expect(setProblems(loose, true)).toEqual([
-      'Group items needs every entry in a group. Put the ungrouped entries in a group, or turn Group items off.',
+      '1 ungrouped pair: move it into a group, or remove it.',
     ])
     expect(setProblems(loose, false)).toEqual([])
-
-    const four = deleteGroup(draft, must(draft.groups[4]).id)
-    expect(setProblems(four, true)).toContain(
-      'Group items needs 5 groups, one for each card column; this set has 4.',
-    )
   })
 })
 
@@ -233,13 +267,20 @@ describe('the set file', () => {
   })
 
   it('writes the same layout as the server, one pair to a line', () => {
-    let draft = addGroup({ ...emptyDraft(), name: 'Mixed' }, 'words').draft
+    let draft = { ...grouped('words'), name: 'Mixed' }
     draft = addEntry(draft, 'word 1', null, must(draft.groups[0]).id).draft
     draft = addEntry(draft, '2 × 3', '6', null).draft
 
     expect(writeSetFile(draft)).toBe(
       '{\n  "format": 1,\n  "name": "Mixed",\n  "groups": [\n    {\n      "name": "words",\n      "label": "W",\n      "pairs": [\n        ["word 1"]\n      ]\n    }\n  ],\n  "pairs": [\n    ["2 × 3", "6"]\n  ]\n}\n',
     )
+  })
+
+  it('writes no groups without Use groups, so the set is dealt anywhere', () => {
+    const file = writeSetFile(read(sample), false)
+
+    expect(read(file).groups).toEqual([])
+    expect(read(file).entries).toHaveLength(75)
   })
 
   it('round-trips the sample set', () => {

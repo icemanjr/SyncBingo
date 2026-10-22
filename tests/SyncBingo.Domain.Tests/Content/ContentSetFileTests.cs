@@ -27,7 +27,7 @@ public sealed class ContentSetFileTests
         set.Groups.ShouldBe(["B", "I", "N", "G", "O"]);
         set[37].ShouldBe(new ContentPair("37", "37", "N"));
 
-        var variant = ContentVariant.For(StandardVariants.Classic75, set, groupItems: true).Value;
+        var variant = ContentVariant.For(StandardVariants.Classic75, set).Value;
         variant.Columns.ShouldBe(StandardVariants.Classic75.Columns);
     }
 
@@ -173,9 +173,9 @@ public sealed class ContentSetFileTests
     [Fact]
     public void A_full_set_of_typical_entries_fits_in_a_file()
     {
-        // 500 pairs with a 60-character definition on the ball and a short word on the square, in 10 groups.
+        // 500 pairs with a 60-character definition on the ball and a short word on the square, in 5 groups.
         var entries = Enumerable.Range(1, 500).Select(i =>
-            new ContentEntry($"{i:000} {new string('d', 56)}", $"word {i:000}", $"group {i % 10}"));
+            new ContentEntry($"{i:000} {new string('d', 56)}", $"word {i:000}", $"group {i % 5}"));
 
         var json = ContentSetFile.Write(Valid(entries));
 

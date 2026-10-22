@@ -37,6 +37,9 @@ public enum FreeSpace
 {
     AlwaysMarked,
     Earned,
+
+    /// <summary>No free space: the centre holds a ball like any other square, so a card needs one more item (FR-26).</summary>
+    None,
 }
 
 /// <summary>

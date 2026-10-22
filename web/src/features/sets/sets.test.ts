@@ -241,6 +241,13 @@ describe('what stops a draft being used', () => {
     expect(setProblems(words(24), false)).toEqual([])
   })
 
+  it('needs one more entry on a card without a free space', () => {
+    expect(setProblems(words(24), false, 5, null)).toEqual([
+      'This card needs at least 25 entries; the set has 24.',
+    ])
+    expect(setProblems(words(25), false, 5, null)).toEqual([])
+  })
+
   it('with Use groups, needs five groups that fill their columns and every entry grouped', () => {
     const draft = read(sample)
     expect(setProblems(draft, true)).toEqual([])

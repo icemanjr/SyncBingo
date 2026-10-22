@@ -30,7 +30,7 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 
 | Method & path | Body | Notes |
 |---------------|------|-------|
-| `PUT /sessions/{code}/rules` | `{ settings?, winCondition? }` | **Apply** in Options: the settings sent (only those fields change) and the pattern, in one step. `200 { settings, winCondition }`. 409 in auto mode ("Pause before changing the rules.") and during the countdown; 422 for a lobby-only setting (free space, redraw policy, multiple wins) during a round, with nothing applied. |
+| `PUT /sessions/{code}/rules` | `{ settings?, winCondition? }` | **Apply** in Options: the settings sent (only those fields change) and the pattern, in one step. `200 { settings, winCondition }`. 409 in auto mode ("Pause before changing the rules.") and during the countdown; 422 for a lobby-only setting (free space, redraw policy, multiple wins) during a round, with nothing applied. Changing the free space to or from *None* changes the card itself, so every player is dealt a new card (`CardReplaced`) and the last round's calls are cleared; 422 if the custom set in use doesn't fill that card. |
 | `POST /sessions/{code}/rounds/countdown` | `{ startInAuto: bool }` | *Start Round N*: begins the 10 s countdown (FR-45); 409 unless in the lobby. |
 | `DELETE /sessions/{code}/rounds/countdown` | – | Cancel the countdown; back to the lobby. |
 | `POST /sessions/{code}/cards/clear` | `{ redrawCards: bool }` | *Clear cards*: ends any running round, clears marks and calls, optional redraw, back to the lobby (FR-34); 409 during a countdown. |

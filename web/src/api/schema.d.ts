@@ -682,7 +682,7 @@ export interface components {
         /** @enum {unknown} */
         DrawSource: "Manual" | "Auto";
         /** @enum {unknown} */
-        FreeSpace: "AlwaysMarked" | "Earned";
+        FreeSpace: "AlwaysMarked" | "Earned" | "None";
         GameCreated: {
             code: string;
             /** Format: uri */

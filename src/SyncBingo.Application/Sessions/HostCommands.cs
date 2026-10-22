@@ -14,7 +14,7 @@ public sealed record RulesApplied(SessionSettings Settings, string WinConditionI
 /// Host commands that change only shared session state. Each runs through
 /// <see cref="SessionCommandRunner"/> and maps to one domain method.
 /// </summary>
-public sealed class HostCommandHandler(SessionCommandRunner runner)
+public sealed class HostCommandHandler(SessionCommandRunner runner, IRandomSource random)
 {
     public Task<Result<CommandOutcome>> EndRoundAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.EndRound(now), cancellationToken);
@@ -37,11 +37,23 @@ public sealed class HostCommandHandler(SessionCommandRunner runner)
         var result = await runner.RunAsync(
                 code,
                 caller,
-                (session, now) =>
+                async (session, now, ct) =>
                 {
                     var outcome = session.ApplyRules(change(session.Settings), winConditionId ?? session.WinConditionId, now);
+                    if (!outcome.IsSuccess)
+                    {
+                        return outcome.Error!;
+                    }
+
                     applied = new RulesApplied(session.Settings, session.WinConditionId);
-                    return outcome;
+                    if (!session.CardShapeChanged)
+                    {
+                        return Result.Success(CommandOutcome.Of(outcome.Value));
+                    }
+
+                    // A free space added or taken away (lobby only): the old cards no longer fit, so everyone gets a new one.
+                    var notifications = await RoundHandler.ResetParticipantsAsync(runner.Store, session, random, ct).ConfigureAwait(false);
+                    return notifications.IsSuccess ? Result.Success(new CommandOutcome(outcome.Value, notifications.Value)) : notifications.Error!;
                 },
                 cancellationToken)
             .ConfigureAwait(false);

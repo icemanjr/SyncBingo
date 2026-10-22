@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import type { Schemas } from '../../api/client'
 import { downloadSet } from '../game/downloadSet'
 import { useAction } from '../game/useAction'
@@ -39,17 +40,25 @@ export function SetCard({
           {content.groupItems ? 'Dealt by group, one per column' : 'Dealt anywhere on the card'}
         </p>
       </div>
-      <Button
-        look="secondary"
-        disabled={busy}
-        onClick={() =>
-          void run(async () => {
-            await downloadSet(code, token)
-          })
-        }
-      >
-        Download this set
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          to={`/host/${code}/set`}
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-accent px-5 font-bold text-accent-ink hover:bg-accent-strong focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          Edit set
+        </Link>
+        <Button
+          look="secondary"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              await downloadSet(code, token)
+            })
+          }
+        >
+          Download this set
+        </Button>
+      </div>
       <label className="flex min-h-12 items-start gap-3">
         <input
           type="checkbox"
@@ -79,6 +88,28 @@ export function SetCard({
         </span>
       </label>
       {error && <ErrorText>{error}</ErrorText>}
+    </section>
+  )
+}
+
+/** In the lobby while the game uses numbers: the way into the set editor (FR-44). */
+export function NumbersCard({ code }: { code: string }) {
+  return (
+    <section
+      aria-label="Custom set"
+      className="flex flex-col gap-2 rounded-3xl bg-surface p-4 shadow-card"
+    >
+      <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Balls</p>
+      <p className="font-display text-lg font-bold">Numbers 1–75</p>
+      <p className="text-sm text-ink-muted">
+        Or play with your own words, sums or clues: a custom set.
+      </p>
+      <Link
+        to={`/host/${code}/set`}
+        className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-accent-soft px-5 font-bold text-accent-text hover:bg-accent-soft/70 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        Use a custom set
+      </Link>
     </section>
   )
 }

@@ -2042,9 +2042,7 @@ export interface operations {
     };
     UseContent: {
         parameters: {
-            query?: {
-                groupItems?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
                 code: string;

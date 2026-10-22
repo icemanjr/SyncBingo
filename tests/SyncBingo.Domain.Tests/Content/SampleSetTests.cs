@@ -50,6 +50,6 @@ public sealed class SampleSetTests
             set.Pairs.Count(pair => pair.Group == group).ShouldBe(15, group);
         }
 
-        ContentVariant.For(StandardVariants.Classic75, set, groupItems: true).IsSuccess.ShouldBeTrue();
+        ContentVariant.For(StandardVariants.Classic75, set).IsSuccess.ShouldBeTrue();
     }
 }

@@ -17,22 +17,17 @@ export async function fetchSetFile(code: string, token: string): Promise<string>
   return (await fetchSet(code, token)).text()
 }
 
-/** Uses a set file in the game (Use this set): checked by the server, then every card is redealt. */
-export async function applySetFile(
-  code: string,
-  token: string,
-  file: string,
-  groupItems: boolean,
-): Promise<void> {
+/**
+ * Uses a set file in the game (Use this set): checked by the server, then every card is redealt. A set with
+ * groups is dealt by group, one per card column.
+ */
+export async function applySetFile(code: string, token: string, file: string): Promise<void> {
   const response = await fetch(
-    new Request(
-      `${window.location.origin}/api/sessions/${code}/content?groupItems=${String(groupItems)}`,
-      {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: file,
-      },
-    ),
+    new Request(`${window.location.origin}/api/sessions/${code}/content`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: file,
+    }),
   )
   if (!response.ok)
     throw ApiError.from(response.status, await response.json().catch(() => undefined))

@@ -9,20 +9,21 @@ import { useGame } from '../game/useGame'
 import { Button, ErrorText } from '../game/ui'
 import {
   addEntry,
-  addGroup,
   deleteEntry,
-  deleteGroup,
   describe,
   describeMerge,
   editEntry,
   emptyDraft,
+  fitGroups,
   mergeDraft,
   moveEntry,
   moveGroup,
+  removeUngrouped,
   renameGroup,
   setLabel,
   setProblems,
   squareOf,
+  ungroupedOf,
   type Draft,
   type DraftEntry,
   type DraftGroup,
@@ -38,10 +39,11 @@ const readFile = (file: File): Promise<string> => file.text()
 
 /**
  * The set editor (FR-44, ADR 0009): the host builds a custom set as a **draft** on this device, then sends
- * it whole with **Use this set**, so players get one redeal. Entries show in their groups, in column order,
- * with any ungrouped ones first; groups can be renamed (their entries follow), relabelled, reordered and
- * deleted; entries edited, moved and deleted. Upload replaces the draft; Add from file merges another set,
- * reporting what it skipped. The draft is kept in this browser per game.
+ * it whole with **Use this set**, so players get one redeal. With **Use groups** the groups are the card's
+ * columns, one each (ADR 0009): entries show in their groups, in column order, with any ungrouped pairs first
+ * (to move, or remove all); groups can be renamed (their entries follow), relabelled and reordered; entries
+ * edited, moved and deleted. Without it, entries are one list, dealt anywhere. Upload replaces the draft; Add
+ * from file merges another set, reporting what it skipped. The draft is kept in this browser per game.
  */
 export function SetEditor() {
   const code = normalizeCode(useParams().code ?? '')
@@ -67,7 +69,7 @@ function Editor({ code, token }: { code: string; token: string }) {
   const navigate = useNavigate()
   const stored = useMemo(() => setDrafts.load(code), [code])
   const [draft, setDraft] = useState<Draft>(stored?.draft ?? emptyDraft())
-  const [groupItems, setGroupItems] = useState(stored?.groupItems ?? true)
+  const [useGroups, setUseGroups] = useState(stored?.useGroups ?? false)
   const started = useRef(stored !== undefined)
   const [message, setMessage] = useState<string>()
   const [search, setSearch] = useState('')
@@ -75,6 +77,16 @@ function Editor({ code, token }: { code: string; token: string }) {
   const action = useAction()
   const content = game.snapshot?.game.content
   const lobby = game.snapshot?.game.state === 'BetweenRounds'
+  const card = game.snapshot?.game.card ?? { rows: 5, columns: 5, freeCell: 12 }
+  const columns = card.columns
+  const freeColumn = card.freeCell == null ? null : card.freeCell % card.columns
+
+  /** Opens a draft: a set with groups turns Use groups on, fitted to the card's columns. */
+  const open = (opened: Draft) => {
+    const grouped = opened.groups.length > 0
+    setUseGroups(grouped)
+    setDraft(grouped ? fitGroups(opened, columns) : opened)
+  }
 
   // Start from the set in use (once), unless this browser already has a draft for the game.
   useEffect(() => {
@@ -83,19 +95,16 @@ function Editor({ code, token }: { code: string; token: string }) {
     if (!content) return
     void action.run(async () => {
       const read = readSetFile(await fetchSetFile(code, token))
-      if ('draft' in read) {
-        setDraft(read.draft)
-        setGroupItems(content.groupItems)
-      }
+      if ('draft' in read) open(read.draft)
     })
-  }, [game.snapshot, content, code, token, action])
+  }, [game.snapshot, content, code, token, action]) // eslint-disable-line react-hooks/exhaustive-deps -- once, from the first snapshot
 
   useEffect(() => {
-    setDrafts.save(code, { draft, groupItems })
-  }, [code, draft, groupItems])
+    setDrafts.save(code, { draft, useGroups })
+  }, [code, draft, useGroups])
 
-  const problems = setProblems(draft, groupItems)
-  const ungrouped = draft.entries.filter((entry) => entry.groupId === null)
+  const problems = setProblems(draft, useGroups, columns, freeColumn, card.rows)
+  const ungrouped = useGroups ? ungroupedOf(draft) : draft.entries
   const filter = (entries: DraftEntry[]) => {
     const term = tidy(search).toLowerCase()
     return term
@@ -114,11 +123,10 @@ function Editor({ code, token }: { code: string; token: string }) {
 
     if (merge) {
       const merged = mergeDraft(draft, read.draft)
-      setDraft(merged.draft)
+      setDraft(useGroups ? fitGroups(merged.draft, columns) : merged.draft)
       setMessage(describeMerge(merged.report))
     } else {
-      setDraft(read.draft)
-      setGroupItems(read.draft.groups.length > 0)
+      open(read.draft)
       setMessage(
         `Opened “${read.draft.name || 'Custom set'}”: ${String(read.draft.entries.length)} entries.`,
       )
@@ -175,7 +183,7 @@ function Editor({ code, token }: { code: string; token: string }) {
             look="secondary"
             disabled={draft.entries.length === 0}
             onClick={() => {
-              saveFile(`${tidy(draft.name) || 'Custom set'}.json`, writeSetFile(draft))
+              saveFile(`${tidy(draft.name) || 'Custom set'}.json`, writeSetFile(draft, useGroups))
             }}
           >
             Download this draft
@@ -186,23 +194,31 @@ function Editor({ code, token }: { code: string; token: string }) {
             {message}
           </p>
         )}
+        <label className="flex min-h-12 items-start gap-3">
+          <input
+            type="checkbox"
+            checked={useGroups}
+            className="mt-1 h-5 w-5 accent-accent"
+            onChange={(e) => {
+              setUseGroups(e.target.checked)
+              if (e.target.checked) setDraft(fitGroups(draft, columns))
+            }}
+          />
+          <span>
+            <span className="font-semibold">Use groups</span>
+            <span className="block text-sm text-ink-muted">
+              One group for each of the card’s {columns} columns, in order, like B-I-N-G-O: each
+              column draws from its group. Off: entries go anywhere on the card.
+            </span>
+          </span>
+        </label>
       </section>
 
       <AddEntryForm
-        draft={draft}
+        groups={useGroups ? draft.groups : []}
         onAdd={(ball, square, groupId) => {
           const result = addEntry(draft, ball, square, groupId)
           if (result.problem) return describe(result.problem)
-          setDraft(result.draft)
-          return undefined
-        }}
-      />
-
-      <AddGroupForm
-        draft={draft}
-        onAdd={(name) => {
-          const result = addGroup(draft, name)
-          if (result.problem) return result.problem
           setDraft(result.draft)
           return undefined
         }}
@@ -222,59 +238,58 @@ function Editor({ code, token }: { code: string; token: string }) {
         </label>
       )}
 
-      {(ungrouped.length > 0 || draft.groups.length === 0) && (
+      {(ungrouped.length > 0 || !useGroups) && (
         <section
-          aria-label="Not in a group"
+          aria-label={useGroups ? 'Ungrouped pairs' : 'Entries'}
           className="flex flex-col gap-2 rounded-3xl bg-surface p-4 shadow-card"
         >
-          <h2 className="font-display text-xl font-bold">
-            {draft.groups.length === 0 ? 'Entries' : 'Not in a group'} ({ungrouped.length})
-          </h2>
-          {groupItems && draft.groups.length > 0 && ungrouped.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-xl font-bold">
+              {useGroups ? 'Ungrouped pairs' : 'Entries'} ({ungrouped.length})
+            </h2>
+            {useGroups && (
+              <RemoveAll
+                count={ungrouped.length}
+                onRemove={() => {
+                  setDraft(removeUngrouped(draft))
+                }}
+              />
+            )}
+          </div>
+          {useGroups && (
             <p
               role="alert"
               className="rounded-xl bg-notice p-2 text-sm font-semibold text-notice-ink"
             >
-              Group items is on, so the set can’t be used until these are in a group.
+              The set can’t be used until each of these is moved into a group or removed.
             </p>
           )}
-          <EntryList entries={filter(ungrouped)} draft={draft} setDraft={setDraft} />
+          <EntryList
+            entries={filter(ungrouped)}
+            groups={useGroups ? draft.groups : []}
+            draft={draft}
+            setDraft={setDraft}
+          />
         </section>
       )}
 
-      {draft.groups.map((group, index) => (
-        <GroupSection
-          key={group.id}
-          group={group}
-          first={index === 0}
-          last={index === draft.groups.length - 1}
-          draft={draft}
-          setDraft={setDraft}
-          entries={filter(draft.entries.filter((entry) => entry.groupId === group.id))}
-        />
-      ))}
+      {useGroups &&
+        draft.groups.map((group, index) => (
+          <GroupSection
+            key={group.id}
+            group={group}
+            first={index === 0}
+            last={index === draft.groups.length - 1}
+            draft={draft}
+            setDraft={setDraft}
+            entries={filter(draft.entries.filter((entry) => entry.groupId === group.id))}
+          />
+        ))}
 
       <section
         aria-label="Use this set"
         className="flex flex-col gap-3 rounded-3xl bg-surface p-4 shadow-card"
       >
-        <label className="flex min-h-12 items-start gap-3">
-          <input
-            type="checkbox"
-            checked={groupItems}
-            className="mt-1 h-5 w-5 accent-accent"
-            onChange={(e) => {
-              setGroupItems(e.target.checked)
-            }}
-          />
-          <span>
-            <span className="font-semibold">Group items</span>
-            <span className="block text-sm text-ink-muted">
-              Each card column draws from one group, in this order, like B-I-N-G-O. Off: entries go
-              anywhere on the card.
-            </span>
-          </span>
-        </label>
         {problems.length > 0 && (
           <ul className="list-disc pl-5 text-sm font-medium text-danger">
             {problems.map((problem) => (
@@ -303,7 +318,7 @@ function Editor({ code, token }: { code: string; token: string }) {
             disabled={action.busy || problems.length > 0 || !lobby || !acknowledged}
             onClick={() =>
               void action.run(async () => {
-                await applySetFile(code, token, writeSetFile(draft), groupItems)
+                await applySetFile(code, token, writeSetFile(draft, useGroups))
                 setDrafts.forget(code)
                 await navigate(`/host/${code}`)
               })
@@ -370,10 +385,10 @@ function FilePick({
 
 /** Add an entry: what is called, what players mark (hidden when they match), and its group. */
 function AddEntryForm({
-  draft,
+  groups,
   onAdd,
 }: {
-  draft: Draft
+  groups: DraftGroup[]
   onAdd: (ball: string, square: string | null, groupId: string | null) => string | undefined
 }) {
   const [ball, setBall] = useState('')
@@ -438,7 +453,7 @@ function AddEntryForm({
           />
         </label>
       )}
-      {draft.groups.length > 0 && (
+      {groups.length > 0 && (
         <label className="flex flex-col gap-1 font-semibold">
           Group
           <select
@@ -448,8 +463,8 @@ function AddEntryForm({
               setGroupId(e.target.value)
             }}
           >
-            <option value="">Not in a group</option>
-            {draft.groups.map((group) => (
+            <option value="">Ungrouped</option>
+            {groups.map((group) => (
               <option key={group.id} value={group.id}>
                 {group.name}
               </option>
@@ -465,52 +480,47 @@ function AddEntryForm({
   )
 }
 
-/** Add a group, at the end (the next card column). */
-function AddGroupForm({
-  draft,
-  onAdd,
-}: {
-  draft: Draft
-  onAdd: (name: string) => string | undefined
-}) {
-  const [name, setName] = useState('')
-  const [problem, setProblem] = useState<string>()
-  return (
-    <form
-      aria-label="Add a group"
-      className="flex flex-wrap items-end gap-2"
-      onSubmit={(e) => {
-        e.preventDefault()
-        const refused = onAdd(name)
-        setProblem(refused)
-        if (!refused) setName('')
-      }}
-    >
-      <label className="flex min-w-48 flex-1 flex-col gap-1 font-semibold">
-        New group
-        <input
-          className={input}
-          value={name}
-          maxLength={limits.groupName * 3}
-          placeholder="Biology"
-          onChange={(e) => {
-            setName(e.target.value)
-          }}
-        />
-      </label>
+/** **Remove all** ungrouped pairs, after a second press to confirm, since it deletes them from the draft. */
+function RemoveAll({ count, onRemove }: { count: number; onRemove: () => void }) {
+  const [confirming, setConfirming] = useState(false)
+  if (!confirming)
+    return (
       <Button
-        type="submit"
-        look="secondary"
-        disabled={!tidy(name) || draft.groups.length >= limits.groups}
+        look="quiet"
+        onClick={() => {
+          setConfirming(true)
+        }}
       >
-        Add group
+        Remove all
       </Button>
-      {problem && <ErrorText>{problem}</ErrorText>}
-    </form>
+    )
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Confirm remove all">
+      <span className="text-sm font-semibold">
+        Remove {count} {count === 1 ? 'pair' : 'pairs'}?
+      </span>
+      <Button
+        look="secondary"
+        onClick={() => {
+          onRemove()
+          setConfirming(false)
+        }}
+      >
+        Remove
+      </Button>
+      <Button
+        look="quiet"
+        onClick={() => {
+          setConfirming(false)
+        }}
+      >
+        Cancel
+      </Button>
+    </div>
   )
 }
 
-/** One group: its name (renamed once, for all its entries), short label, place in the column order, entries. */
+/** One group, one card column: its name (renamed once, for all its entries), short label, column order, entries. */
 function GroupSection({
   group,
   first,
@@ -618,17 +628,9 @@ function GroupSection({
         >
           Move down
         </Button>
-        <Button
-          look="quiet"
-          onClick={() => {
-            setDraft(deleteGroup(draft, group.id))
-          }}
-        >
-          Delete group
-        </Button>
       </div>
       {problem && <ErrorText>{problem}</ErrorText>}
-      <EntryList entries={entries} draft={draft} setDraft={setDraft} />
+      <EntryList entries={entries} groups={draft.groups} draft={draft} setDraft={setDraft} />
     </section>
   )
 }
@@ -636,10 +638,13 @@ function GroupSection({
 /** Entries, each editable, movable to another group, and deletable. */
 function EntryList({
   entries,
+  groups,
   draft,
   setDraft,
 }: {
   entries: DraftEntry[]
+  /** The groups an entry can move to; none without Use groups. */
+  groups: DraftGroup[]
   draft: Draft
   setDraft: (draft: Draft) => void
 }) {
@@ -647,7 +652,7 @@ function EntryList({
   return (
     <ul className="flex flex-col divide-y divide-line-soft">
       {entries.map((entry) => (
-        <EntryRow key={entry.id} entry={entry} draft={draft} setDraft={setDraft} />
+        <EntryRow key={entry.id} entry={entry} groups={groups} draft={draft} setDraft={setDraft} />
       ))}
     </ul>
   )
@@ -655,10 +660,12 @@ function EntryList({
 
 function EntryRow({
   entry,
+  groups,
   draft,
   setDraft,
 }: {
   entry: DraftEntry
+  groups: DraftGroup[]
   draft: Draft
   setDraft: (draft: Draft) => void
 }) {
@@ -734,7 +741,7 @@ function EntryRow({
         )}
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        {draft.groups.length > 0 && (
+        {groups.length > 0 && (
           <label className="text-sm">
             <span className="sr-only">Group for {entry.ball}</span>
             <select
@@ -744,8 +751,8 @@ function EntryRow({
                 setDraft(moveEntry(draft, entry.id, e.target.value || null))
               }}
             >
-              <option value="">Not in a group</option>
-              {draft.groups.map((group) => (
+              <option value="">Ungrouped</option>
+              {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
                 </option>

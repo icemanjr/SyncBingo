@@ -57,8 +57,8 @@ public sealed class Session
     /// <summary>The host's custom set (ADR 0009), or <c>null</c> for numbers.</summary>
     public ContentSet? Content { get; private set; }
 
-    /// <summary>The custom set is dealt by group, one per card column (Group items).</summary>
-    public bool GroupItems { get; private set; }
+    /// <summary>The custom set is dealt by group, one per card column: it has groups (ADR 0009).</summary>
+    public bool GroupItems => Content is { Groups.IsEmpty: false };
 
     /// <summary>Which face of a custom set's items the call boards show (FR-29); the ball side by default.</summary>
     public BoardSide BoardSide { get; private set; }
@@ -262,14 +262,19 @@ public sealed class Session
                 throw new InvalidOperationException($"Stored session {snapshot.Code} uses a custom set that wasn't found.");
             }
 
-            var custom = ContentVariant.For(variant, content, snapshot.GroupItems);
+            // Saved before a set's groups always meant dealing by group: such a set was dealt free-form.
+            if (!snapshot.GroupItems)
+            {
+                content = content.WithoutGroups();
+            }
+
+            var custom = ContentVariant.For(variant, content);
             if (!custom.IsSuccess)
             {
                 throw new InvalidOperationException($"Stored session {snapshot.Code}'s custom set no longer fits: {custom.Error}");
             }
 
             session.Content = content;
-            session.GroupItems = snapshot.GroupItems;
             session.Variant = custom.Value;
         }
 
@@ -377,11 +382,11 @@ public sealed class Session
 
     /// <summary>
     /// "Use this set" (ADR 0009), or back to numbers with <paramref name="content"/> <c>null</c>: lobby only,
-    /// since every card is redealt. The card, free space and patterns stay as they are; a set that doesn't
-    /// fit the card is refused with the reason. The last round's calls are cleared, because item ids mean
+    /// since every card is redealt. The card, free space and patterns stay as they are; a set with groups is
+    /// dealt by group (<see cref="ContentVariant"/>); a set that doesn't fit the card is refused with the reason. The last round's calls are cleared, because item ids mean
     /// something else now. Callers deal every participant a new card.
     /// </summary>
-    public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, bool groupItems, DateTimeOffset now)
+    public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, DateTimeOffset now)
     {
         if (State != SessionState.BetweenRounds)
         {
@@ -391,7 +396,7 @@ public sealed class Session
         var variant = _standard;
         if (content is not null)
         {
-            var custom = ContentVariant.For(_standard, content, groupItems);
+            var custom = ContentVariant.For(_standard, content);
             if (!custom.IsSuccess)
             {
                 return custom.Error!;
@@ -401,7 +406,6 @@ public sealed class Session
         }
 
         Content = content;
-        GroupItems = content is not null && groupItems;
         PlayersMayDownload = false; // a new set starts private
         Variant = variant;
         ClearCalls();

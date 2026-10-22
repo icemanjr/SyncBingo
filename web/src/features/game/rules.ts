@@ -112,11 +112,12 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'freeSpace',
         label: 'Free space',
-        help: 'Earned: marked once a called ball is not on the card.',
+        help: 'Earned: marked once a called ball is not on the card. None: the centre is a square like any other, and every card is redealt.',
         betweenRounds: true,
         choices: [
           { value: 'AlwaysMarked', label: 'Always marked' },
           { value: 'Earned', label: 'Earned' },
+          { value: 'None', label: 'None' },
         ],
       },
       {
@@ -168,7 +169,11 @@ const sentences: Record<string, (value: string) => string> = {
         ? 'Only marks on numbers not called can be removed'
         : "Marks can't be removed (Undo still works)",
   freeSpace: (v) =>
-    v === 'Earned' ? 'The free space must be earned' : 'The free space is always marked',
+    v === 'Earned'
+      ? 'The free space must be earned'
+      : v === 'None'
+        ? 'No free space: every square is a ball'
+        : 'The free space is always marked',
   redrawPolicy: (v) =>
     v === 'ParticipantsMayRedraw'
       ? 'You may swap your card between rounds'

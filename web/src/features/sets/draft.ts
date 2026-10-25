@@ -364,3 +364,38 @@ export function setProblems(
   }
   return problems
 }
+
+/** The most players a game can have (A7): fewer possible cards than this is worth a warning. */
+export const maxPlayers = 100
+
+/**
+ * How many different cards the draft can deal on this card (FR-39), as the server counts them: with groups,
+ * the ordered picks for each column from its group, multiplied; without, the ordered picks for every square
+ * from the whole set. 0 when the set can't fill the card. Big sets give huge numbers; only small ones matter.
+ */
+export function possibleCards(
+  draft: Draft,
+  useGroups: boolean,
+  cardColumns = 5,
+  freeColumn: number | null = 2,
+  rows = 5,
+): number {
+  const picks = (items: number, squares: number) => {
+    let total = 1
+    for (let i = 0; i < squares; i++) total *= Math.max(items - i, 0)
+    return total
+  }
+  if (!useGroups)
+    return picks(draft.entries.length, rows * cardColumns - (freeColumn === null ? 0 : 1))
+  return draft.groups
+    .slice(0, cardColumns)
+    .reduce(
+      (total, group, column) =>
+        total *
+        picks(
+          draft.entries.filter((entry) => entry.groupId === group.id).length,
+          rows - (column === freeColumn ? 1 : 0),
+        ),
+      draft.groups.length >= cardColumns ? 1 : 0,
+    )
+}

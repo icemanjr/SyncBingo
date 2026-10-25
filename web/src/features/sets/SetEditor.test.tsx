@@ -54,7 +54,7 @@ describe('the set editor (FR-44)', () => {
     expect(
       within(screen.getByRole('region', { name: 'Entries' })).getByText('photosynthesis'),
     ).toBeInTheDocument()
-    expect(screen.getByText('A set needs 24–500 entries; this one has 1.')).toBeInTheDocument()
+    expect(screen.getByText('A set needs 8–500 entries; this one has 1.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Use this set' })).toBeDisabled()
   })
 
@@ -162,6 +162,31 @@ describe('the set editor (FR-44)', () => {
     const put = api.sent.find((s) => s.method === 'PUT')
     expect(put?.query).toBe('?cardSize=ThreeByThree')
     expect((put?.body as { groups: unknown[] }).groups).toHaveLength(3)
+  })
+
+  it('warns when a small grouped set makes fewer cards than a full game', async () => {
+    fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderEditor()
+    const tiny = JSON.stringify({
+      format: 1,
+      groups: [
+        { name: 'a', pairs: [['a1'], ['a2'], ['a3']] },
+        { name: 'b', pairs: [['b1'], ['b2']] },
+        { name: 'c', pairs: [['c1'], ['c2'], ['c3']] },
+      ],
+    })
+    await userEvent.upload(
+      await screen.findByLabelText('Open a set file'),
+      new File([tiny], 'tiny.json', { type: 'application/json' }),
+    )
+    await userEvent.selectOptions(screen.getByLabelText('Card size'), '3 × 3')
+
+    expect(screen.getByText(/^72 possible cards\. Up to 72 players/)).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText('Word or phrase'), 'b3')
+    await userEvent.selectOptions(screen.getByLabelText('Group'), 'b')
+    await userEvent.click(screen.getByRole('button', { name: 'Add entry' }))
+    expect(screen.getByText('216 possible cards.')).toBeInTheDocument()
   })
 
   it('renames a group once, for all its entries', async () => {

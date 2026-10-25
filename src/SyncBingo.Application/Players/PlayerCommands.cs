@@ -70,9 +70,15 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
             return allowed.Error!;
         }
 
-        var newCard = await CardGenerators.For(session.Variant)
-            .DealUniqueAsync(random, (fingerprint, ct) => Store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
+        var dealt = await CardGenerators.For(session.Variant)
+            .DealUniqueAsync(random, (fingerprint, ct) => Store.TryClaimCardAsync(code, fingerprint, ct), session.Variant.PossibleCards, cancellationToken)
             .ConfigureAwait(false);
+        if (!dealt.IsSuccess)
+        {
+            return dealt.Error!;
+        }
+
+        var newCard = dealt.Value;
         var replaced = await ParticipantUpdates
             .UpdateAsync(Store, code, stored, participant => participant.RedrawCard(cardId, session, () => newCard), cancellationToken)
             .ConfigureAwait(false);

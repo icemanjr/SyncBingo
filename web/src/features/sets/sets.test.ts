@@ -9,9 +9,11 @@ import {
   editEntry,
   emptyDraft,
   fitGroups,
+  maxPlayers,
   mergeDraft,
   moveEntry,
   moveGroup,
+  possibleCards,
   removeUngrouped,
   renameGroup,
   setLabel,
@@ -236,8 +238,14 @@ describe('add from file (FR-44)', () => {
 })
 
 describe('what stops a draft being used', () => {
-  it('needs 24 to 500 entries', () => {
-    expect(setProblems(words(23), false)).toEqual(['A set needs 24–500 entries; this one has 23.'])
+  it('needs 8 to 500 entries, and enough for the card', () => {
+    expect(setProblems(words(7), false, 3, 1, 3)).toEqual([
+      'A set needs 8–500 entries; this one has 7.',
+    ])
+    expect(setProblems(words(8), false, 3, 1, 3)).toEqual([])
+    expect(setProblems(words(23), false)).toEqual([
+      'This card needs at least 24 entries; the set has 23.',
+    ])
     expect(setProblems(words(24), false)).toEqual([])
   })
 
@@ -317,5 +325,34 @@ describe('the set file', () => {
     expect(readSetFile(`{ "format": 1, "pairs": [], "pad": "${'x'.repeat(70_000)}" }`)).toEqual({
       error: 'A set file can be at most 64 KB.',
     })
+  })
+})
+
+describe('possible cards (FR-39)', () => {
+  /** A 3 × 3 draft with groups of these sizes, the free space in the middle column. */
+  const threeByThree = (...sizes: number[]) => {
+    let draft = fitGroups(emptyDraft(), 3)
+    sizes.forEach((size, column) => {
+      for (let i = 1; i <= size; i++)
+        draft = addEntry(
+          draft,
+          `${String(column)}.${String(i)}`,
+          null,
+          must(draft.groups[column]).id,
+        ).draft
+    })
+    return draft
+  }
+
+  it('counts each column’s ordered picks from its group, as the server does', () => {
+    expect(possibleCards(threeByThree(3, 2, 3), true, 3, 1, 3)).toBe(72)
+    expect(possibleCards(threeByThree(3, 3, 3), true, 3, 1, 3)).toBe(216)
+    expect(possibleCards(threeByThree(4, 2, 3), true, 3, 1, 3)).toBe(288)
+    expect(possibleCards(threeByThree(3, 1, 3), true, 3, 1, 3)).toBe(0)
+  })
+
+  it('counts every square’s picks from the whole set without groups', () => {
+    expect(possibleCards(words(8), false, 3, 1, 3)).toBe(40_320)
+    expect(possibleCards(read(sample), true)).toBeGreaterThan(maxPlayers)
   })
 })

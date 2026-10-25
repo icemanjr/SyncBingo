@@ -76,11 +76,11 @@ public sealed class JoinSessionHandler(
             return Errors.NameTaken(name.Display);
         }
 
-        Card card;
+        Result<Card> dealt;
         try
         {
-            card = await CardGenerators.For(session.Variant)
-                .DealUniqueAsync(random, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
+            dealt = await CardGenerators.For(session.Variant)
+                .DealUniqueAsync(random, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), session.Variant.PossibleCards, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch
@@ -88,6 +88,14 @@ public sealed class JoinSessionHandler(
             await store.ReleaseNameAsync(code, name.Key, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
+
+        if (!dealt.IsSuccess)
+        {
+            await store.ReleaseNameAsync(code, name.Key, CancellationToken.None).ConfigureAwait(false);
+            return dealt.Error!;
+        }
+
+        var card = dealt.Value;
 
         var participant = Participant.Join(participantId, name, card, session, clock.UtcNow);
         if (!await store.TryAddParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false))

@@ -17,7 +17,9 @@ import {
   fitGroups,
   mergeDraft,
   moveEntry,
+  maxPlayers,
   moveGroup,
+  possibleCards,
   removeUngrouped,
   renameGroup,
   setLabel,
@@ -111,6 +113,7 @@ function Editor({ code, token }: { code: string; token: string }) {
   }, [code, draft, useGroups, chosenSize])
 
   const problems = setProblems(draft, useGroups, columns, freeColumn, shape.rows)
+  const cards = possibleCards(draft, useGroups, columns, freeColumn, shape.rows)
   const ungrouped = useGroups ? ungroupedOf(draft) : draft.entries
   const filter = (entries: DraftEntry[]) => {
     const term = tidy(search).toLowerCase()
@@ -324,6 +327,22 @@ function Editor({ code, token }: { code: string; token: string }) {
         aria-label="Use this set"
         className="flex flex-col gap-3 rounded-3xl bg-surface p-4 shadow-card"
       >
+        {problems.length === 0 && (
+          <p
+            role={cards < maxPlayers ? 'alert' : undefined}
+            className={
+              cards < maxPlayers
+                ? 'rounded-xl bg-notice p-2 text-sm font-semibold text-notice-ink'
+                : 'text-sm text-ink-muted'
+            }
+          >
+            {cards >= 1_000_000
+              ? 'Over a million possible cards.'
+              : `${cards.toLocaleString('en-US')} possible cards.`}
+            {cards < maxPlayers &&
+              ` Up to ${String(cards)} players can each have their own card; anyone after that is told no unique cards are left. Add an entry to a group for more.`}
+          </p>
+        )}
         {problems.length > 0 && (
           <ul className="list-disc pl-5 text-sm font-medium text-danger">
             {problems.map((problem) => (

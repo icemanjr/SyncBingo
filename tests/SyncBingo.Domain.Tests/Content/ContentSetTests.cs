@@ -53,14 +53,14 @@ public sealed class ContentSetTests
     }
 
     [Theory]
-    [InlineData(23)]
+    [InlineData(7)]
     [InlineData(501)]
     [InlineData(0)]
-    public void A_set_has_24_to_500_entries(int count) =>
-        Refusal(Words(count)).ShouldContain($"A set needs 24–500 entries, not {count}");
+    public void A_set_has_8_to_500_entries(int count) =>
+        Refusal(Words(count)).ShouldContain($"A set needs 8–500 entries, not {count}");
 
     [Theory]
-    [InlineData(24)]
+    [InlineData(8)]
     [InlineData(500)]
     public void The_limits_themselves_are_allowed(int count) =>
         Valid(Words(count)).Pairs.Length.ShouldBe(count);

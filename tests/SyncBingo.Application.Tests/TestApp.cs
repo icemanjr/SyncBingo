@@ -23,6 +23,7 @@ internal sealed class TestApp
         Draw = new DrawHandler(Runner, Draws);
         Players = new PlayerCommandHandler(Runner, Publisher, new SeededRandom(5));
         Manage = new PlayerManagementHandler(Runner);
+        Content = new ContentHandler(Runner, new SeededRandom(7));
     }
 
     public InMemorySessionStore Store { get; } = new();
@@ -50,6 +51,8 @@ internal sealed class TestApp
     public PlayerCommandHandler Players { get; }
 
     public PlayerManagementHandler Manage { get; }
+
+    public ContentHandler Content { get; }
 
     /// <summary>Decides which balls the draw handler picks; random once the script runs out.</summary>
     public ScriptedDraws Draws { get; }

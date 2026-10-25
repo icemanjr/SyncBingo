@@ -39,7 +39,8 @@ public sealed record ContentPair(string Ball, string Square, string? Group)
 /// </summary>
 public sealed class ContentSet
 {
-    public const int MinPairs = 24;
+    /// <summary>The smallest card's squares: 3 × 3 with a free space (FR-26a). Each card checks the set fills it.</summary>
+    public const int MinPairs = 8;
     public const int MaxPairs = 500;
     public const int MaxBallLength = 120;
     public const int MaxSquareLength = 15;

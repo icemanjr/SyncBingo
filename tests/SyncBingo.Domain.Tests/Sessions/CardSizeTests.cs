@@ -165,4 +165,33 @@ public sealed class CardSizeTests
         restored.Variant.Layout.Columns.ShouldBe(3);
         restored.BallsRemaining.ShouldBe(45);
     }
+
+    [Theory]
+    [InlineData(new[] { 3, 2, 3 }, 72)]
+    [InlineData(new[] { 3, 3, 3 }, 216)]
+    [InlineData(new[] { 4, 2, 3 }, 288)]
+    public void A_grouped_3x3_set_makes_this_many_different_cards(int[] groupSizes, long cards)
+    {
+        var entries = groupSizes.SelectMany((size, group) => Enumerable.Range(1, size).Select(i => new ContentEntry($"{group}.{i}", null, $"g{group}")));
+
+        var variant = ContentVariant.For(StandardVariants.Classic45, ContentTestKit.Valid(entries)).Value;
+
+        variant.PossibleCards.ShouldBe(cards);
+    }
+
+    [Fact]
+    public void Eight_ungrouped_pairs_make_8_factorial_cards_and_standard_bingo_more_than_can_be_counted()
+    {
+        ContentVariant.For(StandardVariants.Classic45, ContentTestKit.Valid(ContentTestKit.Words(8))).Value.PossibleCards.ShouldBe(40_320);
+        StandardVariants.Classic75.PossibleCards.ShouldBe(long.MaxValue);
+    }
+
+    [Fact]
+    public void A_set_of_8_is_too_small_for_a_5x5_card()
+    {
+        var session = NewSession();
+
+        session.UseContent(ContentTestKit.Valid(ContentTestKit.Words(8)), Now).Error!.Message
+            .ShouldBe("This card needs at least 24 entries; the set has 8.");
+    }
 }

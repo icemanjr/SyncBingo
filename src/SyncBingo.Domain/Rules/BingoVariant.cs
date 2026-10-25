@@ -76,6 +76,45 @@ public sealed class BingoVariant
     public BingoVariant WithoutFreeCell() =>
         Layout.FreeCell is null ? this : new(Id, new CardLayout(Layout.Rows, Layout.Columns, freeCell: null), BallMax, Columns, Patterns, Presets);
 
+    /// <summary>
+    /// How many different cards these rules can deal (FR-39), at most <see cref="long.MaxValue"/>: free-form,
+    /// the ordered picks of an item for each square; by column, the product of each column's ordered picks
+    /// from its range. A grouped 3 × 3 set of 3, 2 and 3 pairs makes 3! × 2! × 3! = 72; standard 75-ball Bingo
+    /// far more than anyone could play.
+    /// </summary>
+    public long PossibleCards
+    {
+        get
+        {
+            if (IsFreeForm)
+            {
+                return OrderedPicks(BallMax, Layout.CellCount - (Layout.FreeCell is null ? 0 : 1));
+            }
+
+            var total = 1L;
+            for (var column = 0; column < Columns.Length; column++)
+            {
+                total = SaturatingMultiply(total, OrderedPicks(Columns[column].Count, Layout.Rows - FreeCellsIn(column)));
+            }
+
+            return total;
+        }
+    }
+
+    /// <summary>n × (n − 1) × … for <paramref name="picks"/> factors: the ways to fill that many squares in order.</summary>
+    private static long OrderedPicks(int items, int picks)
+    {
+        var total = 1L;
+        for (var i = 0; i < picks; i++)
+        {
+            total = SaturatingMultiply(total, items - i);
+        }
+
+        return total;
+    }
+
+    private static long SaturatingMultiply(long a, long b) => b != 0 && a > long.MaxValue / b ? long.MaxValue : a * b;
+
     public WinPattern GetPattern(string id) =>
         _patternsById.TryGetValue(id, out var pattern)
             ? pattern

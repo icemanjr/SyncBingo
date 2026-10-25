@@ -1,3 +1,4 @@
+using System.Globalization;
 using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Participants;
 using SyncBingo.Domain.Rules;
@@ -1034,9 +1035,15 @@ public sealed class Session
                 : Failure(DomainErrorCode.WrongState, "A round is in progress. You can join between rounds.");
         }
 
-        return currentParticipants >= MaxParticipants
-            ? Failure(DomainErrorCode.SessionFull, $"This game is full ({MaxParticipants} players).")
-            : Result.Success(MaxParticipants - currentParticipants);
+        if (currentParticipants >= MaxParticipants)
+        {
+            return Failure(DomainErrorCode.SessionFull, $"This game is full ({MaxParticipants} players).");
+        }
+
+        // A small grouped set can make fewer different cards than the game has room for (FR-39).
+        return currentParticipants >= Variant.PossibleCards
+            ? NoUniqueCards(Variant.PossibleCards)
+            : Result.Success((int)Math.Min(MaxParticipants - currentParticipants, Variant.PossibleCards - currentParticipants));
     }
 
     public Result<IReadOnlyList<SessionEvent>> End(DateTimeOffset now)
@@ -1114,6 +1121,10 @@ public sealed class Session
         _calledNumbers.Add(number);
         return new BallCalled(call, previous);
     }
+
+    /// <summary>Every card these rules can deal is held: no one else can get a card of their own (FR-39).</summary>
+    public static DomainError NoUniqueCards(long possibleCards) =>
+        new(DomainErrorCode.SessionFull, $"No unique cards available: all {possibleCards.ToString("N0", CultureInfo.InvariantCulture)} possible cards are in use. The host can add entries to the set.");
 
     private static DomainError HopperEmpty() =>
         new(DomainErrorCode.HopperEmpty, "Every ball has been called. Clear the cards to start a new round.");

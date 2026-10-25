@@ -32,7 +32,7 @@ export const defaultLabel = (group: string): string => {
 
 /** The limits the server checks (ADR 0009). */
 export const limits = {
-  minEntries: 24,
+  minEntries: 8, // the smallest card's squares: 3 × 3 with a free space
   maxEntries: 500,
   ball: 120,
   square: 15,

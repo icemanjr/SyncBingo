@@ -1,3 +1,4 @@
+using System.Globalization;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Ports;
 using SyncBingo.Application.Queries;
@@ -122,6 +123,15 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
         var notifications = new List<(Recipient, Notification)>();
         if (redraw is not null)
         {
+            // Check before anything changes: a small set may make fewer different cards than there are players.
+            var cardsNeeded = participants.Sum(stored => stored.Participant.Cards.Count);
+            if (cardsNeeded > session.Variant.PossibleCards)
+            {
+                return new DomainError(
+                    DomainErrorCode.SessionFull,
+                    $"These rules make only {session.Variant.PossibleCards.ToString("N0", CultureInfo.InvariantCulture)} different cards, and the players need {cardsNeeded}. Add entries to the set.");
+            }
+
             await store.ReleaseAllCardsAsync(code, cancellationToken).ConfigureAwait(false);
         }
 
@@ -131,9 +141,15 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
             var newCards = new List<Card>();
             for (var i = 0; redraw is not null && i < stored.Participant.Cards.Count; i++)
             {
-                newCards.Add(await generator
-                    .DealUniqueAsync(redraw, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), cancellationToken)
-                    .ConfigureAwait(false));
+                var dealt = await generator
+                    .DealUniqueAsync(redraw, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), session.Variant.PossibleCards, cancellationToken)
+                    .ConfigureAwait(false);
+                if (!dealt.IsSuccess)
+                {
+                    return dealt.Error!;
+                }
+
+                newCards.Add(dealt.Value);
             }
 
             var replaced = await ParticipantUpdates.UpdateAsync(

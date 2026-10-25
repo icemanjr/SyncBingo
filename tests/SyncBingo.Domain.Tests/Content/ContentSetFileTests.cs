@@ -160,7 +160,7 @@ public sealed class ContentSetFileTests
     [Fact]
     public void A_valid_file_still_has_to_be_a_valid_set() =>
         ContentSetFile.Read("""{ "format": 1, "pairs": [ ["only one"] ] }""")
-            .Error!.Message.ShouldContain("A set needs 24–500 entries, not 1");
+            .Error!.Message.ShouldContain("A set needs 8–500 entries, not 1");
 
     [Fact]
     public void Files_over_64_KB_are_refused_before_they_are_read()

@@ -142,6 +142,28 @@ describe('the set editor (FR-44)', () => {
     expect((put?.body as { groups?: unknown }).groups).toBeUndefined()
   })
 
+  it('fits the groups to a smaller card and sends the size with the set', async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderEditor()
+    await userEvent.upload(await screen.findByLabelText('Open a set file'), sampleFile())
+    await screen.findByRole('region', { name: 'Group Biology' })
+
+    await userEvent.selectOptions(screen.getByLabelText('Card size'), '3 × 3')
+
+    expect(screen.queryByRole('region', { name: 'Group Geology & Earth' })).not.toBeInTheDocument()
+    const parked = screen.getByRole('region', { name: 'Ungrouped pairs' })
+    expect(within(parked).getByRole('heading')).toHaveTextContent('Ungrouped pairs (30)')
+    await userEvent.click(within(parked).getByRole('button', { name: 'Remove all' }))
+    await userEvent.click(within(parked).getByRole('button', { name: 'Remove' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /I’m responsible/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use this set' }))
+
+    await screen.findByText('The host console')
+    const put = api.sent.find((s) => s.method === 'PUT')
+    expect(put?.query).toBe('?cardSize=ThreeByThree')
+    expect((put?.body as { groups: unknown[] }).groups).toHaveLength(3)
+  })
+
   it('renames a group once, for all its entries', async () => {
     fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderEditor()

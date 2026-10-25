@@ -1,3 +1,4 @@
+import type { Schemas } from '../../api/client'
 import { ApiError } from '../../api/client'
 
 /** The game's custom set file, or the API's refusal. */
@@ -19,11 +20,17 @@ export async function fetchSetFile(code: string, token: string): Promise<string>
 
 /**
  * Uses a set file in the game (Use this set): checked by the server, then every card is redealt. A set with
- * groups is dealt by group, one per card column.
+ * groups is dealt by group, one per card column. With `cardSize`, onto that card (FR-26a), in the same redeal.
  */
-export async function applySetFile(code: string, token: string, file: string): Promise<void> {
+export async function applySetFile(
+  code: string,
+  token: string,
+  file: string,
+  cardSize?: Schemas['CardSize'],
+): Promise<void> {
+  const query = cardSize ? `?cardSize=${cardSize}` : ''
   const response = await fetch(
-    new Request(`${window.location.origin}/api/sessions/${code}/content`, {
+    new Request(`${window.location.origin}/api/sessions/${code}/content${query}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: file,

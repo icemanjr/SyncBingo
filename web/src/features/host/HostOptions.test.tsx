@@ -27,6 +27,7 @@ const hostSettings = {
   requireMarksForClaims: false,
   unmarking: 'Any' as const,
   freeSpace: 'AlwaysMarked' as const,
+  cardSize: 'FiveByFive' as const,
   showRoundNumbers: true,
   multipleWins: 'OncePerPattern' as const,
 }
@@ -281,5 +282,85 @@ describe('the rules notice (FR-47)', () => {
     expect(screen.getByText('Only called numbers can be marked')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onClose).toHaveBeenCalled()
+  })
+})
+
+describe('Card size (FR-26a)', () => {
+  beforeEach(() => {
+    seats.save(code, { role: 'host', token: 'host-token' })
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+    vi.unstubAllGlobals()
+  })
+
+  it('offers a smaller card with its own patterns, keeping what it can and dropping the letters', async () => {
+    const api = fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot({ winCondition: 'B+corners' }, { settings: hostSettings }),
+      },
+      [`PUT /api/sessions/${code}/rules`]: {
+        body: { settings: hostSettings, winCondition: 'corners' },
+      },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+    expect(screen.getByRole('checkbox', { name: 'Letter B' })).toBeChecked()
+    await userEvent.selectOptions(screen.getByLabelText('Card size'), '3 × 3')
+
+    expect(screen.queryByRole('checkbox', { name: 'Letter B' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /^Four Corners/ })).toBeChecked()
+    await userEvent.click(screen.getByRole('button', { name: 'Apply 2 changes' }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/rules'))?.body).toEqual({
+        settings: { cardSize: 'ThreeByThree' },
+        winCondition: 'corners',
+      })
+    })
+  })
+
+  it('has no free space to choose on a 4 × 4 card', async () => {
+    fakeApi({ [snapshotPath]: { body: aHostSnapshot({}, { settings: hostSettings }) } })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+    await userEvent.selectOptions(screen.getByLabelText('Card size'), '4 × 4')
+
+    expect(screen.getByLabelText('Free space')).toBeDisabled()
+    expect(
+      screen.getByText('A 4 × 4 card has no centre square, so no free space.'),
+    ).toBeInTheDocument()
+  })
+
+  it('sends a grouped set’s host to the set editor to change the card size', async () => {
+    fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot(
+          {
+            content: {
+              name: 'Science',
+              groupItems: true,
+              board: [],
+              squares: [],
+              labels: [],
+              playersMayDownload: false,
+            },
+          },
+          { settings: hostSettings },
+        ),
+      },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+
+    expect(screen.getByLabelText('Card size')).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'set editor' })).toHaveAttribute(
+      'href',
+      `/host/${code}/set`,
+    )
   })
 })

@@ -7,6 +7,7 @@ using SyncBingo.Application.Calling;
 using SyncBingo.Application.Players;
 using SyncBingo.Application.Sessions;
 using SyncBingo.Domain.Content;
+using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Api.Endpoints;
@@ -17,15 +18,16 @@ internal static class HostEndpoints
     public static void MapHostEndpoints(this RouteGroupBuilder game)
     {
         // A custom set (FR-44, ADR 0009). The body is the set file itself, as the editor builds it or a host uploads it;
-        // a set with groups is dealt by group.
+        // a set with groups is dealt by group. With cardSize, the set is dealt onto that card (FR-26a).
         game.MapPut("/content", (
             string code,
             [FromBody] JsonElement file,
+            [FromQuery] CardSize? cardSize,
             ClaimsPrincipal user,
             ContentHandler content,
             CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
-                (await content.UseAsync(game, caller, file.GetRawText(), ct)).NoContent()))
+                (await content.UseAsync(game, caller, file.GetRawText(), cardSize, ct)).NoContent()))
             .Accepts<JsonElement>("application/json")
             .Produces(StatusCodes.Status204NoContent)
             .WithMetadata(new RequestSizeLimitAttribute(ContentSetFile.MaxBytes * 2))

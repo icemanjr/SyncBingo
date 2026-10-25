@@ -598,6 +598,16 @@ export interface components {
             /** Format: int32 */
             freeCell: null | number;
         };
+        /** @enum {unknown} */
+        CardSize: "FiveByFive" | "FourByFour" | "ThreeByThree";
+        CardSizeView: {
+            size: components["schemas"]["CardSize"];
+            /** Format: int32 */
+            rows: number;
+            /** Format: int32 */
+            columns: number;
+            patterns: components["schemas"]["PatternView"][];
+        };
         CardView: {
             /** Format: int32 */
             cardId: number;
@@ -703,6 +713,7 @@ export interface components {
             patterns: components["schemas"]["PatternView"][];
             presets: components["schemas"]["PresetView"][];
             card: components["schemas"]["CardShape"];
+            cardSizes: components["schemas"]["CardSizeView"][];
             board: components["schemas"]["BoardGroup"][];
             calls: null | components["schemas"]["BallCall"][];
             /** Format: int32 */
@@ -844,6 +855,7 @@ export interface components {
             requireMarksForClaims?: null | boolean;
             unmarking?: null | components["schemas"]["Unmarking"];
             freeSpace?: null | components["schemas"]["FreeSpace"];
+            cardSize?: null | components["schemas"]["CardSize"];
             showRoundNumbers?: null | boolean;
             multipleWins?: null | components["schemas"]["MultipleWins"];
         };
@@ -2042,7 +2054,9 @@ export interface operations {
     };
     UseContent: {
         parameters: {
-            query?: never;
+            query?: {
+                cardSize?: components["schemas"]["CardSize"];
+            };
             header?: never;
             path: {
                 code: string;

@@ -42,7 +42,7 @@ public sealed class Session
     {
         Code = code;
         _standard = variant;
-        Variant = settings.FreeSpace == FreeSpace.None ? variant.WithoutFreeCell() : variant;
+        Variant = RulesFor(settings, content: null).Value;
         Settings = settings;
         WinConditionId = winConditionId;
         CreatedAt = now;
@@ -268,7 +268,7 @@ public sealed class Session
                 content = content.WithoutGroups();
             }
 
-            var custom = session.RulesFor(snapshot.Settings.FreeSpace, content);
+            var custom = session.RulesFor(snapshot.Settings, content);
             if (!custom.IsSuccess)
             {
                 throw new InvalidOperationException($"Stored session {snapshot.Code}'s custom set no longer fits: {custom.Error}");
@@ -386,26 +386,37 @@ public sealed class Session
     /// dealt by group (<see cref="ContentVariant"/>); a set that doesn't fit the card is refused with the reason. The last round's calls are cleared, because item ids mean
     /// something else now. Callers deal every participant a new card.
     /// </summary>
-    public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, DateTimeOffset now)
+    public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, DateTimeOffset now, CardSize? cardSize = null)
     {
         if (State != SessionState.BetweenRounds)
         {
             return WrongState("change the set");
         }
 
-        var rules = RulesFor(Settings.FreeSpace, content);
+        // The set editor sends the card size with the set (FR-26a), so a set and its card change in one redeal.
+        var settings = cardSize is { } size ? Settings with { CardSize = size } : Settings;
+        var rules = RulesFor(settings, content);
         if (!rules.IsSuccess)
         {
             return rules.Error!;
         }
 
         var variant = rules.Value;
+        if (MissingPatterns(variant, WinConditionId) is { } missing)
+        {
+            return missing;
+        }
+
+        var settingsChanged = settings != Settings;
+        Settings = settings;
 
         Content = content;
         PlayersMayDownload = false; // a new set starts private
         Variant = variant;
         ClearCalls();
-        return Commit(now, new ContentChanged(content?.Name, variant.BallMax, GroupItems));
+        return Commit(now, settingsChanged
+            ? [new ContentChanged(content?.Name, variant.BallMax, GroupItems), new SettingsChanged(Settings)]
+            : [new ContentChanged(content?.Name, variant.BallMax, GroupItems)]);
     }
 
     /// <summary>End the round early; cards and called balls stay visible until the next round.</summary>
@@ -515,26 +526,37 @@ public sealed class Session
             return invalid;
         }
 
-        if (!Variant.TryGetSelection(winConditionId, out var selection))
-        {
-            return UnknownWinCondition(Variant, winConditionId);
-        }
-
-        winConditionId = selection!.Key;
-
         if (IsInRound && Settings.RoundScopedChanges(settings) is [_, ..] lobbyOnly)
         {
             var names = lobbyOnly.Count == 1 ? lobbyOnly[0] : $"{string.Join(", ", lobbyOnly[..^1])} and {lobbyOnly[^1]}";
             return Failure(DomainErrorCode.NotAllowed, $"{char.ToUpperInvariant(names[0])}{names[1..]} can only be changed between rounds.");
         }
 
-        // A free space added or taken away changes the card itself (lobby only, checked above): the set must
-        // still fill it, and the caller deals everyone a new card (CardShapeChanged).
-        var rules = RulesFor(settings.FreeSpace, Content);
+        // A grouped set's groups are the card's columns, so its card changes with the set, in the set editor.
+        if (GroupItems && settings.CardSize != Settings.CardSize)
+        {
+            return Failure(DomainErrorCode.Invalid, "This set's groups are the card's columns: change the card size in the set editor.");
+        }
+
+        // A free space added or taken away, or another card size, changes the card itself (lobby only, checked
+        // above): the set must still fill it, and the caller deals everyone a new card (CardShapeChanged).
+        var rules = RulesFor(settings, Content);
         if (!rules.IsSuccess)
         {
             return rules.Error!;
         }
+
+        if (MissingPatterns(rules.Value, winConditionId) is { } missing)
+        {
+            return missing;
+        }
+
+        if (!rules.Value.TryGetSelection(winConditionId, out var selection))
+        {
+            return UnknownWinCondition(rules.Value, winConditionId);
+        }
+
+        winConditionId = selection!.Key;
 
         var events = new List<SessionEvent>();
         List<RuleChange> noticed = winConditionId != WinConditionId ? [new RuleChange("winCondition", winConditionId)] : [];
@@ -542,7 +564,7 @@ public sealed class Session
         CardShapeChanged = false;
         if (settings != Settings)
         {
-            CardShapeChanged = rules.Value.Layout.FreeCell != Variant.Layout.FreeCell;
+            CardShapeChanged = !SameShape(rules.Value.Layout, Variant.Layout);
             Settings = settings;
             Variant = rules.Value;
             if (CardShapeChanged)
@@ -581,14 +603,40 @@ public sealed class Session
     public bool CardShapeChanged { get; private set; }
 
     /// <summary>
-    /// The rules for a free-space choice and set: the standard rules, without the free cell for
-    /// <see cref="FreeSpace.None"/>, then the set's items as the balls (<see cref="ContentVariant"/>), or why the
-    /// set doesn't fit that card.
+    /// The rules for the settings and set: the standard rules for the card size (this game's own on 5×5),
+    /// without the free cell for <see cref="FreeSpace.None"/>, then the set's items as the balls
+    /// (<see cref="ContentVariant"/>), or why the set doesn't fit that card.
     /// </summary>
-    private Result<BingoVariant> RulesFor(FreeSpace freeSpace, ContentSet? content)
+    private Result<BingoVariant> RulesFor(SessionSettings settings, ContentSet? content)
     {
-        var standard = freeSpace == FreeSpace.None ? _standard.WithoutFreeCell() : _standard;
+        var standard = settings.CardSize == CardSize.FiveByFive ? _standard : StandardVariants.For(settings.CardSize);
+        if (settings.FreeSpace == FreeSpace.None)
+        {
+            standard = standard.WithoutFreeCell();
+        }
+
         return content is null ? Result.Success(standard) : ContentVariant.For(standard, content);
+    }
+
+    private static bool SameShape(CardLayout a, CardLayout b) =>
+        a.Rows == b.Rows && a.Columns == b.Columns && a.FreeCell == b.FreeCell;
+
+    /// <summary>
+    /// Why a pattern selection can't be played on the rules' card, e.g. a letter on a 3×3 card (FR-26a), or
+    /// <c>null</c> when it can (or isn't a selection of this game at all, which is reported as unknown).
+    /// </summary>
+    private DomainError? MissingPatterns(BingoVariant rules, string winConditionId)
+    {
+        if (!Variant.TryGetSelection(winConditionId, out var current) || rules.TryGetSelection(winConditionId, out _))
+        {
+            return null;
+        }
+
+        var missing = current!.Patterns.Where(pattern => !rules.TryGetPattern(pattern.Id, out _)).Select(pattern => pattern.Name).ToList();
+        var names = missing.Count == 1 ? missing[0] : $"{string.Join(", ", missing[..^1])} and {missing[^1]}";
+        return new DomainError(
+            DomainErrorCode.Invalid,
+            $"A {rules.Layout.Rows} × {rules.Layout.Columns} card has no {names}: choose another pattern too.");
     }
 
     /// <summary>Whether one more participant may join now (FR-5, A3, A7).</summary>

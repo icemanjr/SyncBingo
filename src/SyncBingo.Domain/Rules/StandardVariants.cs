@@ -11,11 +11,51 @@ public static class StandardVariants
     /// </summary>
     public static BingoVariant Classic75 { get; } = CreateClassic75();
 
+    /// <summary>
+    /// A 4×4 card of 60 balls: columns B I N G drawing 15 each. It has no centre, so never a free space; Four
+    /// Corners, lines and Blackout as on 5×5, no letters (they need a 5×5 card).
+    /// </summary>
+    public static BingoVariant Classic60 { get; } = CreateSmaller("classic-60", size: 4, freeCell: null);
+
+    /// <summary>A 3×3 card of 45 balls: columns B I N drawing 15 each, with a free centre. No letters.</summary>
+    public static BingoVariant Classic45 { get; } = CreateSmaller("classic-45", size: 3, freeCell: 4);
+
+    /// <summary>The standard rules for a card size (FR-26a): 15 balls per column, so a game lasts about as long on any card.</summary>
+    public static BingoVariant For(CardSize size) => size switch
+    {
+        CardSize.FourByFour => Classic60,
+        CardSize.ThreeByThree => Classic45,
+        _ => Classic75,
+    };
+
     /// <summary>Finds a built-in variant by <see cref="BingoVariant.Id"/>, e.g. when restoring a stored session.</summary>
     public static bool TryGet(string id, [NotNullWhen(true)] out BingoVariant? variant)
     {
         variant = id == Classic75.Id ? Classic75 : null;
         return variant is not null;
+    }
+
+    private static BingoVariant CreateSmaller(string id, int size, int? freeCell)
+    {
+        var layout = new CardLayout(rows: size, columns: size, freeCell);
+        var last = size - 1;
+        return new BingoVariant(
+            id,
+            layout,
+            ballMax: size * 15,
+            columns: Enumerable.Range(0, size).Select(column => new ColumnRange("BINGO"[column].ToString(), (column * 15) + 1, (column + 1) * 15)),
+            patterns:
+            [
+                new WinPattern("rows", "Rows", layout.RowLines(), isLine: true),
+                new WinPattern("columns", "Columns", layout.ColumnLines(), isLine: true),
+                new WinPattern("diagonals", "Diagonals", layout.DiagonalLines(), isLine: true),
+                new WinPattern("corners", "Four Corners", [layout.CellMask(0, 0) | layout.CellMask(0, last) | layout.CellMask(last, 0) | layout.CellMask(last, last)]),
+                new WinPattern("blackout", "Blackout", [layout.AllCells]),
+            ],
+            presets:
+            [
+                new PatternPreset("normal", "Normal Bingo", ["rows", "columns", "diagonals"]),
+            ]);
     }
 
     private static BingoVariant CreateClassic75()

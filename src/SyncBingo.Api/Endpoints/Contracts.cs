@@ -1,4 +1,5 @@
 using SyncBingo.Application.Queries;
+using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Api.Endpoints;
@@ -119,6 +120,8 @@ public sealed record SettingsBody
 
     public FreeSpace? FreeSpace { get; init; }
 
+    public CardSize? CardSize { get; init; }
+
     public bool? ShowRoundNumbers { get; init; }
 
     public MultipleWins? MultipleWins { get; init; }
@@ -141,6 +144,7 @@ public sealed record SettingsBody
             RequireMarksForClaims = settings.RequireMarksForClaims,
             Unmarking = settings.Unmarking,
             FreeSpace = settings.FreeSpace,
+            CardSize = settings.CardSize,
             ShowRoundNumbers = settings.ShowRoundNumbers,
             MultipleWins = settings.MultipleWins,
         };
@@ -165,6 +169,7 @@ public sealed record SettingsBody
             RequireMarksForClaims = RequireMarksForClaims ?? settings.RequireMarksForClaims,
             Unmarking = Unmarking ?? settings.Unmarking,
             FreeSpace = FreeSpace ?? settings.FreeSpace,
+            CardSize = CardSize ?? settings.CardSize,
             ShowRoundNumbers = ShowRoundNumbers ?? settings.ShowRoundNumbers,
             MultipleWins = MultipleWins ?? settings.MultipleWins,
         };

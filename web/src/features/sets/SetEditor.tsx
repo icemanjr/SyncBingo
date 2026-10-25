@@ -70,6 +70,7 @@ function Editor({ code, token }: { code: string; token: string }) {
   const stored = useMemo(() => setDrafts.load(code), [code])
   const [draft, setDraft] = useState<Draft>(stored?.draft ?? emptyDraft())
   const [useGroups, setUseGroups] = useState(stored?.useGroups ?? false)
+  const [chosenSize, setChosenSize] = useState(stored?.cardSize)
   const started = useRef(stored !== undefined)
   const [message, setMessage] = useState<string>()
   const [search, setSearch] = useState('')
@@ -77,9 +78,15 @@ function Editor({ code, token }: { code: string; token: string }) {
   const action = useAction()
   const content = game.snapshot?.game.content
   const lobby = game.snapshot?.game.state === 'BetweenRounds'
-  const card = game.snapshot?.game.card ?? { rows: 5, columns: 5, freeCell: 12 }
-  const columns = card.columns
-  const freeColumn = card.freeCell == null ? null : card.freeCell % card.columns
+  // The card the set is for (FR-26a): the game's, unless the host chose another here, sent with the set.
+  const gameSize = game.snapshot?.host?.settings.cardSize ?? 'FiveByFive'
+  const cardSize = chosenSize ?? gameSize
+  const sizes = game.snapshot?.game.cardSizes ?? []
+  const shape = sizes.find((s) => s.size === cardSize) ?? { rows: 5, columns: 5 }
+  const columns = shape.columns
+  const hasFree =
+    (shape.rows * shape.columns) % 2 === 1 && game.snapshot?.host?.settings.freeSpace !== 'None'
+  const freeColumn = hasFree ? Math.floor(shape.columns / 2) : null
 
   /** Opens a draft: a set with groups turns Use groups on, fitted to the card's columns. */
   const open = (opened: Draft) => {
@@ -100,10 +107,10 @@ function Editor({ code, token }: { code: string; token: string }) {
   }, [game.snapshot, content, code, token, action]) // eslint-disable-line react-hooks/exhaustive-deps -- once, from the first snapshot
 
   useEffect(() => {
-    setDrafts.save(code, { draft, useGroups })
-  }, [code, draft, useGroups])
+    setDrafts.save(code, { draft, useGroups, cardSize: chosenSize })
+  }, [code, draft, useGroups, chosenSize])
 
-  const problems = setProblems(draft, useGroups, columns, freeColumn, card.rows)
+  const problems = setProblems(draft, useGroups, columns, freeColumn, shape.rows)
   const ungrouped = useGroups ? ungroupedOf(draft) : draft.entries
   const filter = (entries: DraftEntry[]) => {
     const term = tidy(search).toLowerCase()
@@ -194,6 +201,33 @@ function Editor({ code, token }: { code: string; token: string }) {
             {message}
           </p>
         )}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="card-size" className="font-semibold">
+            Card size
+          </label>
+          <select
+            id="card-size"
+            className={input}
+            value={cardSize}
+            aria-describedby="card-size-help"
+            onChange={(e) => {
+              const size = e.target.value as typeof cardSize
+              setChosenSize(size)
+              const next = sizes.find((s) => s.size === size)
+              if (useGroups && next) setDraft(fitGroups(draft, next.columns))
+            }}
+          >
+            {sizes.map((s) => (
+              <option key={s.size} value={s.size}>
+                {s.rows} × {s.columns}
+              </option>
+            ))}
+          </select>
+          <span id="card-size-help" className="text-sm text-ink-muted">
+            The card this set is dealt onto, changed with the set.
+            {useGroups && ' With groups, each column is one group.'}
+          </span>
+        </div>
         <label className="flex min-h-12 items-start gap-3">
           <input
             type="checkbox"
@@ -318,7 +352,12 @@ function Editor({ code, token }: { code: string; token: string }) {
             disabled={action.busy || problems.length > 0 || !lobby || !acknowledged}
             onClick={() =>
               void action.run(async () => {
-                await applySetFile(code, token, writeSetFile(draft, useGroups))
+                await applySetFile(
+                  code,
+                  token,
+                  writeSetFile(draft, useGroups),
+                  cardSize !== gameSize ? cardSize : undefined,
+                )
                 setDrafts.forget(code)
                 await navigate(`/host/${code}`)
               })

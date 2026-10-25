@@ -38,7 +38,8 @@ function currentRules(game: Game, autoFillOn: boolean): string[] {
     say('freeMarking', s.freeMarking),
     say('unmarking', s.unmarking),
     'Undo always takes your card back to how it was at the last ball',
-    say('freeSpace', s.freeSpace),
+    // A card with no centre square (4 × 4, FR-26a) has no free space whatever the setting.
+    say('freeSpace', game.card.freeCell === null ? 'None' : s.freeSpace),
     s.autoFillAvailable
       ? `Auto-fill is available, and ${autoFillOn ? 'on' : 'off'} for you`
       : 'Auto-fill is turned off',
@@ -64,7 +65,7 @@ export function RulesPanel({
   onClose: () => void
 }) {
   const [tab, setTab] = useState<'patterns' | 'rules'>('patterns')
-  const earned = game.settings.freeSpace === 'Earned'
+  const earned = game.settings.freeSpace === 'Earned' && game.card.freeCell !== null
 
   const tabButton = (value: typeof tab, label: string) => (
     <button

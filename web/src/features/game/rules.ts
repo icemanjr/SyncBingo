@@ -14,7 +14,7 @@ export interface SettingInfo {
   key: SettingKey
   label: string
   help: string
-  /** Lobby only (free space, redraw policy, multiple wins): locked during a round. */
+  /** Lobby only (card size, free space, redraw policy, multiple wins): locked during a round. */
   betweenRounds?: true
   choices?: Choice[]
 }
@@ -109,6 +109,17 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
   {
     title: 'Between rounds',
     settings: [
+      {
+        key: 'cardSize',
+        label: 'Card size',
+        help: '15 balls per column: 3 × 3 is B I N (1–45), 4 × 4 is B I N G (1–60). Changing it deals everyone a new card.',
+        betweenRounds: true,
+        choices: [
+          { value: 'FiveByFive', label: '5 × 5' },
+          { value: 'FourByFour', label: '4 × 4' },
+          { value: 'ThreeByThree', label: '3 × 3' },
+        ],
+      },
       {
         key: 'freeSpace',
         label: 'Free space',

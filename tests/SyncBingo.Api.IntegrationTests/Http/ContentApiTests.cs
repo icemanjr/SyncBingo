@@ -267,6 +267,23 @@ public sealed class ContentApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_set_and_its_card_size_are_used_together()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+
+        (await UseAsync(code, hostToken, Sums(), cardSize: "ThreeByThree")).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var game = (await SnapshotAsync(code, avaToken)).GetProperty("game");
+        game.GetProperty("card").GetProperty("columns").GetInt32().ShouldBe(3);
+        game.GetProperty("settings").GetProperty("freeSpace").GetString().ShouldBe("AlwaysMarked");
+        (await SnapshotAsync(code, avaToken)).GetProperty("you").GetProperty("cards")[0].GetProperty("faces").GetArrayLength().ShouldBe(9);
+        game.GetProperty("cardSizes").EnumerateArray()
+            .Select(size => (size.GetProperty("size").GetString(), size.GetProperty("patterns").GetArrayLength()))
+            .ShouldBe([("FiveByFive", 10), ("FourByFour", 5), ("ThreeByThree", 5)]);
+    }
+
+    [Fact]
     public async Task A_huge_body_is_refused()
     {
         var (code, hostToken) = await NewGameAsync();
@@ -283,9 +300,10 @@ public sealed class ContentApiTests : IAsyncDisposable
         }
     }
 
-    private async Task<HttpResponseMessage> UseAsync(string code, string token, string file)
+    private async Task<HttpResponseMessage> UseAsync(string code, string token, string file, string? cardSize = null)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri($"/api/sessions/{code}/content", UriKind.Relative))
+        var query = cardSize is null ? string.Empty : $"?cardSize={cardSize}";
+        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri($"/api/sessions/{code}/content{query}", UriKind.Relative))
         {
             Content = new StringContent(file, Encoding.UTF8, "application/json"),
         };

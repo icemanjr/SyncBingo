@@ -189,6 +189,27 @@ describe('the set editor (FR-44)', () => {
     expect(screen.getByText('216 possible cards.')).toBeInTheDocument()
   })
 
+  it('sends the free space’s text with the set', async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderEditor()
+    await userEvent.upload(await screen.findByLabelText('Open a set file'), sampleFile())
+    await screen.findByRole('region', { name: 'Group Biology' })
+
+    await userEvent.type(screen.getByLabelText('Free space text'), 'Producer')
+    expect(
+      screen.getByText('The free space can’t say “Producer”: that’s already a square.'),
+    ).toBeInTheDocument()
+    await userEvent.clear(screen.getByLabelText('Free space text'))
+    await userEvent.type(screen.getByLabelText('Free space text'), 'Science!')
+    await userEvent.click(screen.getByRole('checkbox', { name: /I’m responsible/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use this set' }))
+
+    await screen.findByText('The host console')
+    expect((api.sent.find((s) => s.method === 'PUT')?.body as { free?: string }).free).toBe(
+      'Science!',
+    )
+  })
+
   it('renames a group once, for all its entries', async () => {
     fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderEditor()

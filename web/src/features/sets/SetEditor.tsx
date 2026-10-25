@@ -182,6 +182,22 @@ function Editor({ code, token }: { code: string; token: string }) {
             }}
           />
         </label>
+        <label className="flex flex-col gap-1 font-semibold">
+          Free space text
+          <input
+            className={input}
+            value={draft.free ?? ''}
+            maxLength={limits.square * 3}
+            placeholder="FREE"
+            aria-describedby="free-help"
+            onChange={(e) => {
+              setDraft({ ...draft, free: e.target.value })
+            }}
+          />
+        </label>
+        <p id="free-help" className="-mt-2 text-sm text-ink-muted">
+          What the free space says, up to {limits.square} characters. Blank: FREE.
+        </p>
         <div className="flex flex-wrap gap-2">
           <FilePick label="Open a set file" onPick={(file) => void replaceFrom(file, false)} />
           <FilePick

@@ -48,6 +48,7 @@ export function Card({
   columns,
   columnLabels,
   freeCell,
+  freeText,
   isCalled,
   highlightMatches,
   markStyle,
@@ -60,6 +61,8 @@ export function Card({
   /** A label above each column (B-I-N-G-O), when the call board's groups match the card's columns. */
   columnLabels: string[] | null
   freeCell: number | null
+  /** What the free space says: "FREE", or a custom set's own text (e.g. "★ Week 5"). */
+  freeText: string
   /** Whether a cell's square has been called (`calledTest`), or null when the player can't see calls. */
   isCalled: ((cell: number) => boolean) | null
   highlightMatches: boolean
@@ -78,7 +81,7 @@ export function Card({
   })
   // With a custom set (ADR 0009) the card brings its squares' text, and the card uses tighter gaps for room.
   const text = card.faces != null
-  const faces = card.cells.map((_, cell) => (cell === freeCell ? '★' : cardFace(card, cell)))
+  const faces = card.cells.map((_, cell) => (cell === freeCell ? freeText : cardFace(card, cell)))
 
   // Cheap enough to work out on each render: measurements are cached per text.
   const fitted = fitSquares(faces, setFaces, size, metrics)
@@ -123,7 +126,7 @@ export function Card({
     const free = cell === freeCell
     const match = highlightMatches && !marked && isCalled?.(cell) === true
     const letter = columnLabels?.[cell % columns]
-    const label = `${free ? 'Free space' : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
+    const label = `${free ? (freeText === 'FREE' ? 'Free space' : `Free space: ${freeText}`) : `${letter ? `${letter} ` : ''}${face}`}${marked ? ', marked' : ''}${match ? ', called' : ''}`
     return (
       <button
         key={cell}

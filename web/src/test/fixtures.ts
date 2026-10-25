@@ -51,6 +51,7 @@ export function aGame(changes: Partial<Schemas['GameView']> = {}): Schemas['Game
     patterns: standardPatterns,
     presets: [{ id: 'normal', name: 'Normal Bingo', patternIds: ['rows', 'columns', 'diagonals'] }],
     card: { rows: 5, columns: 5, freeCell: 12 },
+    freeText: 'FREE',
     cardSizes: [
       { size: 'FiveByFive', rows: 5, columns: 5, patterns: standardPatterns },
       // Smaller cards have no letters (FR-26a); their masks don't matter to these tests.

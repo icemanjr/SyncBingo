@@ -47,6 +47,7 @@ public sealed class ContentApiTests : IAsyncDisposable
         content.GetProperty("name").GetString().ShouldBe("Sums");
         content.GetProperty("groupItems").GetBoolean().ShouldBeFalse();
         content.GetProperty("board")[0].GetString().ShouldBe("1 + 1");
+        snapshot.GetProperty("game").GetProperty("freeText").GetString().ShouldBe("FREE");
         snapshot.GetProperty("game").GetProperty("ballsRemaining").GetInt32().ShouldBe(30);
         var card = snapshot.GetProperty("you").GetProperty("cards")[0];
         var faces = card.GetProperty("faces").EnumerateArray().Select(face => face.GetString()!).ToList();
@@ -281,6 +282,18 @@ public sealed class ContentApiTests : IAsyncDisposable
         game.GetProperty("cardSizes").EnumerateArray()
             .Select(size => (size.GetProperty("size").GetString(), size.GetProperty("patterns").GetArrayLength()))
             .ShouldBe([("FiveByFive", 10), ("FourByFour", 5), ("ThreeByThree", 5)]);
+    }
+
+    [Fact]
+    public async Task A_sets_free_space_text_reaches_every_card()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        var file = Sums().Replace("\"name\": \"Sums\"", "\"name\": \"Sums\", \"free\": \"★ Week 5\"", StringComparison.Ordinal);
+
+        (await UseAsync(code, hostToken, file)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("freeText").GetString().ShouldBe("★ Week 5");
     }
 
     [Fact]

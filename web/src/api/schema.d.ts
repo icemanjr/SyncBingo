@@ -713,6 +713,7 @@ export interface components {
             patterns: components["schemas"]["PatternView"][];
             presets: components["schemas"]["PresetView"][];
             card: components["schemas"]["CardShape"];
+            freeText: string;
             cardSizes: components["schemas"]["CardSizeView"][];
             board: components["schemas"]["BoardGroup"][];
             calls: null | components["schemas"]["BallCall"][];

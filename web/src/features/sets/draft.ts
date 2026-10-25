@@ -6,6 +6,8 @@ import { defaultLabel, fits, isPrintable, key, limits, tidy } from './text'
  */
 export interface Draft {
   name: string
+  /** The free space's text (the file's "free"); empty (or absent, in drafts saved earlier) means FREE. */
+  free?: string
   groups: DraftGroup[]
   entries: DraftEntry[]
 }
@@ -252,6 +254,20 @@ export function removeUngrouped(draft: Draft): Draft {
   return { ...draft, entries: draft.entries.filter((entry) => !ungrouped.has(entry.id)) }
 }
 
+/**
+ * Why the free space's text can't be used, or `undefined`: it's checked like a square (printable, up to 15
+ * characters) and can't be one of the squares, or players couldn't tell the free space from it.
+ */
+export function checkFreeText(draft: Draft): string | undefined {
+  const free = tidy(draft.free)
+  if (!free) return undefined
+  if (!fits(free, limits.square) || !isPrintable(free))
+    return `The free space’s text can be up to ${String(limits.square)} characters.`
+  if (draft.entries.some((entry) => key(tidy(squareOf(entry))) === key(free)))
+    return `The free space can’t say “${free}”: that’s already a square.`
+  return undefined
+}
+
 /** What a merged file added and what it skipped (FR-44): skipped entries are reported, never overwritten. */
 export interface MergeReport {
   added: number
@@ -266,7 +282,11 @@ export interface MergeReport {
  * skipped as clashes. The name stays this draft's, unless it has none.
  */
 export function mergeDraft(draft: Draft, incoming: Draft): { draft: Draft; report: MergeReport } {
-  let merged: Draft = { ...draft, name: draft.name || incoming.name }
+  let merged: Draft = {
+    ...draft,
+    name: draft.name || incoming.name,
+    free: tidy(draft.free) || incoming.free,
+  }
   const groupFor = new Map<string, string>()
   for (const group of incoming.groups) {
     const existing = merged.groups.find((g) => key(g.name) === key(group.name))
@@ -343,6 +363,8 @@ export function setProblems(
     )
   if (!fits(tidy(draft.name), limits.name))
     problems.push(`The set’s name can be up to ${String(limits.name)} characters.`)
+  const free = checkFreeText(draft)
+  if (free) problems.push(free)
   if (useGroups) {
     const ungrouped = ungroupedOf(draft).length
     if (ungrouped > 0)

@@ -12,12 +12,15 @@ export function CardInspector({
   participantId,
   called,
   columns,
+  freeText,
   host,
   onClose,
 }: {
   participantId: string
   called: Set<number>
   columns: number
+  /** What the free space says ("FREE" or the set's text). */
+  freeText: string
   host: HostApi
   onClose: () => void
 }) {
@@ -53,7 +56,7 @@ export function CardInspector({
                   marked ? 'border-accent-strong bg-accent text-accent-ink' : 'border-line-soft'
                 } ${isCalled ? '' : 'opacity-60'}`}
               >
-                {number === 0 ? '★' : cardFace(card, cell)}
+                {number === 0 ? freeText : cardFace(card, cell)}
                 {isCalled && !marked && <span className="sr-only"> (called, not marked)</span>}
               </div>
             )

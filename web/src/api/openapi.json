@@ -4277,6 +4277,7 @@
           "patterns",
           "presets",
           "card",
+          "freeText",
           "cardSizes",
           "board",
           "calls",
@@ -4329,6 +4330,9 @@
           },
           "card": {
             "$ref": "#/components/schemas/CardShape"
+          },
+          "freeText": {
+            "type": "string"
           },
           "cardSizes": {
             "type": "array",

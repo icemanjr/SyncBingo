@@ -249,4 +249,21 @@ public sealed class ContentSetTests
         back[0].ShouldBe(new ContentEntry("2 + 5", "7", "sums")); // grouped entries come first
         back[1].ShouldBe(new ContentEntry("word 1", null, null));
     }
+
+    [Fact]
+    public void The_free_space_can_say_something_else_tidied_like_a_square()
+    {
+        var set = ContentSet.TryCreate("free", Words(24), freeText: "  ★  Week 5 ").Value;
+
+        set.FreeText.ShouldBe("★ Week 5");
+        set.WithoutGroups().FreeText.ShouldBe("★ Week 5");
+        ContentSet.TryCreate("free", Words(24), freeText: "   ").Value.FreeText.ShouldBeNull("blank means the default, FREE");
+    }
+
+    [Theory]
+    [InlineData("sixteen letters!", "The free space's text must be printable text of up to 15 characters")]
+    [InlineData("bell\u0007", "The free space's text must be printable text of up to 15 characters")]
+    [InlineData("WORD 3", "The free space's text 'WORD 3' is also a square")]
+    public void The_free_spaces_text_is_checked_like_a_square_and_never_one(string free, string problem) =>
+        ContentSet.TryCreate("free", Words(24), freeText: free).Error!.Message.ShouldContain(problem);
 }

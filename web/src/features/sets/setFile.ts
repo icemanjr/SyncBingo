@@ -24,7 +24,7 @@ export function readSetFile(text: string): { draft: Draft } | { error: string } 
 
   if (typeof file !== 'object' || file === null || Array.isArray(file))
     return { error: notASetFile }
-  const { format, name, groups, pairs } = file as Record<string, unknown>
+  const { format, name, free, groups, pairs } = file as Record<string, unknown>
   if (typeof format !== 'number' || !Number.isInteger(format) || format < 1)
     return { error: notASetFile }
   if (format > fileFormat)
@@ -33,9 +33,10 @@ export function readSetFile(text: string): { draft: Draft } | { error: string } 
         'This set file was made by a newer version of SyncBingo; reload the page and try again.',
     }
   if (name !== undefined && typeof name !== 'string') return { error: notASetFile }
+  if (free !== undefined && typeof free !== 'string') return { error: notASetFile }
   if (groups === undefined && pairs === undefined) return { error: notASetFile }
 
-  const draft: Draft = { name: tidy(name ?? ''), groups: [], entries: [] }
+  const draft: Draft = { name: tidy(name ?? ''), free: tidy(free ?? ''), groups: [], entries: [] }
   const readPairs = (list: unknown, groupId: string | null): boolean => {
     if (!Array.isArray(list)) return false
     for (const pair of list) {
@@ -103,6 +104,7 @@ export function writeSetFile(draft: Draft, useGroups = true): string {
   const lines = [
     `{\n  "format": ${String(fileFormat)},\n  "name": ${quote(tidy(draft.name) || 'Custom set')}`,
   ]
+  if (tidy(draft.free)) lines.push(`,\n  "free": ${quote(tidy(draft.free))}`)
   if (!useGroups) {
     lines.push(`,\n  "pairs": ${pairsBlock(draft.entries, '  ')}`)
     return `${lines.join('')}\n}\n`

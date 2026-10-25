@@ -269,10 +269,11 @@ export function PlayScreen() {
                 : columnLabels(view.board, view.card.columns)
             }
             freeCell={view.card.freeCell}
+            freeText={view.freeText}
             isCalled={calledTest(card, calls)}
             highlightMatches={view.settings.highlightMatches}
             markStyle={markStyle}
-            setFaces={allSquareFaces(view.content, view.board)}
+            setFaces={[...allSquareFaces(view.content, view.board), view.freeText]}
             disabled={!inRound || marking.busy}
             onToggle={toggle}
           />

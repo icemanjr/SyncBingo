@@ -10,6 +10,7 @@ function renderCard(columnLabels: string[] | null) {
       columns={2}
       columnLabels={columnLabels}
       freeCell={null}
+      freeText="FREE"
       isCalled={null}
       highlightMatches={false}
       markStyle={defaultMarkStyle}

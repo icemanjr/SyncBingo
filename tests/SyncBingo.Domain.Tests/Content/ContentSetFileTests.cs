@@ -118,6 +118,24 @@ public sealed class ContentSetFileTests
         ContentSetFile.Read(ContentSetFile.Write(set)).Value.Labels.ShouldBe(set.Labels);
     }
 
+    [Fact]
+    public void The_free_spaces_text_is_kept_and_written_back_after_the_name()
+    {
+        var json = NormalBingo().Replace("\"name\": \"Normal Bingo\"", "\"name\": \"Normal Bingo\", \"free\": \"★ Week 5\"", StringComparison.Ordinal);
+
+        var set = ContentSetFile.Read(json).Value;
+
+        set.FreeText.ShouldBe("★ Week 5");
+        ContentSetFile.Write(set).ShouldStartWith("{\n  \"format\": 1,\n  \"name\": \"Normal Bingo\",\n  \"free\": \"★ Week 5\",\n");
+        ContentSetFile.Read(ContentSetFile.Write(set)).Value.FreeText.ShouldBe("★ Week 5");
+        ContentSetFile.Write(ContentSetFile.Read(NormalBingo()).Value).ShouldNotContain("\"free\"");
+    }
+
+    [Fact]
+    public void The_free_spaces_text_must_be_text() =>
+        ContentSetFile.Read(NormalBingo().Replace("\"format\": 1", "\"format\": 1, \"free\": 7", StringComparison.Ordinal))
+            .Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
+
     [Theory]
     [InlineData("\"label\": 5")]
     [InlineData("\"label\": null")]

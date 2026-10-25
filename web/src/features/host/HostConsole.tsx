@@ -405,6 +405,7 @@ export function HostConsole() {
             participantId={inspecting}
             called={called}
             columns={view.card.columns}
+            freeText={view.freeText}
             host={host}
             onClose={() => {
               setInspecting(undefined)

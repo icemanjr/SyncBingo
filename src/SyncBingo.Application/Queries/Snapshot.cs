@@ -18,6 +18,7 @@ public sealed record GameSnapshot(GameView Game, PlayerView? You, HostView? Host
 /// What everyone in the game may see (the display view sees exactly this), except <see cref="JoinNote"/>
 /// (FR-49), which only the host and the display get. <see cref="Seq"/> is the
 /// caller's own stream position (ADR 0002): events in that stream with a higher seq come after this snapshot.
+/// <see cref="FreeText"/> is what the free space says: the custom set's own text, or "FREE".
 /// </summary>
 public sealed record GameView(
     string Code,
@@ -29,6 +30,7 @@ public sealed record GameView(
     IReadOnlyList<PatternView> Patterns,
     IReadOnlyList<PresetView> Presets,
     CardShape Card,
+    string FreeText,
     IReadOnlyList<CardSizeView> CardSizes,
     IReadOnlyList<BoardGroup> Board,
     IReadOnlyList<BallCall>? Calls,
@@ -268,6 +270,7 @@ public sealed class GameQueries(ISessionStore store)
             [.. variant.Patterns.Select(PatternView.Of)],
             [.. variant.Presets.Select(preset => new PresetView(preset.Id, preset.Name, [.. preset.PatternIds]))],
             new CardShape(variant.Layout.Rows, variant.Layout.Columns, variant.Layout.FreeCell),
+            session.Content?.FreeText ?? ContentSet.DefaultFreeText,
             CardSizeView.All,
             variant.IsFreeForm
                 ? [new BoardGroup(string.Empty, [.. Enumerable.Range(1, variant.BallMax)])] // one block, no labels (docs/06)

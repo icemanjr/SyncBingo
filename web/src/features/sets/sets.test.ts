@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addEntry,
   checkEntry,
+  checkFreeText,
   describe as describeProblem,
   describeMerge,
   editEntry,
@@ -354,5 +355,38 @@ describe('possible cards (FR-39)', () => {
   it('counts every square’s picks from the whole set without groups', () => {
     expect(possibleCards(words(8), false, 3, 1, 3)).toBe(40_320)
     expect(possibleCards(read(sample), true)).toBeGreaterThan(maxPlayers)
+  })
+})
+
+describe('the free space’s text', () => {
+  it('is read from and written to the file, after the name', () => {
+    const draft = read(
+      '{ "format": 1, "name": "Week 5", "free": " ★  Week 5 ", "pairs": [ ["cat"] ] }',
+    )
+
+    expect(draft.free).toBe('★ Week 5')
+    expect(writeSetFile(draft)).toMatch(
+      /^\{\n {2}"format": 1,\n {2}"name": "Week 5",\n {2}"free": "★ Week 5",\n/,
+    )
+    expect(writeSetFile({ ...draft, free: '' })).not.toContain('"free"')
+  })
+
+  it('is checked like a square, and can’t be one', () => {
+    expect(checkFreeText({ ...words(3), free: 'WORD 2' })).toBe(
+      'The free space can’t say “WORD 2”: that’s already a square.',
+    )
+    expect(checkFreeText({ ...words(3), free: 'sixteen letters!' })).toBe(
+      'The free space’s text can be up to 15 characters.',
+    )
+    expect(checkFreeText({ ...words(3), free: '' })).toBeUndefined()
+    expect(setProblems({ ...words(24), free: 'word 1' }, false)).toEqual([
+      'The free space can’t say “word 1”: that’s already a square.',
+    ])
+  })
+
+  it('keeps this draft’s text when merging, or takes the file’s when it has none', () => {
+    const incoming = { ...words(1), free: 'Theirs' }
+    expect(mergeDraft({ ...emptyDraft(), free: 'Mine' }, incoming).draft.free).toBe('Mine')
+    expect(mergeDraft(emptyDraft(), incoming).draft.free).toBe('Theirs')
   })
 })

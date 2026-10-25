@@ -8,12 +8,14 @@ namespace SyncBingo.Domain.Content;
 /// The file a host keeps a set in (ADR 0009): versioned JSON, small enough to email or keep on a USB stick,
 /// and laid out like the card. Groups are listed in the order their columns are dealt, each with its pairs;
 /// entries outside any group go in the top-level <c>pairs</c>. A group's optional <c>label</c> (up to 5
-/// characters) heads its card column; without one, the name's first letter does. A pair is a short list: <c>["cat"]</c> when the
+/// characters) heads its card column; without one, the name's first letter does. An optional <c>free</c> is the free
+/// space's text (up to 15 characters; "FREE" without it). A pair is a short list: <c>["cat"]</c> when the
 /// ball and the square match, <c>["2 + 5", "7"]</c> when the ball calls one thing and the square shows another.
 /// <code>
 /// {
 ///   "format": 1,
 ///   "name": "Normal Bingo",
+///   "free": "★ Week 5",
 ///   "groups": [
 ///     { "name": "Biology", "label": "B", "pairs": [ ["An organism that makes its own food using sunlight.", "Producer"], … ] },
 ///     { "name": "I", "pairs": [ ["16"], … ] }
@@ -66,6 +68,11 @@ public static class ContentSetFile
 
         var file = new StringBuilder();
         file.Append("{\n  \"format\": ").Append(Format).Append(",\n  \"name\": ").Append(Quote(set.Name));
+        if (set.FreeText is { } free)
+        {
+            file.Append(",\n  \"free\": ").Append(Quote(free));
+        }
+
         if (!set.Groups.IsEmpty)
         {
             file.Append(",\n  \"groups\": [");
@@ -118,6 +125,17 @@ public static class ContentSetFile
             name = nameElement.GetString();
         }
 
+        string? free = null;
+        if (root.TryGetProperty("free", out var freeElement))
+        {
+            if (freeElement.ValueKind != JsonValueKind.String)
+            {
+                return NotASetFile();
+            }
+
+            free = freeElement.GetString();
+        }
+
         var hasGroups = root.TryGetProperty("groups", out var groupsElement);
         var hasPairs = root.TryGetProperty("pairs", out var pairsElement);
         if (!hasGroups && !hasPairs)
@@ -165,7 +183,7 @@ public static class ContentSetFile
             return NotASetFile();
         }
 
-        return ContentSet.TryCreate(name, entries, groupOrder);
+        return ContentSet.TryCreate(name, entries, groupOrder, free);
     }
 
     /// <summary>A list of pairs, each <c>["ball"]</c> or <c>["ball", "square"]</c>.</summary>

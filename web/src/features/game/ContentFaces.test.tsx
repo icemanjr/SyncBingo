@@ -68,6 +68,7 @@ describe('a card with a custom set', () => {
         columns={2}
         columnLabels={null}
         freeCell={2}
+        freeText="FREE"
         isCalled={(cell) => cell === 1}
         highlightMatches
         markStyle={defaultMarkStyle}
@@ -90,6 +91,7 @@ describe('a card with a custom set', () => {
         columns={2}
         columnLabels={['Week 1 words', '×2']}
         freeCell={null}
+        freeText="FREE"
         isCalled={null}
         highlightMatches={false}
         markStyle={defaultMarkStyle}

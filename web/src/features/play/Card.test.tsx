@@ -46,6 +46,7 @@ describe('a cut-off square (FR-51)', () => {
         columns={2}
         columnLabels={null}
         freeCell={null}
+        freeText="FREE"
         isCalled={null}
         highlightMatches={false}
         markStyle={defaultMarkStyle}

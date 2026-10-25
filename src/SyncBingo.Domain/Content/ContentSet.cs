@@ -50,12 +50,16 @@ public sealed class ContentSet
     public const int MaxLabelLength = 5;
     public const int MaxNameLength = 60;
 
+    /// <summary>What the free space says without a set's own text: "FREE", on every card, numbers included.</summary>
+    public const string DefaultFreeText = "FREE";
+
     /// <summary>The most problems one refusal lists; a file full of mistakes says how many more there are.</summary>
     private const int ProblemsShown = 3;
 
-    private ContentSet(string name, ImmutableArray<ContentPair> pairs, ImmutableArray<string> groups, ImmutableArray<string> labels)
+    private ContentSet(string name, ImmutableArray<ContentPair> pairs, ImmutableArray<string> groups, ImmutableArray<string> labels, string? freeText)
     {
         Name = name;
+        FreeText = freeText;
         Pairs = pairs;
         Groups = groups;
         Labels = labels;
@@ -63,6 +67,12 @@ public sealed class ContentSet
 
     /// <summary>What the host called the set, e.g. "Times tables 1–3".</summary>
     public string Name { get; }
+
+    /// <summary>
+    /// The free space's text, e.g. "★ Week 5", or <c>null</c> for <see cref="DefaultFreeText"/>. It changes only what
+    /// the square says, never whether the card has a free space (a game setting, FR-26).
+    /// </summary>
+    public string? FreeText { get; }
 
     public ImmutableArray<ContentPair> Pairs { get; }
 
@@ -94,7 +104,8 @@ public sealed class ContentSet
     /// <paramref name="groupOrder"/> lists the groups in the order the host arranged them (the set file's
     /// order), including any still empty; groups named only by entries follow, in the order they appear.
     /// </summary>
-    public static Result<ContentSet> TryCreate(string? name, IEnumerable<ContentEntry> entries, IEnumerable<ContentGroup>? groupOrder = null)
+    public static Result<ContentSet> TryCreate(
+        string? name, IEnumerable<ContentEntry> entries, IEnumerable<ContentGroup>? groupOrder = null, string? freeText = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
@@ -191,6 +202,17 @@ public sealed class ContentSet
             pairs.Add(new ContentPair(ball, square, group));
         }
 
+        // Checked like a square, and never the same as one: a player couldn't tell the free space from it.
+        var free = ContentText.Tidy(freeText);
+        if (free.Length > 0 && (!ContentText.Fits(free, MaxSquareLength) || !ContentText.IsPrintable(free)))
+        {
+            problems.Add($"The free space's text must be printable text of up to {MaxSquareLength} characters");
+        }
+        else if (free.Length > 0 && squares.ContainsKey(ContentText.Key(free)))
+        {
+            problems.Add($"The free space's text '{free}' is also a square");
+        }
+
         if (groups.Count > MaxGroups)
         {
             problems.Add($"A set can have at most {MaxGroups} groups, not {groups.Count}");
@@ -208,7 +230,7 @@ public sealed class ContentSet
         var order = groups.Select((group, index) => (group, index)).ToDictionary(g => g.group, g => g.index, StringComparer.Ordinal);
         var ordered = pairs.OrderBy(pair => pair.Group is null ? int.MaxValue : order[pair.Group]);
         return Result.Success(new ContentSet(
-            setName, [.. ordered], [.. groups], [.. groups.Select(group => labels.GetValueOrDefault(group) ?? DefaultLabel(group))]));
+            setName, [.. ordered], [.. groups], [.. groups.Select(group => labels.GetValueOrDefault(group) ?? DefaultLabel(group))], free.Length > 0 ? free : null));
     }
 
     /// <summary>
@@ -216,7 +238,7 @@ public sealed class ContentSet
     /// sessions saved before a set's groups always meant dealing by group (ADR 0009, amended 2026-10-22).
     /// </summary>
     public ContentSet WithoutGroups() =>
-        Groups.IsEmpty ? this : new(Name, [.. Pairs.Select(pair => pair with { Group = null })], [], []);
+        Groups.IsEmpty ? this : new(Name, [.. Pairs.Select(pair => pair with { Group = null })], [], [], FreeText);
 
     /// <summary>The set as entries again, e.g. to write its file.</summary>
     public IEnumerable<ContentEntry> ToEntries() =>

@@ -42,7 +42,7 @@ public sealed class Session
     {
         Code = code;
         _standard = variant;
-        Variant = variant;
+        Variant = settings.FreeSpace == FreeSpace.None ? variant.WithoutFreeCell() : variant;
         Settings = settings;
         WinConditionId = winConditionId;
         CreatedAt = now;
@@ -268,7 +268,7 @@ public sealed class Session
                 content = content.WithoutGroups();
             }
 
-            var custom = ContentVariant.For(variant, content);
+            var custom = session.RulesFor(snapshot.Settings.FreeSpace, content);
             if (!custom.IsSuccess)
             {
                 throw new InvalidOperationException($"Stored session {snapshot.Code}'s custom set no longer fits: {custom.Error}");
@@ -393,17 +393,13 @@ public sealed class Session
             return WrongState("change the set");
         }
 
-        var variant = _standard;
-        if (content is not null)
+        var rules = RulesFor(Settings.FreeSpace, content);
+        if (!rules.IsSuccess)
         {
-            var custom = ContentVariant.For(_standard, content);
-            if (!custom.IsSuccess)
-            {
-                return custom.Error!;
-            }
-
-            variant = custom.Value;
+            return rules.Error!;
         }
+
+        var variant = rules.Value;
 
         Content = content;
         PlayersMayDownload = false; // a new set starts private
@@ -532,12 +528,28 @@ public sealed class Session
             return Failure(DomainErrorCode.NotAllowed, $"{char.ToUpperInvariant(names[0])}{names[1..]} can only be changed between rounds.");
         }
 
+        // A free space added or taken away changes the card itself (lobby only, checked above): the set must
+        // still fill it, and the caller deals everyone a new card (CardShapeChanged).
+        var rules = RulesFor(settings.FreeSpace, Content);
+        if (!rules.IsSuccess)
+        {
+            return rules.Error!;
+        }
+
         var events = new List<SessionEvent>();
         List<RuleChange> noticed = winConditionId != WinConditionId ? [new RuleChange("winCondition", winConditionId)] : [];
         noticed.AddRange(SessionSettings.PlayerFacingChanges(Settings, settings));
+        CardShapeChanged = false;
         if (settings != Settings)
         {
+            CardShapeChanged = rules.Value.Layout.FreeCell != Variant.Layout.FreeCell;
             Settings = settings;
+            Variant = rules.Value;
+            if (CardShapeChanged)
+            {
+                ClearCalls(); // the last round's calls were judged on the old cards
+            }
+
             events.Add(new SettingsChanged(Settings));
         }
 
@@ -560,6 +572,23 @@ public sealed class Session
         }
 
         return events.Count == 0 ? Result.Success<IReadOnlyList<SessionEvent>>([]) : Commit(now, events);
+    }
+
+    /// <summary>
+    /// The last <see cref="ApplyRules"/> changed the card's shape (a free space added or taken away), so every
+    /// participant needs a new card. Not stored: read straight after the command.
+    /// </summary>
+    public bool CardShapeChanged { get; private set; }
+
+    /// <summary>
+    /// The rules for a free-space choice and set: the standard rules, without the free cell for
+    /// <see cref="FreeSpace.None"/>, then the set's items as the balls (<see cref="ContentVariant"/>), or why the
+    /// set doesn't fit that card.
+    /// </summary>
+    private Result<BingoVariant> RulesFor(FreeSpace freeSpace, ContentSet? content)
+    {
+        var standard = freeSpace == FreeSpace.None ? _standard.WithoutFreeCell() : _standard;
+        return content is null ? Result.Success(standard) : ContentVariant.For(standard, content);
     }
 
     /// <summary>Whether one more participant may join now (FR-5, A3, A7).</summary>

@@ -364,3 +364,67 @@ describe('Card size (FR-26a)', () => {
     )
   })
 })
+
+describe('Your patterns (FR-21a)', () => {
+  beforeEach(() => {
+    seats.save(code, { role: 'host', token: 'host-token' })
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+    vi.unstubAllGlobals()
+  })
+
+  it('draws a pattern on the card, and adds it only after the host confirms', async () => {
+    const api = fakeApi({
+      [snapshotPath]: { body: aHostSnapshot({}, { settings: hostSettings }) },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Draw a pattern' }))
+    await userEvent.type(screen.getByLabelText('Pattern name'), 'Plus')
+    for (const name of ['Row 1, column 3', 'Row 3, column 1', 'Row 3, column 5']) {
+      await userEvent.click(screen.getByRole('button', { name }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: 'Row 3, column 3 (free space)' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Add this pattern' }))
+
+    expect(
+      screen.getByText('Add “Plus”? You can rename it later, but not delete it.'),
+    ).toBeInTheDocument()
+    expect(api.sent.some((s) => s.path.endsWith('/patterns'))).toBe(false)
+    await userEvent.click(screen.getByRole('button', { name: 'Add pattern' }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/patterns'))?.body).toEqual({
+        name: 'Plus',
+        cells: [2, 10, 14, 12],
+      })
+    })
+  })
+
+  it('renames one of the host’s own patterns, since they can’t be deleted', async () => {
+    const own = { id: 'custom-1', name: 'Plus', masks: [1], isLine: false, announcedAs: 'Plus' }
+    const api = fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot({ patterns: [...standardPatterns, own] }, { settings: hostSettings }),
+      },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+    expect(screen.queryByRole('button', { name: /^Delete/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Rename Plus' }))
+    const input = screen.getByLabelText('New name for Plus')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Do not use')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      const sent = api.sent.find((s) => s.method === 'PUT' && s.path.includes('/patterns/'))
+      expect(sent?.path).toBe(`/api/sessions/${code}/patterns/custom-1`)
+      expect(sent?.body).toEqual({ name: 'Do not use' })
+    })
+  })
+})

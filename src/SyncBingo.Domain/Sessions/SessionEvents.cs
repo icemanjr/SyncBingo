@@ -141,6 +141,9 @@ public sealed record ContentSharingChanged(bool PlayersMayDownload) : SessionEve
 /// <summary>The host chose which side of a custom set's items the call boards show (FR-29).</summary>
 public sealed record BoardSideChanged(BoardSide Side) : SessionEvent;
 
+/// <summary>The host added a pattern of their own (FR-21a); everyone's pattern list changes.</summary>
+public sealed record PatternsChanged : SessionEvent;
+
 /// <summary>
 /// Which face of a custom set's items the call boards show (FR-29, ADR 0009): the ball side (what is
 /// called; the default, so a board of words can't be used as an answer list) or the square side (what is

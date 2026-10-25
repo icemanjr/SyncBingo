@@ -59,6 +59,15 @@ internal static class HostEndpoints
                     .ToHttp(rules => TypedResults.Ok(new RulesView(SettingsBody.From(rules.Settings), rules.WinConditionId)))))
             .Produces<RulesView>().WithName("ApplyRules");
 
+        // A pattern the host drew, on the card in use (FR-21a). Patterns can be added and renamed, never deleted.
+        game.MapPost("/patterns", (string code, PatternRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await host.AddPatternAsync(game, caller, request.Name, request.Cells ?? [], ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("AddPattern");
+
+        game.MapPut("/patterns/{id}", (string code, string id, PatternNameRequest request, ClaimsPrincipal user, HostCommandHandler host, CancellationToken ct) =>
+            Routes.ForCaller(code, user, async (game, caller) => (await host.RenamePatternAsync(game, caller, id, request.Name, ct)).NoContent()))
+            .Produces(StatusCodes.Status204NoContent).WithName("RenamePattern");
+
         game.MapPost("/rounds/countdown", (string code, CountdownRequest request, ClaimsPrincipal user, RoundHandler rounds, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await rounds.StartCountdownAsync(game, caller, request.StartInAuto, ct)).ToHttp(outcome =>

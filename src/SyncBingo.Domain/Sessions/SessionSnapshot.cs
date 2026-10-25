@@ -1,3 +1,5 @@
+using SyncBingo.Domain.Rules;
+
 namespace SyncBingo.Domain.Sessions;
 
 /// <summary>
@@ -32,7 +34,8 @@ public sealed record SessionSnapshot(
     string? ContentName = null,
     bool GroupItems = false,
     BoardSide BoardSide = BoardSide.Ball,
-    bool PlayersMayDownload = false);
+    bool PlayersMayDownload = false,
+    IReadOnlyList<CustomPattern>? CustomPatterns = null);
 
 /// <summary>Lines already alerted for a card and win condition this round, so detection never repeats an alert.</summary>
 public sealed record WinAlert(string ParticipantId, int CardId, string WinConditionId, int Lines);

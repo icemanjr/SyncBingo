@@ -25,6 +25,12 @@ public sealed class Session
     /// <summary>Longest join note (FR-49): a password or a short hint.</summary>
     public const int MaxJoinNoteLength = 80;
 
+    /// <summary>Patterns a host may draw for one game (FR-21a).</summary>
+    public const int MaxCustomPatterns = 5;
+
+    /// <summary>Longest name for a pattern the host drew, e.g. "Plus sign".</summary>
+    public const int MaxPatternNameLength = 20;
+
     /// <summary>The rules without custom content: the card, patterns and presets a set is played with.</summary>
     private readonly BingoVariant _standard;
 
@@ -36,6 +42,9 @@ public sealed class Session
 
     /// <summary>Recent award <c>Idempotency-Key</c>s, oldest first; a repeat within these changes nothing.</summary>
     private readonly List<string> _awardKeys = [];
+
+    /// <summary>The host's own patterns (FR-21a), every card size's, in the order they were drawn.</summary>
+    private readonly List<CustomPattern> _customPatterns = [];
     /// <summary>Lines already alerted per card and win condition this round, so alerts never repeat.</summary>
     private readonly Dictionary<(string ParticipantId, int CardId, string WinConditionId), int> _alerted = [];
 
@@ -60,6 +69,9 @@ public sealed class Session
 
     /// <summary>The custom set is dealt by group, one per card column: it has groups (ADR 0009).</summary>
     public bool GroupItems => Content is { Groups.IsEmpty: false };
+
+    /// <summary>The patterns the host drew for this game (FR-21a), for every card size.</summary>
+    public IReadOnlyList<CustomPattern> CustomPatterns => _customPatterns;
 
     /// <summary>Which face of a custom set's items the call boards show (FR-29); the ball side by default.</summary>
     public BoardSide BoardSide { get; private set; }
@@ -203,7 +215,8 @@ public sealed class Session
         Content?.Name,
         GroupItems,
         BoardSide,
-        PlayersMayDownload);
+        PlayersMayDownload,
+        [.. _customPatterns]);
 
     /// <summary>
     /// Rebuilds a session saved with <see cref="ToSnapshot"/>, with its custom set (stored apart) when it uses
@@ -256,6 +269,8 @@ public sealed class Session
                     Wins = [.. round.Wins.Select(win => win with { WinConditionId = Canonical(win.WinConditionId) })],
                 }));
         session._awardKeys.AddRange(snapshot.AwardKeys ?? []);
+        session._customPatterns.AddRange(snapshot.CustomPatterns ?? []);
+        session.Variant = session.RulesFor(snapshot.Settings, content: null).Value;
         if (snapshot.ContentName is not null)
         {
             if (content is null)
@@ -616,6 +631,8 @@ public sealed class Session
             standard = standard.WithoutFreeCell();
         }
 
+        standard = standard.WithPatterns(_customPatterns.Where(pattern => pattern.Size == settings.CardSize).Select(pattern => pattern.ToWinPattern()));
+
         return content is null ? Result.Success(standard) : ContentVariant.For(standard, content);
     }
 
@@ -913,6 +930,105 @@ public sealed class Session
 
         PlayersMayDownload = playersMayDownload;
         return Commit(now, new ContentSharingChanged(playersMayDownload));
+    }
+
+    /// <summary>
+    /// Adds a pattern the host drew (FR-21a): a name of up to <see cref="MaxPatternNameLength"/> characters, unlike
+    /// every other pattern's, and the squares it needs (cell indexes, row by row) on the card in use. Up to
+    /// <see cref="MaxCustomPatterns"/> per game. It is offered at once but not selected; choosing it is an Apply.
+    /// Patterns can't be deleted (owner, 2026-10-24): round summaries and wins keep naming them; a host who wants a
+    /// clean slate starts a new game.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> AddPattern(string? name, IReadOnlyCollection<int> cells, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+
+        if (State == SessionState.Ended)
+        {
+            return WrongState("add a pattern");
+        }
+
+        if (_customPatterns.Count >= MaxCustomPatterns)
+        {
+            return Failure(DomainErrorCode.Invalid, $"A game can have up to {MaxCustomPatterns} patterns of its own.");
+        }
+
+        if (CheckPatternName(name, except: null) is { } badName)
+        {
+            return badName;
+        }
+
+        var tidy = ContentText.Tidy(name);
+
+        var layout = Variant.Layout;
+        if (cells.Any(cell => cell < 0 || cell >= layout.CellCount))
+        {
+            return Failure(DomainErrorCode.Invalid, "Every square of the pattern must be on the card.");
+        }
+
+        var mask = cells.Aggregate(0u, (all, cell) => all | (1u << cell));
+        if ((mask & ~layout.FreeCellMask) == 0)
+        {
+            return Failure(DomainErrorCode.Invalid, "Pick at least one square besides the free space.");
+        }
+
+        if (Variant.Patterns.FirstOrDefault(pattern => pattern.Masks is [var only] && only == mask) is { } same)
+        {
+            return Failure(DomainErrorCode.Invalid, $"That's the same shape as '{same.Name}'.");
+        }
+
+        _customPatterns.Add(new CustomPattern($"custom-{_customPatterns.Count + 1}", tidy, Settings.CardSize, mask));
+        Variant = RulesFor(Settings, Content).Value; // the set already fits this card; only the patterns grow
+        return Commit(now, new PatternsChanged());
+    }
+
+    /// <summary>
+    /// Renames one of the host's patterns (FR-21a), e.g. a mistake to "OLD – Plus" or "Do not use", since patterns
+    /// can't be deleted. Its id stays, so past rounds and wins still point at it.
+    /// </summary>
+    public Result<IReadOnlyList<SessionEvent>> RenamePattern(string id, string? name, DateTimeOffset now)
+    {
+        if (State == SessionState.Ended)
+        {
+            return WrongState("rename a pattern");
+        }
+
+        var index = _customPatterns.FindIndex(pattern => pattern.Id == id);
+        if (index < 0)
+        {
+            return Failure(DomainErrorCode.NotFound, "That pattern isn't one of this game's own.");
+        }
+
+        if (CheckPatternName(name, except: id) is { } badName)
+        {
+            return badName;
+        }
+
+        var tidy = ContentText.Tidy(name);
+        if (tidy == _customPatterns[index].Name)
+        {
+            return Result.Success<IReadOnlyList<SessionEvent>>([]);
+        }
+
+        _customPatterns[index] = _customPatterns[index] with { Name = tidy };
+        Variant = RulesFor(Settings, Content).Value;
+        return Commit(now, new PatternsChanged());
+    }
+
+    /// <summary>A pattern's name: up to <see cref="MaxPatternNameLength"/> printable characters, unlike any other pattern's.</summary>
+    private DomainError? CheckPatternName(string? name, string? except)
+    {
+        var tidy = ContentText.Tidy(name);
+        if (tidy.Length == 0 || !ContentText.Fits(tidy, MaxPatternNameLength) || !ContentText.IsPrintable(tidy))
+        {
+            return new DomainError(DomainErrorCode.Invalid, $"Give the pattern a name of up to {MaxPatternNameLength} characters.");
+        }
+
+        var named = _customPatterns.Where(pattern => pattern.Id != except).Select(pattern => pattern.Name)
+            .Concat(Variant.Patterns.Where(pattern => pattern.Id != except && !_customPatterns.Exists(own => own.Id == pattern.Id)).Select(pattern => pattern.Name));
+        return named.Any(other => ContentText.Key(other) == ContentText.Key(tidy))
+            ? new DomainError(DomainErrorCode.Invalid, $"There is already a pattern called '{tidy}'.")
+            : null;
     }
 
     public Result<IReadOnlyList<SessionEvent>> SetBoardSide(BoardSide side, DateTimeOffset now)

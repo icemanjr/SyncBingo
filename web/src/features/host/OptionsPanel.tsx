@@ -7,6 +7,7 @@ import { settingSections, type SettingInfo, type Settings } from '../game/rules'
 import { useAction } from '../game/useAction'
 import { Button, ErrorText, Panel } from '../game/ui'
 import type { HostApi } from './hostApi'
+import { OwnPatterns } from './OwnPatterns'
 
 type Draft = Settings & { winCondition: string }
 
@@ -265,6 +266,11 @@ export function OptionsPanel({
           {patternData.patterns
             .filter((pattern) => !grouped.has(pattern.id))
             .map((pattern) => patternBox(pattern.id, pattern.name))}
+          <OwnPatterns
+            game={game}
+            host={host}
+            sameCard={(draft.cardSize ?? 'FiveByFive') === (base.cardSize ?? 'FiveByFive')}
+          />
         </fieldset>
 
         {settingSections.map((section) => (

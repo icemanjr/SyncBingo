@@ -5,7 +5,7 @@ using static SyncBingo.Domain.Tests.Content.ContentTestKit;
 
 namespace SyncBingo.Domain.Tests.Content;
 
-/// <summary>Playing a custom set on the standard card (ADR 0009): by group, or free-form.</summary>
+/// <summary>Playing a custom set on the standard card (ADR 0009): by group when it has groups, otherwise free-form.</summary>
 public sealed class ContentVariantTests
 {
     private static readonly BingoVariant Standard = StandardVariants.Classic75;
@@ -13,7 +13,7 @@ public sealed class ContentVariantTests
     [Fact]
     public void A_word_list_is_dealt_free_form_with_one_ball_per_entry()
     {
-        var variant = ContentVariant.For(Standard, Valid(Words(40)), groupItems: false).Value;
+        var variant = ContentVariant.For(Standard, Valid(Words(40))).Value;
 
         variant.Id.ShouldBe("custom");
         variant.IsFreeForm.ShouldBeTrue();
@@ -25,7 +25,7 @@ public sealed class ContentVariantTests
     [Fact]
     public void The_card_and_patterns_stay_the_standard_ones()
     {
-        var variant = ContentVariant.For(Standard, Valid(Words(40)), groupItems: false).Value;
+        var variant = ContentVariant.For(Standard, Valid(Words(40))).Value;
 
         variant.Layout.ShouldBe(Standard.Layout);
         variant.Patterns.ShouldBe(Standard.Patterns);
@@ -35,7 +35,7 @@ public sealed class ContentVariantTests
     [Fact]
     public void Grouped_items_deal_each_column_from_one_group()
     {
-        var variant = ContentVariant.For(Standard, Valid(TimesTables()), groupItems: true).Value;
+        var variant = ContentVariant.For(Standard, Valid(TimesTables())).Value;
 
         variant.IsFreeForm.ShouldBeFalse();
         variant.Columns.ShouldBe([new("×1", 1, 5), new("×2", 6, 10), new("×3", 11, 15), new("×4", 16, 20), new("×5", 21, 25)]);
@@ -66,24 +66,32 @@ public sealed class ContentVariantTests
     }
 
     [Fact]
-    public void A_grouped_set_can_still_be_played_free_form() =>
-        ContentVariant.For(Standard, Valid(TimesTables()), groupItems: false).Value.IsFreeForm.ShouldBeTrue();
+    public void The_same_set_without_its_groups_is_dealt_free_form_with_the_same_item_ids()
+    {
+        var set = Valid(TimesTables());
+
+        var plain = set.WithoutGroups();
+
+        ContentVariant.For(Standard, plain).Value.IsFreeForm.ShouldBeTrue();
+        plain.Groups.ShouldBeEmpty();
+        plain.Pairs.Select(pair => pair.Ball).ShouldBe(set.Pairs.Select(pair => pair.Ball));
+    }
 
     [Fact]
-    public void Group_items_needs_every_entry_in_a_group()
+    public void A_set_with_groups_needs_every_entry_in_a_group()
     {
         var entries = TimesTables();
         entries.Add(new ContentEntry("loose"));
 
-        Refusal(Valid(entries), groupItems: true).ShouldBe("Group items needs every entry in a group.");
+        Refusal(Valid(entries)).ShouldBe("A set with groups needs every entry in a group.");
     }
 
     [Fact]
-    public void Group_items_needs_one_group_per_column()
+    public void A_set_with_groups_needs_one_group_per_column()
     {
         var entries = TimesTables().Select(entry => entry with { Group = entry.Group == "×5" ? "×4" : entry.Group });
 
-        Refusal(Valid(entries), groupItems: true).ShouldBe("Group items needs 5 groups, one for each card column; this set has 4.");
+        Refusal(Valid(entries)).ShouldBe("A set with groups needs 5 groups, one for each card column; this set has 4.");
     }
 
     [Fact]
@@ -94,7 +102,7 @@ public sealed class ContentVariantTests
         entries.RemoveAt(0);
         entries.Add(new ContentEntry("spare", null, "×5"));
 
-        Refusal(Valid(entries), groupItems: true).ShouldBe("Group '×1' has 4 entries; its column needs at least 5.");
+        Refusal(Valid(entries)).ShouldBe("Group '×1' has 4 entries; its column needs at least 5.");
     }
 
     [Fact]
@@ -104,12 +112,12 @@ public sealed class ContentVariantTests
         entries.RemoveAll(entry => entry.Ball == "3 × 3"); // ×3 is the middle column
         entries.Add(new ContentEntry("spare", null, "×5"));
 
-        ContentVariant.For(Standard, Valid(entries), groupItems: true).IsSuccess.ShouldBeTrue();
+        ContentVariant.For(Standard, Valid(entries)).IsSuccess.ShouldBeTrue();
     }
 
-    private static string Refusal(ContentSet set, bool groupItems)
+    private static string Refusal(ContentSet set)
     {
-        var result = ContentVariant.For(Standard, set, groupItems);
+        var result = ContentVariant.For(Standard, set);
         result.IsSuccess.ShouldBeFalse();
         return result.Error!.Message;
     }

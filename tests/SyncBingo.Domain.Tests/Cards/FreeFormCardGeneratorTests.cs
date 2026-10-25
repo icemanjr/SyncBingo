@@ -10,7 +10,7 @@ namespace SyncBingo.Domain.Tests.Cards;
 public sealed class FreeFormCardGeneratorTests
 {
     private static readonly BingoVariant Variant =
-        ContentVariant.For(StandardVariants.Classic75, ContentTestKit.Valid(ContentTestKit.Words(30)), groupItems: false).Value;
+        ContentVariant.For(StandardVariants.Classic75, ContentTestKit.Valid(ContentTestKit.Words(30))).Value;
 
     private static readonly FreeFormCardGenerator Generator = new(Variant);
 
@@ -49,7 +49,7 @@ public sealed class FreeFormCardGeneratorTests
     [Fact]
     public void Exactly_enough_items_deal_every_card_in_a_different_order()
     {
-        var variant = ContentVariant.For(StandardVariants.Classic75, ContentTestKit.Valid(ContentTestKit.Words(24)), groupItems: false).Value;
+        var variant = ContentVariant.For(StandardVariants.Classic75, ContentTestKit.Valid(ContentTestKit.Words(24))).Value;
         var claimed = new HashSet<string>();
 
         var cards = Enumerable.Range(0, 50)

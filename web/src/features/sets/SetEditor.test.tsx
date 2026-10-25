@@ -52,7 +52,7 @@ describe('the set editor (FR-44)', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('That entry is already in the set.')
     expect(
-      within(screen.getByRole('region', { name: 'Not in a group' })).getByText('photosynthesis'),
+      within(screen.getByRole('region', { name: 'Entries' })).getByText('photosynthesis'),
     ).toBeInTheDocument()
     expect(screen.getByText('A set needs 24–500 entries; this one has 1.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Use this set' })).toBeDisabled()
@@ -92,7 +92,7 @@ describe('the set editor (FR-44)', () => {
     expect((put?.body as { groups: unknown[] }).groups).toHaveLength(5)
   })
 
-  it('warns while Group items is on and an entry is outside every group', async () => {
+  it('parks pairs as ungrouped while the host reorganises, then removes them all', async () => {
     fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderEditor()
     await userEvent.upload(await screen.findByLabelText('Open a set file'), sampleFile())
@@ -100,15 +100,46 @@ describe('the set editor (FR-44)', () => {
 
     await userEvent.type(screen.getByLabelText('Word or phrase'), 'comet')
     await userEvent.click(screen.getByRole('button', { name: 'Add entry' }))
-
-    const loose = screen.getByRole('region', { name: 'Not in a group' })
-    expect(within(loose).getByRole('alert')).toHaveTextContent(
-      'Group items is on, so the set can’t be used until these are in a group.',
+    await userEvent.selectOptions(
+      screen.getByLabelText(/^Group for An organism that makes its own food/),
+      'Ungrouped',
     )
-    expect(screen.getByText(/Group items needs every entry in a group/)).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: /Group items/ }))
-    expect(screen.queryByText(/Group items needs every entry in a group/)).not.toBeInTheDocument()
+    const parked = screen.getByRole('region', { name: 'Ungrouped pairs' })
+    expect(within(parked).getByRole('alert')).toHaveTextContent(
+      'The set can’t be used until each of these is moved into a group or removed.',
+    )
+    expect(within(parked).getByText('Producer')).toBeInTheDocument()
+    expect(
+      screen.getByText('2 ungrouped pairs: move them into a group, or remove them.'),
+    ).toBeInTheDocument()
+
+    await userEvent.click(within(parked).getByRole('button', { name: 'Remove all' }))
+    await userEvent.click(within(parked).getByRole('button', { name: 'Remove' }))
+
+    expect(screen.queryByRole('region', { name: 'Ungrouped pairs' })).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole('region', { name: 'Group Biology' })).getByText('(14)'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/ungrouped pairs?:/)).not.toBeInTheDocument()
+  })
+
+  it('without Use groups, shows one list and sends no groups', async () => {
+    const api = fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
+    renderEditor()
+    await userEvent.upload(await screen.findByLabelText('Open a set file'), sampleFile())
+    await screen.findByRole('region', { name: 'Group Biology' })
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /Use groups/ }))
+
+    expect(screen.queryByRole('region', { name: 'Group Biology' })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Entries' })).toHaveTextContent('Producer')
+    await userEvent.click(screen.getByRole('checkbox', { name: /I’m responsible/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use this set' }))
+
+    await screen.findByText('The host console')
+    const put = api.sent.find((s) => s.method === 'PUT')
+    expect((put?.body as { groups?: unknown }).groups).toBeUndefined()
   })
 
   it('renames a group once, for all its entries', async () => {

@@ -154,18 +154,6 @@ export function checkGroupName(draft: Draft, name: string, except?: string): str
   return undefined
 }
 
-/** Adds a group at the end, labelled with its first letter (the host can change it). */
-export function addGroup(draft: Draft, name: string): { draft: Draft; problem?: string } {
-  const problem =
-    draft.groups.length >= limits.groups
-      ? `A set can have up to ${String(limits.groups)} groups.`
-      : checkGroupName(draft, name)
-  if (problem) return { draft, problem }
-  const n = tidy(name)
-  const group: DraftGroup = { id: newId('g'), name: n, label: defaultLabel(n) }
-  return { draft: { ...draft, groups: [...draft.groups, group] } }
-}
-
 /**
  * Renames a group: its entries follow, since they point at the group, not its name. A label the host never
  * changed (still the old name's first letter) follows the new name's first letter.
@@ -224,14 +212,45 @@ export function moveGroup(draft: Draft, id: string, by: -1 | 1): Draft {
   return { ...draft, groups }
 }
 
-/** Deletes a group; its entries stay in the set, ungrouped. */
-export const deleteGroup = (draft: Draft, id: string): Draft => ({
-  ...draft,
-  groups: draft.groups.filter((group) => group.id !== id),
-  entries: draft.entries.map((entry) =>
-    entry.groupId === id ? { ...entry, groupId: null } : entry,
-  ),
-})
+/** Column letters, left to right, named for the groups a card gains (as in B-I-N-G-O). */
+const columnLetters = ['B', 'I', 'N', 'G', 'O']
+
+/**
+ * Fits the groups to the card's columns (ADR 0009), for **Use groups**: one group per column, never more.
+ * Groups past the last column are removed and their entries become ungrouped pairs, for the host to move or
+ * remove; missing columns are added at the end as empty groups, named by their column letter ("G", "O").
+ * Nothing is deleted here, so the set can't be used until the host has made it fit (`setProblems`).
+ */
+export function fitGroups(draft: Draft, columns: number): Draft {
+  const groups = draft.groups.slice(0, columns)
+  const kept = new Set(groups.map((group) => group.id))
+  for (let column = groups.length; column < columns; column++) {
+    const taken = (name: string) => groups.some((group) => key(group.name) === key(name))
+    let name = columnLetters[column] ?? `Column ${String(column + 1)}`
+    for (let n = 2; taken(name); n++) name = `Column ${String(column + 1)} (${String(n)})`
+    groups.push({ id: newId('g'), name, label: defaultLabel(name) })
+  }
+
+  return {
+    ...draft,
+    groups,
+    entries: draft.entries.map((entry) =>
+      entry.groupId !== null && !kept.has(entry.groupId) ? { ...entry, groupId: null } : entry,
+    ),
+  }
+}
+
+/** The entries in no group (or in one no longer in the draft). */
+export const ungroupedOf = (draft: Draft): DraftEntry[] =>
+  draft.entries.filter(
+    (entry) => entry.groupId === null || !draft.groups.some((group) => group.id === entry.groupId),
+  )
+
+/** **Remove all** ungrouped pairs, e.g. to trim a set to a smaller card, as standard Bingo drops columns. */
+export function removeUngrouped(draft: Draft): Draft {
+  const ungrouped = new Set(ungroupedOf(draft).map((entry) => entry.id))
+  return { ...draft, entries: draft.entries.filter((entry) => !ungrouped.has(entry.id)) }
+}
 
 /** What a merged file added and what it skipped (FR-44): skipped entries are reported, never overwritten. */
 export interface MergeReport {
@@ -301,10 +320,13 @@ export function describeMerge(report: MergeReport): string {
   return parts.join(' ')
 }
 
-/** What stops the draft being used, as the server would say, or nothing when it can be sent. */
+/**
+ * What stops the draft being used, as the server would say, or nothing when it can be sent. With **Use groups**
+ * (after `fitGroups`), every entry must be in a group and each group must fill its column.
+ */
 export function setProblems(
   draft: Draft,
-  groupItems: boolean,
+  useGroups: boolean,
   cardColumns = 5,
   freeColumn: number | null = 2,
   rows = 5,
@@ -317,21 +339,22 @@ export function setProblems(
     )
   if (!fits(tidy(draft.name), limits.name))
     problems.push(`The set’s name can be up to ${String(limits.name)} characters.`)
-  if (groupItems) {
-    if (draft.entries.some((entry) => entry.groupId === null))
+  if (useGroups) {
+    const ungrouped = ungroupedOf(draft).length
+    if (ungrouped > 0)
       problems.push(
-        'Group items needs every entry in a group. Put the ungrouped entries in a group, or turn Group items off.',
+        `${String(ungrouped)} ungrouped ${ungrouped === 1 ? 'pair' : 'pairs'}: move ${ungrouped === 1 ? 'it' : 'them'} into a group, or remove ${ungrouped === 1 ? 'it' : 'them'}.`,
       )
     if (draft.groups.length !== cardColumns)
       problems.push(
-        `Group items needs ${String(cardColumns)} groups, one for each card column; this set has ${String(draft.groups.length)}.`,
+        `Use groups needs ${String(cardColumns)} groups, one for each card column; this set has ${String(draft.groups.length)}.`,
       )
     draft.groups.forEach((group, column) => {
       const needed = rows - (column === freeColumn ? 1 : 0)
       const has = draft.entries.filter((entry) => entry.groupId === group.id).length
       if (column < cardColumns && has < needed)
         problems.push(
-          `“${group.name}” has ${String(has)} entries; its column needs at least ${String(needed)}.`,
+          `“${group.name}” has ${String(has)} ${has === 1 ? 'entry' : 'entries'}; its column needs at least ${String(needed)}.`,
         )
     })
   }

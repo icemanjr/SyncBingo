@@ -3,6 +3,7 @@ using SyncBingo.Domain;
 using SyncBingo.Domain.Cards;
 using SyncBingo.Domain.Content;
 using SyncBingo.Domain.Participants;
+using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Queries;
@@ -28,6 +29,7 @@ public sealed record GameView(
     IReadOnlyList<PatternView> Patterns,
     IReadOnlyList<PresetView> Presets,
     CardShape Card,
+    IReadOnlyList<CardSizeView> CardSizes,
     IReadOnlyList<BoardGroup> Board,
     IReadOnlyList<BallCall>? Calls,
     int BallsRemaining,
@@ -63,13 +65,37 @@ public sealed record ContentView(
 /// A win pattern as data, so clients draw it and never hard-code shapes (FR-48): bit <c>i</c> of a mask is cell <c>i</c>.
 /// <see cref="WinCondition"/> in the game view is a selection of these, joined by "+" (FR-21).
 /// </summary>
-public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks, bool IsLine, string AnnouncedAs);
+public sealed record PatternView(string Id, string Name, IReadOnlyList<uint> Masks, bool IsLine, string AnnouncedAs)
+{
+    public static PatternView Of(WinPattern pattern)
+    {
+        ArgumentNullException.ThrowIfNull(pattern);
+        return new PatternView(pattern.Id, pattern.Name, [.. pattern.Masks], pattern.IsLine, pattern.AnnouncedAs);
+    }
+}
 
 /// <summary>A named group of patterns, e.g. Normal Bingo = rows + columns + diagonals; clients name a selection with it.</summary>
 public sealed record PresetView(string Id, string Name, IReadOnlyList<string> PatternIds);
 
 /// <summary>The card's grid: cells are numbered row by row; <see cref="FreeCell"/> is the free space, if any.</summary>
 public sealed record CardShape(int Rows, int Columns, int? FreeCell);
+
+/// <summary>
+/// A card size the host can choose (FR-26a) and the patterns it can be won with, so Options lists the right
+/// ones while the host picks a size, e.g. no letters on 3 × 3.
+/// </summary>
+public sealed record CardSizeView(CardSize Size, int Rows, int Columns, IReadOnlyList<PatternView> Patterns)
+{
+    /// <summary>Every size, smallest last, as the standard rules define them.</summary>
+    public static IReadOnlyList<CardSizeView> All { get; } =
+    [
+        .. Enum.GetValues<CardSize>().Select(size =>
+        {
+            var variant = StandardVariants.For(size);
+            return new CardSizeView(size, variant.Layout.Rows, variant.Layout.Columns, [.. variant.Patterns.Select(PatternView.Of)]);
+        }),
+    ];
+}
 
 /// <summary>One group of the call board (docs/06): a label such as "B" and the balls under it.</summary>
 public sealed record BoardGroup(string Label, IReadOnlyList<int> Balls);
@@ -239,9 +265,10 @@ public sealed class GameQueries(ISessionStore store)
             session.UpcomingRound,
             session.CountdownEndsAt,
             session.WinConditionId,
-            [.. variant.Patterns.Select(pattern => new PatternView(pattern.Id, pattern.Name, [.. pattern.Masks], pattern.IsLine, pattern.AnnouncedAs))],
+            [.. variant.Patterns.Select(PatternView.Of)],
             [.. variant.Presets.Select(preset => new PresetView(preset.Id, preset.Name, [.. preset.PatternIds]))],
             new CardShape(variant.Layout.Rows, variant.Layout.Columns, variant.Layout.FreeCell),
+            CardSizeView.All,
             variant.IsFreeForm
                 ? [new BoardGroup(string.Empty, [.. Enumerable.Range(1, variant.BallMax)])] // one block, no labels (docs/06)
                 : [.. variant.Columns.Select(column => new BoardGroup(column.Label, [.. Enumerable.Range(column.Min, column.Count)]))],

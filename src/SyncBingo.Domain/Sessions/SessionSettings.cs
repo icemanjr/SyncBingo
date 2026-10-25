@@ -1,3 +1,5 @@
+using SyncBingo.Domain.Rules;
+
 namespace SyncBingo.Domain.Sessions;
 
 public enum WinDetection
@@ -88,6 +90,9 @@ public sealed record SessionSettings
     /// <summary>FR-26. Changes apply from the next round.</summary>
     public FreeSpace FreeSpace { get; init; } = FreeSpace.AlwaysMarked;
 
+    /// <summary>FR-26a: the card's size, lobby only; changing it deals everyone a new card.</summary>
+    public CardSize CardSize { get; init; } = CardSize.FiveByFive;
+
     /// <summary>FR-46: label rounds "Round 3" / "Start Round 3"; off: "This round" / "Start New Round".</summary>
     public bool ShowRoundNumbers { get; init; } = true;
 
@@ -117,6 +122,7 @@ public sealed record SessionSettings
     private static readonly (string Name, Func<SessionSettings, object> Value)[] RoundScoped =
     [
         ("free space", s => s.FreeSpace),
+        ("card size", s => s.CardSize),
         ("redraw policy", s => s.RedrawPolicy),
         ("multiple wins", s => s.MultipleWins),
     ];
@@ -146,6 +152,7 @@ public sealed record SessionSettings
             && Enum.IsDefined(RedrawPolicy)
             && Enum.IsDefined(Unmarking)
             && Enum.IsDefined(FreeSpace)
+            && Enum.IsDefined(CardSize)
             && Enum.IsDefined(MultipleWins)
                 ? null
                 : new DomainError(DomainErrorCode.Invalid, "A setting has an unknown value.");

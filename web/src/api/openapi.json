@@ -1289,6 +1289,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "cardSize",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/CardSize"
+            }
           }
         ],
         "requestBody": {
@@ -3898,6 +3905,41 @@
           }
         }
       },
+      "CardSize": {
+        "enum": [
+          "FiveByFive",
+          "FourByFour",
+          "ThreeByThree"
+        ]
+      },
+      "CardSizeView": {
+        "required": [
+          "size",
+          "rows",
+          "columns",
+          "patterns"
+        ],
+        "type": "object",
+        "properties": {
+          "size": {
+            "$ref": "#/components/schemas/CardSize"
+          },
+          "rows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "columns": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "patterns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatternView"
+            }
+          }
+        }
+      },
       "CardView": {
         "required": [
           "cardId",
@@ -4235,6 +4277,7 @@
           "patterns",
           "presets",
           "card",
+          "cardSizes",
           "board",
           "calls",
           "ballsRemaining",
@@ -4286,6 +4329,12 @@
           },
           "card": {
             "$ref": "#/components/schemas/CardShape"
+          },
+          "cardSizes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CardSizeView"
+            }
           },
           "board": {
             "type": "array",
@@ -4883,6 +4932,16 @@
               },
               {
                 "$ref": "#/components/schemas/FreeSpace"
+              }
+            ]
+          },
+          "cardSize": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CardSize"
               }
             ]
           },

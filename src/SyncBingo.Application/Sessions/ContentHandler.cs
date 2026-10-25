@@ -1,6 +1,7 @@
 using SyncBingo.Application.Ports;
 using SyncBingo.Domain;
 using SyncBingo.Domain.Content;
+using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Sessions;
@@ -15,8 +16,11 @@ public sealed record ContentDownload(string Name, string File);
 /// </summary>
 public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource random)
 {
-    /// <summary>Reads and checks the set file (before taking the lock), then uses it and redeals every card.</summary>
-    public Task<Result<CommandOutcome>> UseAsync(GameCode code, Caller caller, string file, CancellationToken cancellationToken)
+    /// <summary>
+    /// Reads and checks the set file (before taking the lock), then uses it and redeals every card; with
+    /// <paramref name="cardSize"/>, on that card (FR-26a), so a set and its card change together.
+    /// </summary>
+    public Task<Result<CommandOutcome>> UseAsync(GameCode code, Caller caller, string file, CardSize? cardSize, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(caller);
         ArgumentNullException.ThrowIfNull(file);
@@ -27,12 +31,12 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
         }
 
         var set = ContentSetFile.Read(file);
-        return set.IsSuccess ? ChangeAsync(code, caller, set.Value, cancellationToken) : Task.FromResult<Result<CommandOutcome>>(set.Error!);
+        return set.IsSuccess ? ChangeAsync(code, caller, set.Value, cardSize, cancellationToken) : Task.FromResult<Result<CommandOutcome>>(set.Error!);
     }
 
     /// <summary>Back to numbers: the standard balls and a new card for everyone.</summary>
     public Task<Result<CommandOutcome>> UseNumbersAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
-        ChangeAsync(code, caller, content: null, cancellationToken);
+        ChangeAsync(code, caller, content: null, cardSize: null, cancellationToken);
 
     /// <summary>Lets players download the set in use, or stops them (off whenever a set is first used).</summary>
     public Task<Result<CommandOutcome>> SetSharingAsync(GameCode code, Caller caller, bool playersMayDownload, CancellationToken cancellationToken) =>
@@ -71,13 +75,13 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
     }
 
     private Task<Result<CommandOutcome>> ChangeAsync(
-        GameCode code, Caller caller, ContentSet? content, CancellationToken cancellationToken) =>
+        GameCode code, Caller caller, ContentSet? content, CardSize? cardSize, CancellationToken cancellationToken) =>
         runner.RunAsync(
             code,
             caller,
             async (session, now, ct) =>
             {
-                var changed = session.UseContent(content, now);
+                var changed = session.UseContent(content, now, cardSize);
                 if (!changed.IsSuccess)
                 {
                     return changed.Error!;

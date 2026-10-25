@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
+import { normalizeCode } from '../game/codes'
 import type { Game } from '../game/gameEvents'
-import { idsOf, keyOf, selectionName } from '../game/patterns'
+import { idsOf, keyOf, selectionName, type PatternData } from '../game/patterns'
 import { settingSections, type SettingInfo, type Settings } from '../game/rules'
 import { useAction } from '../game/useAction'
 import { Button, ErrorText, Panel } from '../game/ui'
@@ -15,7 +17,8 @@ const AppliedForMs = 1500
  * Options (FR-32, docs/06): every rule as a draft, applied in one step with **Apply**, so the host can
  * announce the change while nothing is called. Only changed fields are sent. Hidden in auto mode (the
  * console doesn't offer it); during the countdown Apply waits; the *Between rounds* section is locked
- * during a round.
+ * during a round. Patterns are the draft card size's (FR-26a: no letters on a smaller card); a grouped set's
+ * card size changes in the set editor, with the set, and a 4 × 4 card has no free space to choose.
  */
 export function OptionsPanel({
   game,
@@ -67,8 +70,23 @@ export function OptionsPanel({
     else onClose()
   }
 
+  // The patterns of the card size in the draft: a smaller card has no letters (FR-26a).
+  const patternsFor = (size: Draft['cardSize']): PatternData => ({
+    patterns: game.cardSizes.find((s) => s.size === size)?.patterns ?? game.patterns,
+    presets: game.presets,
+  })
+  const patternData = patternsFor(draft.cardSize)
+
   const set = (key: keyof Draft, value: unknown) => {
-    setDraft((d) => ({ ...d, [key]: value }))
+    setDraft((d) => {
+      const next = { ...d, [key]: value }
+      if (key !== 'cardSize') return next
+      // Keep the patterns the new card has; with none left, Normal Bingo.
+      const data = patternsFor(next.cardSize)
+      const kept = idsOf(d.winCondition).filter((id) => data.patterns.some((p) => p.id === id))
+      const ids = kept.length > 0 ? kept : (data.presets[0]?.patternIds ?? ['rows'])
+      return { ...next, winCondition: keyOf(ids, data) }
+    })
   }
 
   // Patterns (FR-21): several may be selected, at least one always is. The draft holds the selection's key.
@@ -80,8 +98,16 @@ export function OptionsPanel({
       if (on) next.add(id)
       else next.delete(id)
     }
-    if (next.size > 0) set('winCondition', keyOf(next, game))
+    if (next.size > 0) set('winCondition', keyOf(next, patternData))
   }
+
+  /** Why a lobby setting can't be changed here, beyond the round lock: shown in place of its help. */
+  const lockedBecause = (key: SettingInfo['key']) =>
+    key === 'cardSize' && game.content?.groupItems
+      ? 'grouped'
+      : key === 'freeSpace' && draft.cardSize === 'FourByFour'
+        ? 'noCentre'
+        : undefined
 
   const checkbox = (
     label: string,
@@ -114,7 +140,8 @@ export function OptionsPanel({
     })
 
   const field = (info: SettingInfo) => {
-    const locked = info.betweenRounds === true && inRound
+    const because = lockedBecause(info.key)
+    const locked = (info.betweenRounds === true && inRound) || because !== undefined
     const isChanged = draft[info.key] !== base[info.key]
     const id = `setting-${info.key}`
     const value = draft[info.key]
@@ -180,7 +207,22 @@ export function OptionsPanel({
           </label>
         )}
         <p id={`${id}-help`} className="text-sm text-ink-muted">
-          {info.help}
+          {because === 'grouped' ? (
+            <>
+              This set’s groups are the card’s columns: change the card size in the{' '}
+              <Link
+                to={`/host/${normalizeCode(game.code)}/set`}
+                className="font-semibold text-accent-text underline"
+              >
+                set editor
+              </Link>
+              .
+            </>
+          ) : because === 'noCentre' ? (
+            'A 4 × 4 card has no centre square, so no free space.'
+          ) : (
+            info.help
+          )}
         </p>
       </div>
     )
@@ -196,7 +238,7 @@ export function OptionsPanel({
         >
           <legend className="mb-1 font-semibold">Patterns</legend>
           <p className="text-sm text-ink-muted">
-            Any selected pattern wins: {selectionName(draft.winCondition, game)}
+            Any selected pattern wins: {selectionName(draft.winCondition, patternData)}
           </p>
           {game.presets.map((preset) => {
             const all = preset.patternIds.every((id) => selected.has(id))
@@ -213,14 +255,14 @@ export function OptionsPanel({
                   some && !all,
                 )}
                 <div className="ml-8 flex flex-col">
-                  {game.patterns
+                  {patternData.patterns
                     .filter((pattern) => preset.patternIds.includes(pattern.id))
                     .map((pattern) => patternBox(pattern.id, pattern.name))}
                 </div>
               </div>
             )
           })}
-          {game.patterns
+          {patternData.patterns
             .filter((pattern) => !grouped.has(pattern.id))
             .map((pattern) => patternBox(pattern.id, pattern.name))}
         </fieldset>

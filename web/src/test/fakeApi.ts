@@ -3,6 +3,8 @@ import { vi } from 'vitest'
 export interface Sent {
   method: string
   path: string
+  /** The query string, e.g. "?cardSize=ThreeByThree"; routes match on the path alone. */
+  query: string
   body: unknown
   headers: Headers
 }
@@ -23,6 +25,7 @@ export function fakeApi(routes: Record<string, Reply | ((sent: Sent) => Reply)>)
       const request: Sent = {
         method: input.method,
         path: decodeURIComponent(url.pathname),
+        query: url.search,
         body: text ? (JSON.parse(text) as unknown) : undefined,
         headers: input.headers,
       }

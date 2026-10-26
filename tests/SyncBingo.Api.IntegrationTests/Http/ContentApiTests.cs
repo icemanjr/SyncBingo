@@ -297,6 +297,22 @@ public sealed class ContentApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_pattern_the_host_draws_reaches_everyone_and_only_the_host_can_add_one()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+        var plus = new { name = "Plus", cells = PlusCells };
+
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/patterns", avaToken, plus)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await _client.SendAsync(HttpMethod.Post, $"/api/sessions/{code}/patterns", hostToken, plus)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var game = (await SnapshotAsync(code, avaToken)).GetProperty("game");
+        game.GetProperty("patterns").EnumerateArray().Last().GetProperty("name").GetString().ShouldBe("Plus");
+        game.GetProperty("cardSizes")[0].GetProperty("patterns").EnumerateArray().Last().GetProperty("id").GetString().ShouldBe("custom-1");
+        game.GetProperty("cardSizes")[2].GetProperty("patterns").GetArrayLength().ShouldBe(5, "drawn for 5 × 5 only");
+    }
+
+    [Fact]
     public async Task A_huge_body_is_refused()
     {
         var (code, hostToken) = await NewGameAsync();
@@ -312,6 +328,9 @@ public sealed class ContentApiTests : IAsyncDisposable
             (await Json(response)).GetProperty("detail").GetString().ShouldBe("A set file can be at most 64 KB.");
         }
     }
+
+    /// <summary>A plus sign on a 5 × 5 card: the middle row and the middle column.</summary>
+    private static readonly int[] PlusCells = [2, 7, 10, 11, 12, 13, 14, 17, 22];
 
     private async Task<HttpResponseMessage> UseAsync(string code, string token, string file, string? cardSize = null)
     {

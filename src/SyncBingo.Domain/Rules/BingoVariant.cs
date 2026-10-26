@@ -76,6 +76,13 @@ public sealed class BingoVariant
     public BingoVariant WithoutFreeCell() =>
         Layout.FreeCell is null ? this : new(Id, new CardLayout(Layout.Rows, Layout.Columns, freeCell: null), BallMax, Columns, Patterns, Presets);
 
+    /// <summary>The same rules with more patterns to choose from, e.g. the host's own (FR-21a).</summary>
+    public BingoVariant WithPatterns(IEnumerable<WinPattern> extra)
+    {
+        var added = extra.ToList();
+        return added.Count == 0 ? this : new(Id, Layout, BallMax, Columns, [.. Patterns, .. added], Presets);
+    }
+
     /// <summary>
     /// How many different cards these rules can deal (FR-39), at most <see cref="long.MaxValue"/>: free-form,
     /// the ordered picks of an item for each square; by column, the product of each column's ordered picks

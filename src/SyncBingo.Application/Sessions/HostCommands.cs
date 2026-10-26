@@ -65,6 +65,14 @@ public sealed class HostCommandHandler(SessionCommandRunner runner, IRandomSourc
     public Task<Result<CommandOutcome>> SetJoinNoteAsync(GameCode code, Caller caller, string? note, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.SetJoinNote(note, now), cancellationToken);
 
+    /// <summary>Adds a pattern the host drew, on the card in use (FR-21a); patterns can't be deleted.</summary>
+    public Task<Result<CommandOutcome>> AddPatternAsync(GameCode code, Caller caller, string? name, IReadOnlyCollection<int> cells, CancellationToken cancellationToken) =>
+        runner.RunAsync(code, caller, (session, now) => session.AddPattern(name, cells, now), cancellationToken);
+
+    /// <summary>Renames one of the host's patterns (FR-21a), e.g. a mistake to "Do not use".</summary>
+    public Task<Result<CommandOutcome>> RenamePatternAsync(GameCode code, Caller caller, string id, string? name, CancellationToken cancellationToken) =>
+        runner.RunAsync(code, caller, (session, now) => session.RenamePattern(id, name, now), cancellationToken);
+
     /// <summary>Which face of a custom set the call boards show (FR-29).</summary>
     public Task<Result<CommandOutcome>> SetBoardSideAsync(GameCode code, Caller caller, BoardSide side, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.SetBoardSide(side, now), cancellationToken);

@@ -19,7 +19,7 @@ erDiagram
 
 | Entity | Key fields |
 |--------|-----------|
-| **Session** | `code`, `passwordHash`, `state` (betweenRounds / starting / manual / auto / ended), `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber`, `countdownEndsAt` and `startInAuto` (during a countdown) |
+| **Session** | `code`, `passwordHash`, `state` (betweenRounds / starting / manual / auto / ended), `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber`, `countdownEndsAt` and `startInAuto` (during a countdown), `customPatterns` (the host's own patterns, FR-21a: id, name, card size, mask) |
 | **Settings** | auto-call interval, showBallToPlayers, highlightMatches, showCallBoard, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; lobby only), callBoardFace (ball / square), showRoundNumbers, multipleWins (oncePerRound / oncePerPattern / everyDeclaredWin; lobby only), requireMarksForClaims, winHighlight, winDetection, redrawPolicy, currentWinCondition |
 | **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
 | **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `matches` (lines completed at that moment; 0 = not qualified), `alreadyAwarded` (wins this card already got for this pattern this round), `awardable` (more wins possible under *Multiple wins*; 0 = "no awardable matches"), `status` (pending/awarded/dismissed) |

@@ -63,6 +63,7 @@ Phone, during a round
 Options holds every rule: the settings and the win patterns. Changes there are a **draft** kept on the host's device until the host presses **Apply**:
 
 - **Patterns** (FR-21) are checkboxes, and any selected pattern wins. **Normal Bingo** heads its group and switches **Rows**, **Columns** and **Diagonals** together; when only some are on it shows as partly checked. The shapes follow: Four Corners, the letters and Blackout. The last selected pattern can't be cleared ("at least one pattern"). A line above the list names the draft selection ("Any selected pattern wins: Normal Bingo or Four Corners").
+- **Your patterns** (FR-21a) close the Patterns section: each of the host's own patterns with **Rename**, then **Draw a pattern** (a name and a grid like the card in use, the free space shown as ★). **Add this pattern** asks "Add “Plus”? You can rename it later, but not delete it." before adding it at once. Drawing waits until a new card size is applied; past 5 patterns the button gives way to a note.
 
 - Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
 - **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.

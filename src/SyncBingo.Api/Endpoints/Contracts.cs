@@ -73,6 +73,12 @@ public sealed record JoinNoteRequest(string? Note);
 /// <summary>"Players can download this set" (ADR 0009).</summary>
 public sealed record ContentSharingRequest(bool PlayersMayDownload);
 
+/// <summary>A pattern the host drew (FR-21a): its name and its squares, as cell indexes row by row.</summary>
+public sealed record PatternRequest(string Name, IReadOnlyList<int> Cells);
+
+/// <summary>A new name for one of the host's patterns (FR-21a).</summary>
+public sealed record PatternNameRequest(string Name);
+
 /// <summary>"Call board shows" (FR-29): <c>Ball</c> or <c>Square</c>.</summary>
 public sealed record BoardSideRequest(BoardSide Side);
 

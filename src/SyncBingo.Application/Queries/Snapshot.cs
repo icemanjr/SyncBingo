@@ -84,19 +84,25 @@ public sealed record CardShape(int Rows, int Columns, int? FreeCell);
 
 /// <summary>
 /// A card size the host can choose (FR-26a) and the patterns it can be won with, so Options lists the right
-/// ones while the host picks a size, e.g. no letters on 3 × 3.
+/// ones while the host picks a size, e.g. no letters on 3 × 3: the standard ones, then the host's own drawn
+/// for that size (FR-21a).
 /// </summary>
 public sealed record CardSizeView(CardSize Size, int Rows, int Columns, IReadOnlyList<PatternView> Patterns)
 {
-    /// <summary>Every size, smallest last, as the standard rules define them.</summary>
-    public static IReadOnlyList<CardSizeView> All { get; } =
-    [
-        .. Enum.GetValues<CardSize>().Select(size =>
-        {
-            var variant = StandardVariants.For(size);
-            return new CardSizeView(size, variant.Layout.Rows, variant.Layout.Columns, [.. variant.Patterns.Select(PatternView.Of)]);
-        }),
-    ];
+    /// <summary>Every size, smallest last, with this game's own patterns for each.</summary>
+    public static IReadOnlyList<CardSizeView> For(Session session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return
+        [
+            .. Enum.GetValues<CardSize>().Select(size =>
+            {
+                var variant = StandardVariants.For(size);
+                var own = session.CustomPatterns.Where(pattern => pattern.Size == size).Select(pattern => pattern.ToWinPattern());
+                return new CardSizeView(size, variant.Layout.Rows, variant.Layout.Columns, [.. variant.Patterns.Concat(own).Select(PatternView.Of)]);
+            }),
+        ];
+    }
 }
 
 /// <summary>One group of the call board (docs/06): a label such as "B" and the balls under it.</summary>
@@ -271,7 +277,7 @@ public sealed class GameQueries(ISessionStore store)
             [.. variant.Presets.Select(preset => new PresetView(preset.Id, preset.Name, [.. preset.PatternIds]))],
             new CardShape(variant.Layout.Rows, variant.Layout.Columns, variant.Layout.FreeCell),
             session.Content?.FreeText ?? ContentSet.DefaultFreeText,
-            CardSizeView.All,
+            CardSizeView.For(session),
             variant.IsFreeForm
                 ? [new BoardGroup(string.Empty, [.. Enumerable.Range(1, variant.BallMax)])] // one block, no labels (docs/06)
                 : [.. variant.Columns.Select(column => new BoardGroup(column.Label, [.. Enumerable.Range(column.Min, column.Count)]))],

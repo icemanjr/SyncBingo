@@ -114,6 +114,24 @@ export function hostApi(code: string, token: string) {
       unwrap(
         api.PUT('/api/sessions/{code}/board-side', { params: { path }, headers, body: { side } }),
       ),
+    /** A pattern the host drew, on the card in use (FR-21a): its squares as cell indexes. */
+    addPattern: (name: string, cells: number[]) =>
+      unwrap(
+        api.POST('/api/sessions/{code}/patterns', {
+          params: { path },
+          headers,
+          body: { name, cells },
+        }),
+      ),
+    /** Patterns can't be deleted, only renamed (e.g. a mistake to "Do not use"). */
+    renamePattern: (id: string, name: string) =>
+      unwrap(
+        api.PUT('/api/sessions/{code}/patterns/{id}', {
+          params: { path: { ...path, id } },
+          headers,
+          body: { name },
+        }),
+      ),
   }
 }
 

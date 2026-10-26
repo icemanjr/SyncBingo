@@ -21,7 +21,7 @@ stateDiagram-v2
     Ended --> [*]
 ```
 
-- **BetweenRounds** is the lobby, before the first round and between rounds. Joining and (per FR-20) card redraws happen here. The host's main button reads **Start Round N** (or **Start New Round** with *Show round numbers* off, FR-46), with a **Manual / Auto** toggle beside it, Manual by default.
+- **BetweenRounds** is the lobby, before the first round and between rounds. Cards are dealt to joiners here, and (per FR-20) card redraws happen here; anyone who joined during the countdown or round (the waiting room, FR-5) is dealt a card on arriving here. The host's main button reads **Start Round N** (or **Start New Round** with *Show round numbers* off, FR-46), with a **Manual / Auto** toggle beside it, Manual by default.
 - **Starting** is the 10-second countdown (FR-45). Joining and redraws are closed from its first second; the host can **Cancel** back to the lobby. At zero the scheduler starts the round, under any round-scoped settings that were waiting, and every player's marks are reset for those settings.
 - **InRound** starts in **Manual** (the host draws with *Grab ball*), or in **Auto** if the toggle said so, with its first ball drawn at zero. **Auto** draws on a timer until the host presses *Pause*. Players can mark in both.
 - **Clear cards** ends the round (if one is running), clears marks and called balls, and returns to the lobby, so late arrivals can join before the next round. **End round** stops the round but leaves the cards and calls on screen.
@@ -31,7 +31,7 @@ stateDiagram-v2
 
 | Command | BetweenRounds | Starting | Manual | Auto | Notes |
 |---------|:---:|:---:|:---:|:---:|-------|
-| Join (password + name) | ✔ | ✖ | ✖ | ✖ | FR-5: "A round is in progress. You can join between rounds." |
+| Join (password + name) | ✔ | ✔ | ✔ | ✔ | FR-5: in the lobby with a card; otherwise into the waiting room, without one until the game is back in the lobby |
 | Start Round N | ✔ | – | – | – | Starts the 10 s countdown (FR-45), with the Manual/Auto toggle |
 | Cancel countdown | – | ✔ | – | – | Back to the lobby; joining reopens |
 | Round start (at zero) | – | ✔ | – | – | Scheduler only; refills the hopper and resets marks |
@@ -53,7 +53,7 @@ stateDiagram-v2
 | Dismiss claim | – | – | ✔ | ✔ | Host clears a claim without awarding it |
 | Toggle own auto-fill (participant) | ✔ | ✔ | ✔ | ✔ | Only if the host made auto-fill available (FR-16) |
 | Remove (kick) participant | ✔ | ✔ | ✔ | ✔ | Dismisses their pending claims; wins already awarded stay in the history |
-| Leave game (participant) | ✔ | ✔ | ✔ | ✔ | As a removal, but announced as "Ava left the game" (FR-53); they can join again only between rounds |
+| Leave game (participant) | ✔ | ✔ | ✔ | ✔ | As a removal, but announced as "Ava left the game" (FR-53); joining again mid-round puts them in the waiting room |
 | Show leaderboard to all | ✔ | ✔ | ✔ | ✔ | The host always sees it; this shows or hides it for participants and the display |
 
 ## 3. Ball drawing

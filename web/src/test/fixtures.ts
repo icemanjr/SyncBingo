@@ -138,6 +138,7 @@ export function aPlayerSnapshot(
       name: 'Ava',
       autoFillOn: false,
       cards: [{ cardId: 1, cells, marks }],
+      waiting: false,
     },
     host: null,
   }

@@ -22,13 +22,13 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public void The_countdown_closes_joining_and_redraws()
+    public void During_the_countdown_joiners_wait_and_redraws_close()
     {
         var kit = new PlayerTestKit(SessionSettings.Default with { RedrawPolicy = RedrawPolicy.ParticipantsMayRedraw });
         kit.Session.ClearCards(redrawCards: false, Now).IsSuccess.ShouldBeTrue();
         kit.Session.StartCountdown(startInAuto: false, Now).IsSuccess.ShouldBeTrue();
 
-        kit.Session.CheckCanAdmit(0).Error!.Message.ShouldBe("A round is in progress. You can join between rounds.");
+        kit.Session.JoinersWait.ShouldBeTrue();
         kit.Player.RedrawCard(1, kit.Session, () => PlayerTestKit.KnownCard).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
     }
 

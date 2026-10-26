@@ -195,7 +195,7 @@ With *Show round numbers* off the button reads **Start New Round**. Pressing it 
 └──────────┘      host only: [ Cancel ]
 ```
 
-Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown, the join page shows "A round is in progress. You can join between rounds." At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
+Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown and the round, the join page shows "A round is in progress. Join now and you'll be added as soon as it's done." and joining enters the waiting room (FR-5): the play screen shows "Round currently being played. You'll be added as soon as it's done." with **My marks**, the auto-fill switch and the call board as usual, but no card or Bingo button. The host's Players list shows them under **Waiting**, counted with the players, with "They'll join automatically when it ends: End round or Clear cards." and **Remove**. At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
 
 ### Claim alerts on the host console
 

@@ -128,7 +128,7 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
 
     /// <summary>
     /// The player leaves the game (FR-53): as if the host had removed them, but announced as
-    /// "Ava left the game". Their token stops working; they can join again between rounds.
+    /// "Ava left the game". Their token stops working; joining again mid-round puts them in the waiting room.
     /// </summary>
     public Task<Result<CommandOutcome>> LeaveAsync(GameCode code, Caller caller, CancellationToken cancellationToken)
     {

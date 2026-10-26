@@ -107,6 +107,7 @@ export function HostConsole() {
       players={players}
       wins={wins}
       inRound={inRound}
+      lobby={view.state === 'BetweenRounds'}
       host={host}
       onInspect={setInspecting}
       onLeaderboard={() => {

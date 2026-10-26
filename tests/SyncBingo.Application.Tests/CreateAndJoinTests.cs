@@ -130,15 +130,57 @@ public sealed class CreateAndJoinTests
     }
 
     [Fact]
-    public async Task Joining_mid_round_is_refused_and_reserves_nothing()
+    public async Task Joining_mid_round_waits_with_a_reserved_name_and_no_card()
     {
         var code = await _app.NewGameAsync();
         await _app.StartRoundAsync(code);
 
-        var result = await _app.Join.HandleAsync(new JoinSession(code.ToString(), TestApp.Password, "Late"), TestApp.Ct);
+        var late = await _app.JoinAsync(code, "Late");
 
-        result.Error!.Code.ShouldBe(DomainErrorCode.WrongState);
-        _app.Store.ReservedNames(code).ShouldBeEmpty();
+        var waiting = await _app.PlayerAsync(code, late);
+        waiting.IsWaiting.ShouldBeTrue();
+        waiting.Cards.ShouldBeEmpty();
+        _app.Store.ReservedNames(code).ShouldContain("late");
+        (await _app.Join.HandleAsync(new JoinSession(code.ToString(), TestApp.Password, "LATE"), TestApp.Ct)).Error!.Code
+            .ShouldBe(DomainErrorCode.Conflict, "the name is taken while they wait");
+        _app.Publisher.Notifications.ShouldContain(sent => sent.Notification is ParticipantJoined, "the host sees them waiting");
+    }
+
+    [Theory]
+    [InlineData("end")]
+    [InlineData("clear")]
+    public async Task Everyone_waiting_joins_when_the_round_ends_in_the_order_they_arrived(string how)
+    {
+        var code = await _app.NewGameAsync();
+        await _app.JoinAsync(code, "Ava");
+        await _app.StartRoundAsync(code);
+        var first = await _app.JoinAsync(code, "First");
+        _app.Clock.UtcNow = _app.Clock.UtcNow.AddSeconds(1);
+        var second = await _app.JoinAsync(code, "Second");
+
+        var ended = how == "end"
+            ? await _app.Host.EndRoundAsync(code, Caller.Host, TestApp.Ct)
+            : await _app.Round.ClearCardsAsync(code, Caller.Host, redrawCards: false, TestApp.Ct);
+
+        ended.IsSuccess.ShouldBeTrue();
+        (await _app.PlayerAsync(code, first)).Cards.ShouldHaveSingleItem();
+        (await _app.PlayerAsync(code, second)).Cards.ShouldHaveSingleItem();
+        _app.Publisher.Notifications
+            .Where(sent => sent.Notification is CardReplaced)
+            .Select(sent => sent.Recipient)
+            .ShouldBe([new Recipient.Participant(first), new Recipient.Participant(second)]);
+    }
+
+    [Fact]
+    public async Task A_waiting_player_can_set_auto_fill_before_they_have_a_card()
+    {
+        var code = await _app.NewGameAsync(SessionSettings.Default with { AutoFillAvailable = true });
+        await _app.StartRoundAsync(code);
+        var late = await _app.JoinAsync(code, "Late");
+
+        (await _app.Players.SetAutoFillAsync(code, Caller.Participant(late), true, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+
+        (await _app.PlayerAsync(code, late)).AutoFillOn.ShouldBeTrue();
     }
 
     [Fact]

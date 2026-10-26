@@ -17,8 +17,9 @@ public sealed record RulesApplied(SessionSettings Settings, string WinConditionI
 /// </summary>
 public sealed class HostCommandHandler(SessionCommandRunner runner, IRandomSource random)
 {
+    /// <summary>Ends the round early; anyone waiting joins now (A3).</summary>
     public Task<Result<CommandOutcome>> EndRoundAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
-        runner.RunAsync(code, caller, (session, now) => session.EndRound(now), cancellationToken);
+        RoundHandler.ThenAdmitAsync(runner, random, code, caller, (session, now) => session.EndRound(now), cancellationToken);
 
     public Task<Result<CommandOutcome>> PauseAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.Pause(now), cancellationToken);
@@ -94,8 +95,9 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
     public Task<Result<CommandOutcome>> StartCountdownAsync(GameCode code, Caller caller, bool startInAuto, CancellationToken cancellationToken) =>
         runner.RunAsync(code, caller, (session, now) => session.StartCountdown(startInAuto, now), cancellationToken);
 
+    /// <summary>Back to the lobby; anyone who arrived during the countdown joins now (A3).</summary>
     public Task<Result<CommandOutcome>> CancelCountdownAsync(GameCode code, Caller caller, CancellationToken cancellationToken) =>
-        runner.RunAsync(code, caller, (session, now) => session.CancelCountdown(now), cancellationToken);
+        ThenAdmitAsync(runner, random, code, caller, (session, now) => session.CancelCountdown(now), cancellationToken);
 
     /// <summary>
     /// Clears every player's marks; with <paramref name="redrawCards"/> every card is replaced
@@ -114,9 +116,99 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
                 }
 
                 var notifications = await ResetParticipantsAsync(runner.Store, session, redrawCards ? random : null, ct).ConfigureAwait(false);
-                return notifications.IsSuccess ? Result.Success(new CommandOutcome(cleared.Value, notifications.Value)) : notifications.Error!;
+                if (!notifications.IsSuccess)
+                {
+                    return notifications.Error!;
+                }
+
+                var admitted = await AdmitWaitingAsync(runner.Store, session, random, ct).ConfigureAwait(false);
+                return Result.Success(new CommandOutcome(cleared.Value, [.. notifications.Value, .. admitted]));
             },
             cancellationToken);
+
+    /// <summary>Runs a command that returns the game to the lobby, then admits anyone waiting (A3).</summary>
+    internal static Task<Result<CommandOutcome>> ThenAdmitAsync(
+        SessionCommandRunner runner,
+        IRandomSource random,
+        GameCode code,
+        Caller caller,
+        Func<Session, DateTimeOffset, Result<IReadOnlyList<SessionEvent>>> command,
+        CancellationToken cancellationToken) =>
+        runner.RunAsync(
+            code,
+            caller,
+            async (session, now, ct) =>
+            {
+                var done = command(session, now);
+                if (!done.IsSuccess)
+                {
+                    return done.Error!;
+                }
+
+                var admitted = await AdmitWaitingAsync(runner.Store, session, random, ct).ConfigureAwait(false);
+                return Result.Success(new CommandOutcome(done.Value, admitted));
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// The waiting room (A3): once the game is back in the lobby, everyone who joined during the round gets a
+    /// card, in the order they arrived. If the rules run out of different cards (FR-39), the rest keep waiting.
+    /// Each is told (their app loads the card) and so is the host.
+    /// </summary>
+    internal static async Task<IReadOnlyList<(Recipient, Notification)>> AdmitWaitingAsync(
+        ISessionStore store, Session session, IRandomSource random, CancellationToken cancellationToken)
+    {
+        var notifications = new List<(Recipient, Notification)>();
+        if (session.State != SessionState.BetweenRounds)
+        {
+            return notifications;
+        }
+
+        var code = session.Code;
+        var waiting = (await store.GetParticipantsAsync(code, cancellationToken).ConfigureAwait(false))
+            .Where(stored => stored.Participant.IsWaiting)
+            .OrderBy(stored => stored.Participant.JoinedAt);
+        var generator = CardGenerators.For(session.Variant);
+        foreach (var stored in waiting)
+        {
+            var dealt = await generator
+                .DealUniqueAsync(random, (fingerprint, ct) => store.TryClaimCardAsync(code, fingerprint, ct), session.Variant.PossibleCards, cancellationToken)
+                .ConfigureAwait(false);
+            if (!dealt.IsSuccess)
+            {
+                break;
+            }
+
+            var admitted = await ParticipantUpdates.UpdateAsync(
+                    store,
+                    code,
+                    stored,
+                    participant =>
+                    {
+                        if (!participant.IsWaiting)
+                        {
+                            return Result.Failure<bool>(DomainErrorCode.Conflict, "Already admitted.");
+                        }
+
+                        participant.Admit(dealt.Value, session);
+                        return Result.Success(true);
+                    },
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (!admitted.IsSuccess)
+            {
+                await store.ReleaseCardAsync(code, dealt.Value.Fingerprint, CancellationToken.None).ConfigureAwait(false);
+                continue;
+            }
+
+            var id = stored.Participant.Id;
+            var cells = session.Content is null ? dealt.Value.Cells : CardView.Placeholders(dealt.Value);
+            notifications.Add((new Recipient.Participant(id), new CardReplaced(1, cells)));
+            notifications.Add((new Recipient.Host(), new ParticipantJoined(id, stored.Participant.Name.Display)));
+        }
+
+        return notifications;
+    }
 
     /// <summary>
     /// Resets every participant's marks for the session's current settings, dealing each a new

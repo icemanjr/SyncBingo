@@ -52,7 +52,7 @@ public sealed class SessionCommandTableTests
         ["Grab ball (host)"] = [Manual],
         ["Auto draw (scheduler)"] = [Auto],
         ["Apply rules"] = [Lobby, Manual],
-        ["Join"] = [Lobby],
+        ["Join"] = [Lobby, Starting, Manual, Auto], // during a round they wait for a card (A3)
         ["Claim Bingo"] = [Manual, Auto],
         ["Award win"] = [Manual, Auto],
         ["Show leaderboard"] = [Lobby, Starting, Manual, Auto],

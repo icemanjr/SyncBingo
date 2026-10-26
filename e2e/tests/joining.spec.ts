@@ -14,28 +14,32 @@ test('players join by the QR link and by typing the code, and the host sees them
   await expect(players.getByText('Ben')).toBeVisible()
 })
 
-test('joining is refused during a round, and works again between rounds', async ({ browser }) => {
+test('someone joining mid-round waits, and gets a card when the round ends', async ({
+  browser,
+}) => {
   const { host, code } = await hostGame(browser)
   await joinGame(browser, code, 'Ava')
   await startRound(host)
 
   const late = await (await browser.newContext(phone)).newPage()
   await late.goto(`/join/${code}`)
+  await expect(
+    late.getByText('A round is in progress. Join now and you’ll be added as soon as it’s done.'),
+  ).toBeVisible()
   await late.getByLabel('Game password').fill('party')
   await late.getByLabel('Your name').fill('Cara')
-  // The page warns as soon as it loads; what matters is the server's answer to the press itself.
-  await expect(late.getByText('A round is in progress. You can join between rounds.')).toBeVisible()
-  const [refused] = await Promise.all([
-    late.waitForResponse((r) => r.url().endsWith(`/api/sessions/${code}/join`)),
-    late.getByRole('button', { name: 'Get my card' }).click(),
-  ])
-  expect(refused.status()).toBe(409)
+  await late.getByRole('button', { name: 'Get my card' }).click()
+
+  // The waiting room (A3): no card yet, but the player can set up meanwhile.
+  await expect(late).toHaveURL(new RegExp(`/play/${code}$`))
+  await expect(late.getByRole('status', { name: 'Waiting to join' })).toBeVisible()
+  await expect(late.getByRole('grid', { name: 'Your card' })).toHaveCount(0)
+  await expect(late.getByRole('button', { name: 'My marks' })).toBeVisible()
+  await expect(host.getByRole('region', { name: 'Waiting' })).toContainText('Cara')
 
   await host.getByRole('button', { name: 'Clear cards' }).click()
-  await expect(host.getByRole('button', { name: 'Start Round 2' })).toBeVisible() // back in the lobby
-  await late.getByRole('button', { name: 'Get my card' }).click()
-  await expect(late).toHaveURL(new RegExp(`/play/${code}$`))
   await expect(late.getByRole('grid', { name: 'Your card' })).toBeVisible()
+  await expect(host.getByRole('region', { name: 'Waiting' })).toHaveCount(0)
 })
 
 test('a phone that went to sleep comes back to the same card', async ({ browser }) => {

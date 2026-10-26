@@ -65,14 +65,14 @@ public sealed class SettingsAndJoinInfoTests
     }
 
     [Fact]
-    public async Task Join_info_says_whether_joining_is_open_and_which_round_is_next()
+    public async Task Join_info_says_whether_a_round_is_under_way_and_which_round_is_next()
     {
         var code = await _app.NewGameAsync();
         var query = new JoinInfoQuery(_app.Store);
 
-        (await query.GetAsync(code.ToString(), TestApp.Ct)).Value.ShouldBe(new JoinInfo(true, 1));
-        await _app.StartRoundAsync(code);
         (await query.GetAsync(code.ToString(), TestApp.Ct)).Value.ShouldBe(new JoinInfo(false, 1));
+        await _app.StartRoundAsync(code);
+        (await query.GetAsync(code.ToString(), TestApp.Ct)).Value.ShouldBe(new JoinInfo(true, 1), "a joiner waits for this round to end");
     }
 
     [Theory]

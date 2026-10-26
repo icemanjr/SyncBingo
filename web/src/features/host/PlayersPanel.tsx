@@ -17,12 +17,14 @@ const avatarColours = [
 /**
  * Who is playing (FR-7, FR-38), compact: each row has the player's card and a ⋯ menu to award a win
  * nobody pressed Bingo for (a shout) or remove them, which asks again so a slip doesn't remove anyone.
- * In the lobby the players show as chips, as they join.
+ * People who joined during the round are listed apart, under **Waiting** (A3): they count as players and
+ * hold their names, and join by themselves when the round ends; the host can remove them too.
  */
 export function PlayersPanel({
   players,
   wins,
   inRound,
+  lobby,
   host,
   onInspect,
   onLeaderboard,
@@ -30,12 +32,40 @@ export function PlayersPanel({
   players: Schemas['ParticipantSummary'][]
   wins: Map<string, number>
   inRound: boolean
+  /** Between rounds: anyone still waiting is waiting for a card, not for the round to end. */
+  lobby: boolean
   host: HostApi
   onInspect: (participantId: string) => void
   onLeaderboard: () => void
 }) {
   const [confirming, setConfirming] = useState<string>()
   const { busy, error, run } = useAction()
+  const playing = players.filter((player) => !player.waiting)
+  const waiting = players.filter((player) => player.waiting)
+
+  const confirmRemove = (player: Schemas['ParticipantSummary']) => (
+    <span className="flex items-center gap-1">
+      <Button
+        look="danger"
+        disabled={busy}
+        onClick={() =>
+          void run(() => host.remove(player.participantId)).then(() => {
+            setConfirming(undefined)
+          })
+        }
+      >
+        Remove {player.name}?
+      </Button>
+      <Button
+        look="quiet"
+        onClick={() => {
+          setConfirming(undefined)
+        }}
+      >
+        Keep
+      </Button>
+    </span>
+  )
 
   return (
     <section
@@ -50,11 +80,11 @@ export function PlayersPanel({
           Leaderboard
         </Button>
       </div>
-      {players.length === 0 ? (
+      {playing.length === 0 && waiting.length === 0 ? (
         <p className="pb-2 text-ink-muted">No one has joined yet. Show them the QR code.</p>
       ) : (
         <ul className="flex min-h-0 flex-col divide-y divide-line-soft overflow-y-auto">
-          {players.map((player, i) => {
+          {playing.map((player, i) => {
             const count = wins.get(player.participantId) ?? 0
             return (
               <li key={player.participantId} className="flex min-h-13 items-center gap-3">
@@ -71,27 +101,7 @@ export function PlayersPanel({
                   </span>
                 )}
                 {confirming === player.participantId ? (
-                  <span className="flex items-center gap-1">
-                    <Button
-                      look="danger"
-                      disabled={busy}
-                      onClick={() =>
-                        void run(() => host.remove(player.participantId)).then(() => {
-                          setConfirming(undefined)
-                        })
-                      }
-                    >
-                      Remove {player.name}?
-                    </Button>
-                    <Button
-                      look="quiet"
-                      onClick={() => {
-                        setConfirming(undefined)
-                      }}
-                    >
-                      Keep
-                    </Button>
-                  </span>
+                  confirmRemove(player)
                 ) : (
                   <>
                     <button
@@ -143,6 +153,41 @@ export function PlayersPanel({
             )
           })}
         </ul>
+      )}
+      {waiting.length > 0 && (
+        <section
+          aria-label="Waiting"
+          className="mt-2 flex flex-col gap-1 border-t-2 border-line-soft pt-2"
+        >
+          <h3 className="font-display font-bold">
+            Waiting <span className="font-medium text-ink-muted">{waiting.length}</span>
+          </h3>
+          <p className="text-sm text-ink-muted">
+            {!lobby
+              ? 'They joined during the round. They’ll join automatically when it ends: End round or Clear cards.'
+              : 'No different cards are left for them. Add entries to the set to make more.'}
+          </p>
+          <ul className="flex flex-col divide-y divide-line-soft">
+            {waiting.map((player) => (
+              <li key={player.participantId} className="flex min-h-12 items-center gap-3">
+                <span className="min-w-0 flex-1 truncate">{player.name}</span>
+                {confirming === player.participantId ? (
+                  confirmRemove(player)
+                ) : (
+                  <Button
+                    look="quiet"
+                    aria-label={`Remove ${player.name}`}
+                    onClick={() => {
+                      setConfirming(player.participantId)
+                    }}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
       {error && <ErrorText>{error}</ErrorText>}
     </section>

@@ -52,7 +52,7 @@ describe('joining', () => {
 
   it('fills in the code from the QR link and joins', async () => {
     const api = fakeApi({
-      [`GET /api/sessions/${code}/join-info`]: { body: { acceptingJoins: true, round: 1 } },
+      [`GET /api/sessions/${code}/join-info`]: { body: { roundInProgress: false, round: 1 } },
       [`POST /api/sessions/${code}/join`]: {
         body: { participantId: 'p1', token: 'player-token', snapshot: aPlayerSnapshot() },
       },
@@ -81,12 +81,14 @@ describe('joining', () => {
 
   it('says when a round is in progress', async () => {
     fakeApi({
-      [`GET /api/sessions/${code}/join-info`]: { body: { acceptingJoins: false, round: 2 } },
+      [`GET /api/sessions/${code}/join-info`]: { body: { roundInProgress: true, round: 2 } },
     })
     renderAt(`/join/${code}`)
 
     expect(
-      await screen.findByText('A round is in progress. You can join between rounds.'),
+      await screen.findByText(
+        'A round is in progress. Join now and you’ll be added as soon as it’s done.',
+      ),
     ).toBeInTheDocument()
   })
 
@@ -186,7 +188,7 @@ describe('the play screen', () => {
     expect(screen.getByRole('img', { name: 'Blackout pattern' })).toBeInTheDocument()
   })
 
-  it('leaves the game after a warning that mid-round they can only rejoin between rounds', async () => {
+  it('leaves the game after a warning that mid-round a rejoin waits for the round to end', async () => {
     const api = fakeApi({
       [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) },
     })
@@ -196,7 +198,7 @@ describe('the play screen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Leave game' }))
     expect(
       screen.getByText(
-        'Leave the game? A round is in progress, so you can only join again between rounds.',
+        'Leave the game? A round is in progress, so if you join again you’ll wait for it to end.',
       ),
     ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Stay' }))

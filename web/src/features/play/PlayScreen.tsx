@@ -57,7 +57,7 @@ const SentForMs = 4000
  * A player's screen (docs/06): their card, marked in their own style (FR-51), the last ball if the host
  * shows it, Undo, the Bingo button during a round (FR-17), and the notices every player gets: rules
  * updated (FR-47), the round's pattern while it counts down, who had Bingo and who was removed or left.
- * **Leave game** asks first (FR-53), and mid-round says they can only join again between rounds.
+ * **Leave game** asks first (FR-53), and mid-round says that joining again means waiting for the round to end.
  */
 export function PlayScreen() {
   const code = normalizeCode(useParams().code ?? '')
@@ -252,8 +252,27 @@ export function PlayScreen() {
         </section>
       )}
 
+      {you?.waiting && view.state !== 'BetweenRounds' && (
+        <section
+          role="status"
+          aria-label="Waiting to join"
+          className="rounded-2xl border-2 border-notice-line bg-notice p-4 text-center font-semibold text-notice-ink"
+        >
+          Round currently being played. You’ll be added as soon as it’s done.
+          <span className="mt-1 block text-sm font-normal">
+            Meanwhile, choose how your marks look
+            {view.settings.autoFillAvailable ? ', turn on auto-fill' : ''}
+            {view.settings.showCallBoard ? ' or follow the call board' : ''}.
+          </span>
+        </section>
+      )}
+
       {view.state === 'BetweenRounds' && (
-        <p className="text-center text-ink-muted">Waiting for the host to start {roundName}.</p>
+        <p className="text-center text-ink-muted">
+          {you?.waiting
+            ? 'Waiting for a card: every different card is in use. The host can add entries to the set.'
+            : `Waiting for the host to start ${roundName}.`}
+        </p>
       )}
 
       {card && (
@@ -493,7 +512,7 @@ export function PlayScreen() {
         <div role="alertdialog" aria-label="Leave the game" className="flex flex-col gap-2">
           <p className="font-semibold">
             {inRound || view.state === 'Starting'
-              ? 'Leave the game? A round is in progress, so you can only join again between rounds.'
+              ? 'Leave the game? A round is in progress, so if you join again you’ll wait for it to end.'
               : 'Leave the game?'}
           </p>
           <div className="flex flex-wrap gap-2">

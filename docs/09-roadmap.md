@@ -55,7 +55,8 @@
   - **Web text** through a small i18n library (e.g. react-i18next), with plurals ("1 win" / "2 wins") and inserted values ("Remove {name}?").
   - **Server messages** (refusals, notices such as "No unique cards available…") sent as a code plus values, so the web phrases them in the player's language and the text lives in one place.
   - **Choosing a language:** the browser's by default, with a switch in the footer; each person chooses their own, so one game can mix languages.
-  - **Not translated:** set content, player and pattern names (the host's own text). The Terms and Privacy pages may need a reviewed translation.
+  - **The host's own patterns** may also carry a name in each supported language (e.g. `"es": "Signo más"`), optional and checked like the main name; each app shows the player's language, falling back to the main name. They are short and used in every game, numbers included, so the cost is tiny.
+  - **Not translated:** set content and player names. A set in two languages would roughly double what every player downloads for each set, which doesn't fit the Lean profile; revisit only if the site moves to Full. A language class is already served by pairs: the ball in one language, the square its translation. The Terms and Privacy pages may need a reviewed translation.
   - **Spanish details:** opening ¿ and ¡, gendered agreement, and text about 20–30 % longer, which matters on phone-sized buttons.
 - [ ] Spoken ball calls, themes, real ad provider integration
 - [ ] Optional end-of-session summary export

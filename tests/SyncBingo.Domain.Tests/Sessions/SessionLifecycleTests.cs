@@ -103,12 +103,13 @@ public sealed class SessionLifecycleTests
     [InlineData(SessionState.Starting)]
     [InlineData(SessionState.Manual)]
     [InlineData(SessionState.Auto)]
-    public void Joining_during_a_countdown_or_a_round_gets_a_friendly_refusal(SessionState state)
+    public void Joining_during_a_countdown_or_a_round_means_waiting_for_it_to_end(SessionState state)
     {
-        var error = InState(state).CheckCanAdmit(currentParticipants: 3).Error!;
+        var session = InState(state);
 
-        error.Code.ShouldBe(DomainErrorCode.WrongState);
-        error.Message.ShouldBe("A round is in progress. You can join between rounds.");
+        session.CheckCanAdmit(currentParticipants: 3).IsSuccess.ShouldBeTrue();
+        session.JoinersWait.ShouldBeTrue();
+        NewSession().JoinersWait.ShouldBeFalse("in the lobby a joiner gets a card at once");
     }
 
     [Theory]

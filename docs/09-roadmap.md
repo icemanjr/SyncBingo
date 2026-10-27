@@ -50,7 +50,7 @@
 - [x] **Custom free space text** (built 2026-10-24): an optional `"free"` field in the set file (e.g. `"free": "★ Week 5"`) sets the text on the free space; it changes only what the square says, never whether there is a free space (that stays a game setting). Without it, the free space reads **FREE** (upper case), which also replaces today's ★ on cards in standard games; the small pattern diagrams keep ★. Checked like square text (printable, ≤ 15 characters)
 - [x] **Custom variants** (built 2026-10-24): card sizes 3 × 3, 4 × 4 and 5 × 5 (FR-26a) and the host's own patterns, drawn in Options, added and renamed but never deleted (FR-21a). Other ball ranges need no feature of their own: a custom set of numbers gives any range (1–30 on a 3 × 3 card is 30-ball speed Bingo)
 - [ ] *Deferred:* **90-ball Bingo** (3 × 9 tickets with blank squares, won by one line, two lines or a full house): blank squares and "any two lines" are new kinds of card and pattern, so it waits for demand
-- [ ] **Waiting room** for late arrivals: people who arrive mid-round wait and join at the next lobby, instead of being refused (assumption A3 changes then)
+- [x] **Waiting room** for late arrivals (built 2026-10-25, FR-5): people who arrive mid-round wait without a card, setting up their marks meanwhile, and join automatically when the game is back in the lobby; the host sees them apart under Waiting (A3 amended)
 - [ ] Spoken ball calls, themes, real ad provider integration
 - [ ] Optional end-of-session summary export
 - [ ] *Deferred:* images on balls or squares (storage and data-transfer cost, moderation; docs/10)

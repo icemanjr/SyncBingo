@@ -4674,12 +4674,12 @@
       },
       "JoinInfo": {
         "required": [
-          "acceptingJoins",
+          "roundInProgress",
           "round"
         ],
         "type": "object",
         "properties": {
-          "acceptingJoins": {
+          "roundInProgress": {
             "type": "boolean"
           },
           "round": {
@@ -4847,6 +4847,10 @@
           "joinedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "waiting": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -4934,6 +4938,10 @@
             "items": {
               "$ref": "#/components/schemas/CardView"
             }
+          },
+          "waiting": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

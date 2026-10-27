@@ -76,6 +76,12 @@ public sealed class JoinSessionHandler(
             return Errors.NameTaken(name.Display);
         }
 
+        // During a round or its countdown they wait, with no card yet (A3); the round's end admits them.
+        if (session.JoinersWait)
+        {
+            return await AddAsync(Participant.Wait(participantId, name, clock.UtcNow)).ConfigureAwait(false);
+        }
+
         Result<Card> dealt;
         try
         {
@@ -97,18 +103,22 @@ public sealed class JoinSessionHandler(
 
         var card = dealt.Value;
 
-        var participant = Participant.Join(participantId, name, card, session, clock.UtcNow);
-        if (!await store.TryAddParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false))
+        return await AddAsync(Participant.Join(participantId, name, card, session, clock.UtcNow)).ConfigureAwait(false);
+
+        async Task<Result<SessionJoined>> AddAsync(Participant participant)
         {
-            throw new InvalidOperationException($"Participant id {participantId} is already in use.");
+            if (!await store.TryAddParticipantAsync(code, participant, cancellationToken).ConfigureAwait(false))
+            {
+                throw new InvalidOperationException($"Participant id {participantId} is already in use.");
+            }
+
+            var token = tokens.Issue();
+            await store.SaveTokenAsync(code, token.Hash, Caller.Participant(participantId), cancellationToken).ConfigureAwait(false);
+            await publisher.NotifyAsync(code, new Recipient.Host(), new ParticipantJoined(participantId, name.Display), cancellationToken)
+                .ConfigureAwait(false);
+
+            return Result.Success(new SessionJoined(code, participantId, token.Token));
         }
-
-        var token = tokens.Issue();
-        await store.SaveTokenAsync(code, token.Hash, Caller.Participant(participantId), cancellationToken).ConfigureAwait(false);
-        await publisher.NotifyAsync(code, new Recipient.Host(), new ParticipantJoined(participantId, name.Display), cancellationToken)
-            .ConfigureAwait(false);
-
-        return Result.Success(new SessionJoined(code, participantId, token.Token));
     }
 
     private static string Describe(NameProblem problem) => problem switch

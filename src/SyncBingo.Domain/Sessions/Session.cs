@@ -657,7 +657,6 @@ public sealed class Session
             $"A {rules.Layout.Rows} × {rules.Layout.Columns} card has no {names}: choose another pattern too.");
     }
 
-    /// <summary>Whether one more participant may join now (FR-5, A3, A7).</summary>
     /// <summary>
     /// A Bingo press (FR-37a). Every press is recorded and sent to the host, valid or not,
     /// like a shout the caller must hear; the host decides. The player is not told
@@ -1142,13 +1141,21 @@ public sealed class Session
             .OrderByDescending(entry => entry.Wins)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)];
 
+    /// <summary>
+    /// Someone joining now waits for the round to end (the waiting room, A3 amended 2026-10-25): during the
+    /// countdown and the round. They get a card when the game is back in the lobby.
+    /// </summary>
+    public bool JoinersWait => State is SessionState.Starting or SessionState.Manual or SessionState.Auto;
+
+    /// <summary>
+    /// Whether one more participant may join (FR-5, A7): any time until the game ends, up to the player limit and
+    /// the number of different cards the rules make. During a round they wait (<see cref="JoinersWait"/>).
+    /// </summary>
     public Result<int> CheckCanAdmit(int currentParticipants)
     {
-        if (State != SessionState.BetweenRounds)
+        if (State == SessionState.Ended)
         {
-            return State == SessionState.Ended
-                ? WrongState("join")
-                : Failure(DomainErrorCode.WrongState, "A round is in progress. You can join between rounds.");
+            return WrongState("join");
         }
 
         if (currentParticipants >= MaxParticipants)

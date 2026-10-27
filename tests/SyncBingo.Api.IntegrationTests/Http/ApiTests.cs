@@ -85,7 +85,7 @@ public sealed class ApiTests : IAsyncDisposable
 
         using var info = await _client.GetAsync(new Uri($"/api/sessions/{code}/join-info", UriKind.Relative), Ct);
         var body = await Json(info);
-        body.GetProperty("acceptingJoins").GetBoolean().ShouldBeTrue();
+        body.GetProperty("roundInProgress").GetBoolean().ShouldBeFalse();
         body.GetProperty("round").GetInt32().ShouldBe(1);
     }
 

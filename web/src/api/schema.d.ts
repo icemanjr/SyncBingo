@@ -775,7 +775,7 @@ export interface components {
             snapshot: components["schemas"]["SnapshotBody"];
         };
         JoinInfo: {
-            acceptingJoins: boolean;
+            roundInProgress: boolean;
             /** Format: int32 */
             round: number;
         };
@@ -824,6 +824,8 @@ export interface components {
             name: string;
             /** Format: date-time */
             joinedAt: string;
+            /** @default false */
+            waiting: boolean;
         };
         PatternNameRequest: {
             name: string;
@@ -844,6 +846,8 @@ export interface components {
             name: string;
             autoFillOn: boolean;
             cards: components["schemas"]["CardView"][];
+            /** @default false */
+            waiting: boolean;
         };
         PresetView: {
             id: string;

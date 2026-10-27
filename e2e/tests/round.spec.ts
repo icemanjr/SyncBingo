@@ -102,7 +102,7 @@ test('a player can leave, and everyone hears about it', async ({ browser }) => {
   await ava.getByRole('button', { name: 'More' }).click()
   await ava.getByRole('button', { name: 'Leave game' }).click()
   await expect(
-    ava.getByText(/A round is in progress, so you can only join again between rounds/),
+    ava.getByText(/A round is in progress, so if you join again you’ll wait for it to end/),
   ).toBeVisible()
   await ava.getByRole('button', { name: 'Leave', exact: true }).click()
 

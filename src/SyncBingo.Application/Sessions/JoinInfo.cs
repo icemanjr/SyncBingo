@@ -4,8 +4,11 @@ using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Sessions;
 
-/// <summary>What the join page shows before anyone types a name (docs/05 §1): can I join now, and which round is next.</summary>
-public sealed record JoinInfo(bool AcceptingJoins, int Round);
+/// <summary>
+/// What the join page shows before anyone types a name (docs/05 §1): whether a round (or its countdown) is under
+/// way, so a joiner waits for it to end before getting a card (A3), and which round is next.
+/// </summary>
+public sealed record JoinInfo(bool RoundInProgress, int Round);
 
 public sealed class JoinInfoQuery(ISessionStore store)
 {
@@ -17,6 +20,6 @@ public sealed class JoinInfoQuery(ISessionStore store)
             return Errors.SessionNotFound();
         }
 
-        return Result.Success(new JoinInfo(session.State == SessionState.BetweenRounds, session.UpcomingRound));
+        return Result.Success(new JoinInfo(session.JoinersWait, session.UpcomingRound));
     }
 }

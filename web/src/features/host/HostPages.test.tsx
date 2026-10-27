@@ -1,5 +1,5 @@
 import type { Schemas } from '../../api/client'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -266,7 +266,14 @@ describe('the host console', () => {
         body: aHostSnapshot(
           {},
           {
-            participants: [{ participantId: 'p1', name: 'Ava', joinedAt: '2026-10-14T19:00:00Z' }],
+            participants: [
+              {
+                participantId: 'p1',
+                name: 'Ava',
+                joinedAt: '2026-10-14T19:00:00Z',
+                waiting: false,
+              },
+            ],
           },
         ),
       },
@@ -281,6 +288,50 @@ describe('the host console', () => {
     await waitFor(() => {
       expect(
         api.sent.some((s) => s.method === 'DELETE' && s.path.endsWith('/participants/p1')),
+      ).toBe(true)
+    })
+  })
+
+  it('lists people who joined mid-round apart, counted, with how they get in (A3)', async () => {
+    const api = fakeApi({
+      [snapshotPath]: {
+        body: aHostSnapshot(
+          { state: 'Manual', round: 1 },
+          {
+            participants: [
+              {
+                participantId: 'p1',
+                name: 'Ava',
+                joinedAt: '2026-10-14T19:00:00Z',
+                waiting: false,
+              },
+              {
+                participantId: 'p2',
+                name: 'Late',
+                joinedAt: '2026-10-14T19:05:00Z',
+                waiting: true,
+              },
+            ],
+          },
+        ),
+      },
+    })
+    renderConsole()
+
+    const players = await screen.findByRole('region', { name: 'Players' })
+    expect(within(players).getByRole('heading', { name: 'Players 2' })).toBeInTheDocument()
+    const waiting = within(players).getByRole('region', { name: 'Waiting' })
+    expect(waiting).toHaveTextContent('Late')
+    expect(waiting).toHaveTextContent(
+      'They’ll join automatically when it ends: End round or Clear cards.',
+    )
+    expect(within(waiting).queryByRole('button', { name: /card/ })).not.toBeInTheDocument()
+
+    await userEvent.click(within(waiting).getByRole('button', { name: 'Remove Late' }))
+    await userEvent.click(within(waiting).getByRole('button', { name: 'Remove Late?' }))
+    await waitFor(() => {
+      expect(
+        api.sent.some((s) => s.method === 'DELETE' && s.path.endsWith('/participants/p2')),
       ).toBe(true)
     })
   })

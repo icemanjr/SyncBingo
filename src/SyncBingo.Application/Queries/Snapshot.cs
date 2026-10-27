@@ -143,8 +143,11 @@ public sealed record VisibleSettings(
     }
 }
 
-/// <summary>A participant's own view: only ever their own cards (ADR 0001, CLAUDE.md rule 7).</summary>
-public sealed record PlayerView(string ParticipantId, string Name, bool AutoFillOn, IReadOnlyList<CardView> Cards);
+/// <summary>
+/// A participant's own view: only ever their own cards (ADR 0001, CLAUDE.md rule 7). <see cref="Waiting"/>: they
+/// joined during a round and get a card when it ends (A3).
+/// </summary>
+public sealed record PlayerView(string ParticipantId, string Name, bool AutoFillOn, IReadOnlyList<CardView> Cards, bool Waiting = false);
 
 /// <summary>
 /// A card. <see cref="Faces"/> is each square's text with a custom set (ADR 0009). For a player in such a
@@ -182,7 +185,8 @@ public sealed record HostView(
     IReadOnlyList<Claim> PendingClaims,
     IReadOnlyList<RoundSummary> Rounds);
 
-public sealed record ParticipantSummary(string ParticipantId, string Name, DateTimeOffset JoinedAt);
+/// <summary>A participant in the host's list; <see cref="Waiting"/> ones joined during a round and have no card yet (A3).</summary>
+public sealed record ParticipantSummary(string ParticipantId, string Name, DateTimeOffset JoinedAt, bool Waiting = false);
 
 /// <summary>The leaderboard and the round summaries (FR-40, FR-41).</summary>
 public sealed record LeaderboardView(IReadOnlyList<LeaderboardEntry> Entries, IReadOnlyList<RoundSummary> Rounds);
@@ -306,17 +310,19 @@ public sealed class GameQueries(ISessionStore store)
         participant.Id,
         participant.Name.Display,
         participant.AutoFillOn,
-        [.. participant.Cards.Select(card => CardView.ForPlayer(card.Id, card.Card, card.Marks, content))]);
+        [.. participant.Cards.Select(card => CardView.ForPlayer(card.Id, card.Card, card.Marks, content))],
+        participant.IsWaiting);
 
     private static PlayerView HostInspection(Participant participant, ContentSet? content) => new(
         participant.Id,
         participant.Name.Display,
         participant.AutoFillOn,
-        [.. participant.Cards.Select(card => CardView.ForHost(card.Id, card.Card, card.Marks, content))]);
+        [.. participant.Cards.Select(card => CardView.ForHost(card.Id, card.Card, card.Marks, content))],
+        participant.IsWaiting);
 
     private static HostView HostOf(Session session, IReadOnlyList<StoredParticipant> participants) => new(
         session.Settings,
-        [.. participants.Select(stored => new ParticipantSummary(stored.Participant.Id, stored.Participant.Name.Display, stored.Participant.JoinedAt))],
+        [.. participants.Select(stored => new ParticipantSummary(stored.Participant.Id, stored.Participant.Name.Display, stored.Participant.JoinedAt, stored.Participant.IsWaiting))],
         [.. session.Claims.Where(claim => claim.Round == session.RoundNumber && claim.Status == ClaimStatus.Pending)],
         session.Rounds);
 }

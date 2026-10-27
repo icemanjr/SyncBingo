@@ -117,7 +117,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 - Card uniqueness (FR-39) works the same way: dealing a card `SADD`s its fingerprint to the session's `cards` set and redeals if the fingerprint was already there, so concurrent joins or redraws never end up with identical cards.
 - Auto-fill is applied by the server at draw time, inside the draw's critical section, so a fill and the ball that triggers it are consistent.
 - A draw's auto-fill writes participants while those players may be marking (their path takes no session lock), so participant saves use **optimistic concurrency**: every participant record carries a version, and a save succeeds only if the record is still at the version that was loaded (a Lua compare-and-set in Redis). The loser reloads and applies its change again, up to 5 tries, then the player sees "please try again" (409). A player's change reloads the session as well, so a mark that raced *Clear cards* is judged again under the new state and refused. A removed player's save finds no record and fails.
-- Joining also takes the session lock, so the "only between rounds" check (FR-5) cannot race a round starting; the name and card claims inside it stay atomic in their own right.
+- Joining also takes the session lock, so the choice between a card now and the waiting room (FR-5) cannot race a round starting; every command that returns the game to the lobby admits the waiting under the same lock; the name and card claims inside it stay atomic in their own right.
 
 ## 7. Frontend
 

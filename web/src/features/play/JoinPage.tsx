@@ -37,9 +37,9 @@ export function JoinPage() {
           text:
             !response.ok || !data
               ? "That game doesn't exist or has ended. Check the code with your host."
-              : data.acceptingJoins
-                ? undefined
-                : 'A round is in progress. You can join between rounds.',
+              : data.roundInProgress
+                ? 'A round is in progress. Join now and you’ll be added as soon as it’s done.'
+                : undefined,
         })
       })
       .catch(() => {

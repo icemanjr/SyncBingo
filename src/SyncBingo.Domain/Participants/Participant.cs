@@ -51,6 +51,35 @@ public sealed class Participant
         return participant;
     }
 
+    /// <summary>
+    /// Someone who joined during a round or its countdown (the waiting room, A3): no card until the game is back
+    /// in the lobby, when <see cref="Admit"/> deals one. They can already set their marks and auto-fill switch.
+    /// </summary>
+    public static Participant Wait(string id, ParticipantName name, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(name);
+
+        return new Participant(id, name, now);
+    }
+
+    /// <summary>Waiting for the round to end, with no card yet.</summary>
+    public bool IsWaiting => _cards.Count == 0;
+
+    /// <summary>A waiting participant's card, dealt when the game is back in the lobby (already claimed as unique).</summary>
+    public void Admit(Card card, Session session)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        ArgumentNullException.ThrowIfNull(session);
+
+        if (!IsWaiting)
+        {
+            throw new InvalidOperationException($"Participant {Id} already has a card.");
+        }
+
+        _cards.Add(new PlayerCard(1, card, CardRules.InitialMarks(session), session.UpcomingRound));
+    }
+
     /// <summary>The participant as plain data, for storage.</summary>
     public ParticipantSnapshot ToSnapshot() => new(
         Id,

@@ -7,7 +7,7 @@ Base path `/api`. JSON everywhere. Errors use RFC 7807 `application/problem+json
 | Method & path | Body | Success | Errors |
 |---------------|------|---------|--------|
 | `POST /sessions` | `{ password, settings?, winCondition? }` | `201 { code, joinUrl, hostToken, snapshot }` | 400 malformed body · 422 password not 4–64 characters, or invalid settings |
-| `GET /sessions/{code}/join-info` | – | `200 { acceptingJoins, round }` | 404 unknown code |
+| `GET /sessions/{code}/join-info` | – | `200 { roundInProgress, round }` (a round or its countdown is under way, so a joiner waits for a card, A3) | 404 unknown code |
 | `POST /sessions/{code}/join` | `{ password, name }` | `200 { participantId, token, snapshot }` | 401 wrong password · 429 too many wrong passwords from this address (§5) · 409 name taken · 409 "A round is in progress. You can join between rounds." (during a countdown too) · 409 "No unique cards available: all 72 possible cards are in use…" (a small grouped set, FR-39) · 404 |
 
 `joinUrl` is `{origin}/join/{code}`, which is what the QR encodes. The password is never in the URL.

@@ -23,14 +23,16 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public async Task Joining_during_the_countdown_is_refused_with_the_round_message()
+    public async Task Someone_joining_during_the_countdown_gets_a_card_if_it_is_cancelled()
     {
         var code = await _app.NewGameAsync();
         (await _app.Round.StartCountdownAsync(code, Caller.Host, false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        var late = await _app.JoinAsync(code, "Late");
+        (await _app.PlayerAsync(code, late)).IsWaiting.ShouldBeTrue();
 
-        var error = (await _app.Join.HandleAsync(new JoinSession(code.ToString(), TestApp.Password, "Late"), TestApp.Ct)).Error!;
+        (await _app.Round.CancelCountdownAsync(code, Caller.Host, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        error.Message.ShouldBe("A round is in progress. You can join between rounds.");
+        (await _app.PlayerAsync(code, late)).Cards.ShouldHaveSingleItem();
     }
 
     [Fact]

@@ -313,6 +313,18 @@ public sealed class ContentApiTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task The_hosts_colour_theme_reaches_every_player()
+    {
+        var (code, hostToken) = await NewGameAsync();
+        var avaToken = await JoinAsync(code, "Ava");
+
+        (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/rules", hostToken, new { settings = new { theme = "Ocean" } }))
+            .StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        (await SnapshotAsync(code, avaToken)).GetProperty("game").GetProperty("settings").GetProperty("theme").GetString().ShouldBe("Ocean");
+    }
+
+    [Fact]
     public async Task A_huge_body_is_refused()
     {
         var (code, hostToken) = await NewGameAsync();

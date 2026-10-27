@@ -128,6 +128,8 @@ public sealed record SettingsBody
 
     public CardSize? CardSize { get; init; }
 
+    public Theme? Theme { get; init; }
+
     public bool? ShowRoundNumbers { get; init; }
 
     public MultipleWins? MultipleWins { get; init; }
@@ -151,6 +153,7 @@ public sealed record SettingsBody
             Unmarking = settings.Unmarking,
             FreeSpace = settings.FreeSpace,
             CardSize = settings.CardSize,
+            Theme = settings.Theme,
             ShowRoundNumbers = settings.ShowRoundNumbers,
             MultipleWins = settings.MultipleWins,
         };
@@ -176,6 +179,7 @@ public sealed record SettingsBody
             Unmarking = Unmarking ?? settings.Unmarking,
             FreeSpace = FreeSpace ?? settings.FreeSpace,
             CardSize = CardSize ?? settings.CardSize,
+            Theme = Theme ?? settings.Theme,
             ShowRoundNumbers = ShowRoundNumbers ?? settings.ShowRoundNumbers,
             MultipleWins = MultipleWins ?? settings.MultipleWins,
         };

@@ -35,6 +35,19 @@ public enum MultipleWins
     EveryDeclaredWin,
 }
 
+/// <summary>
+/// The game's colour theme (FR-50a), chosen by the host for everyone; a player may pick another on their own
+/// device. Colours only: the palettes themselves live in the web app.
+/// </summary>
+public enum Theme
+{
+    Classic,
+    Ocean,
+    Forest,
+    Halloween,
+    Winter,
+}
+
 public enum FreeSpace
 {
     AlwaysMarked,
@@ -89,6 +102,9 @@ public sealed record SessionSettings
 
     /// <summary>FR-26. Changes apply from the next round.</summary>
     public FreeSpace FreeSpace { get; init; } = FreeSpace.AlwaysMarked;
+
+    /// <summary>FR-50a: the game's colours, for everyone (players may override on their device). Not a rule: no notice.</summary>
+    public Theme Theme { get; init; } = Theme.Classic;
 
     /// <summary>FR-26a: the card's size, lobby only; changing it deals everyone a new card.</summary>
     public CardSize CardSize { get; init; } = CardSize.FiveByFive;
@@ -153,6 +169,7 @@ public sealed record SessionSettings
             && Enum.IsDefined(Unmarking)
             && Enum.IsDefined(FreeSpace)
             && Enum.IsDefined(CardSize)
+            && Enum.IsDefined(Theme)
             && Enum.IsDefined(MultipleWins)
                 ? null
                 : new DomainError(DomainErrorCode.Invalid, "A setting has an unknown value.");

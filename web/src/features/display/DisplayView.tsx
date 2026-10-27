@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { usePalette } from '../../app/palettes'
 import { useParams } from 'react-router'
 import { CallBoard } from '../game/CallBoard'
 import { isGone } from '../game/gone'
@@ -23,6 +24,7 @@ export function DisplayView() {
   const code = normalizeCode(useParams().code ?? '')
   const [token] = useState(() => takeDisplayToken(code))
   const game = useGame(code, token)
+  usePalette(game.snapshot?.game.settings.theme) // the room's screen shows the game's colours (FR-50a)
   const countdown = useSecondsLeft(
     game.snapshot?.game.state === 'Starting' ? game.snapshot.game.countdownEndsAt : null,
   )

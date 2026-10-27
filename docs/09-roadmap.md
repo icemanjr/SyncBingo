@@ -51,6 +51,11 @@
 - [x] **Custom variants** (built 2026-10-24): card sizes 3 × 3, 4 × 4 and 5 × 5 (FR-26a) and the host's own patterns, drawn in Options, added and renamed but never deleted (FR-21a). Other ball ranges need no feature of their own: a custom set of numbers gives any range (1–30 on a 3 × 3 card is 30-ball speed Bingo)
 - [ ] *Deferred:* **90-ball Bingo** (3 × 9 tickets with blank squares, won by one line, two lines or a full house): blank squares and "any two lines" are new kinds of card and pattern, so it waits for demand
 - [x] **Waiting room** for late arrivals (built 2026-10-25, FR-5): people who arrive mid-round wait without a card, setting up their marks meanwhile, and join automatically when the game is back in the lobby; the host sees them apart under Waiting (A3 amended)
+*Order set by the owner, 2026-10-27: themes, the ad provider, the summary report, spoken ball calls, then translations.*
+- [x] **Themes** (built 2026-10-27, FR-50a): colour palettes (Classic, Ocean, Forest, Halloween, Winter), each in light and dark and contrast-checked; the host picks one for the game in Options, and a player may pick their own on their device. Colours only, nothing extra to download
+- [ ] **Real ad provider** integration, in the reserved banner slots (docs/06)
+- [ ] **End-of-session summary report** (optional export)
+- [ ] **Spoken ball calls**
 - [ ] **Translations** (owner, 2026-10-25): every piece of user-facing text in one file per language (e.g. `web/src/locales/en.json`), so a translator copies the file and translates the values; **Spanish** first, translated by the owner. Points to settle when it starts:
   - **Web text** through a small i18n library (e.g. react-i18next), with plurals ("1 win" / "2 wins") and inserted values ("Remove {name}?").
   - **Server messages** (refusals, notices such as "No unique cards available…") sent as a code plus values, so the web phrases them in the player's language and the text lives in one place.
@@ -58,8 +63,6 @@
   - **The host's own patterns** may also carry a name in each supported language (e.g. `"es": "Signo más"`), optional and checked like the main name; each app shows the player's language, falling back to the main name. They are short and used in every game, numbers included, so the cost is tiny.
   - **Not translated:** set content and player names. A set in two languages would roughly double what every player downloads for each set, which doesn't fit the Lean profile; revisit only if the site moves to Full. A language class is already served by pairs: the ball in one language, the square its translation. The Terms and Privacy pages may need a reviewed translation.
   - **Spanish details:** opening ¿ and ¡, gendered agreement, and text about 20–30 % longer, which matters on phone-sized buttons.
-- [ ] Spoken ball calls, themes, real ad provider integration
-- [ ] Optional end-of-session summary export
 - [ ] *Deferred:* images on balls or squares (storage and data-transfer cost, moderation; docs/10)
 
 ## Phase 5 — Serious Bingo (only if the site gets regular traffic)

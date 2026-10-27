@@ -1,15 +1,22 @@
+import { palettes, type Palette, type PaletteChoice } from '../../app/palettes'
 import { Button, Panel } from '../game/ui'
 import { Mark } from './Mark'
 import { colours, shapes, textSizes, type MarkStyle } from './markStyle'
 
-/** **⚙ My marks** (FR-51): shape, colour, opacity and text size, with a live preview; kept on this device. */
+/**
+ * **⚙ My marks** (FR-51): shape, colour, opacity and text size, with a live preview, and the page's colours
+ * (FR-50a): the host's theme or one of the player's own. Kept on this device.
+ */
 export function MarkStylePanel({
   style,
   onChange,
+  palette,
   onClose,
 }: {
   style: MarkStyle
   onChange: (style: MarkStyle) => void
+  /** The player's colours: their choice, the game's theme, and how to change the choice. */
+  palette: { choice: PaletteChoice; game: Palette; onChange: (choice: PaletteChoice) => void }
   onClose: () => void
 }) {
   return (
@@ -122,6 +129,26 @@ export function MarkStylePanel({
             }}
             className="min-h-12"
           />
+        </label>
+
+        <label className="flex flex-col gap-1 font-semibold">
+          Colours
+          <select
+            value={palette.choice}
+            onChange={(e) => {
+              palette.onChange(e.target.value as PaletteChoice)
+            }}
+            className="min-h-12 rounded-xl border-2 border-line bg-surface px-3 font-normal"
+          >
+            <option value="game">
+              The game’s ({palettes.find((p) => p.value === palette.game)?.label ?? palette.game})
+            </option>
+            {palettes.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </label>
 
         <Button look="secondary" onClick={onClose}>

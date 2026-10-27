@@ -121,7 +121,8 @@ public sealed record VisibleSettings(
     FreeSpace FreeSpace,
     RedrawPolicy RedrawPolicy,
     MultipleWins MultipleWins,
-    bool ShowRoundNumbers)
+    bool ShowRoundNumbers,
+    Theme Theme = Theme.Classic)
 {
     public static VisibleSettings From(SessionSettings settings)
     {
@@ -139,7 +140,8 @@ public sealed record VisibleSettings(
             settings.FreeSpace,
             settings.RedrawPolicy,
             settings.MultipleWins,
-            settings.ShowRoundNumbers);
+            settings.ShowRoundNumbers,
+            settings.Theme);
     }
 }
 

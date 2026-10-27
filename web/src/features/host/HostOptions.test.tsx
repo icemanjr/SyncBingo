@@ -28,6 +28,7 @@ const hostSettings = {
   unmarking: 'Any' as const,
   freeSpace: 'AlwaysMarked' as const,
   cardSize: 'FiveByFive' as const,
+  theme: 'Classic' as const,
   showRoundNumbers: true,
   multipleWins: 'OncePerPattern' as const,
 }
@@ -293,6 +294,27 @@ describe('Card size (FR-26a)', () => {
   afterEach(() => {
     localStorage.clear()
     vi.unstubAllGlobals()
+  })
+
+  it('sends the colour theme with Apply, and the host sees it too (FR-50a)', async () => {
+    const api = fakeApi({
+      [snapshotPath]: { body: aHostSnapshot({}, { settings: hostSettings }) },
+      [`PUT /api/sessions/${code}/rules`]: {
+        body: { settings: hostSettings, winCondition: 'rows+columns+diagonals' },
+      },
+    })
+    renderConsole()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Options' }))
+    await userEvent.selectOptions(screen.getByLabelText('Colour theme'), 'Winter')
+    await userEvent.click(screen.getByRole('button', { name: 'Apply 1 change' }))
+
+    await waitFor(() => {
+      expect(api.sent.find((s) => s.path.endsWith('/rules'))?.body).toEqual({
+        settings: { theme: 'Winter' },
+        winCondition: null,
+      })
+    })
   })
 
   it('offers a smaller card with its own patterns, keeping what it can and dropping the letters', async () => {

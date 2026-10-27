@@ -5201,6 +5201,16 @@
               }
             ]
           },
+          "theme": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Theme"
+              }
+            ]
+          },
           "showRoundNumbers": {
             "type": [
               "null",
@@ -5251,6 +5261,16 @@
             ]
           }
         }
+      },
+      "Theme": {
+        "enum": [
+          "Classic",
+          "Ocean",
+          "Forest",
+          "Halloween",
+          "Winter"
+        ],
+        "default": "Classic"
       },
       "Unmarking": {
         "enum": [
@@ -5322,6 +5342,9 @@
           },
           "showRoundNumbers": {
             "type": "boolean"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
           }
         }
       },

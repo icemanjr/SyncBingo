@@ -49,7 +49,7 @@ docker-compose.yml
 
 ## Ads and UI constraints
 
-Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size reserved slots (placeholders for now). Never pop-ups or anything that can cover the play area. Mobile-first, 48 px minimum tap targets, WCAG AA, reduced-motion support, no flashing. The Full portfolio build shows a greyed-out, non-functional "Serious Bingo - coming soon" tile on the landing page; the live Lean site does not (build-time switch `VITE_SERIOUS_BINGO_TEASER`).
+Banner ads only: top/bottom on mobile, left/right on desktop, in fixed-size reserved slots. Placeholders in development and the Full build. The live site uses Google AdSense once approved (ADR 0012): every request is child-directed, and Google's consent message for the EU, UK and Switzerland is the one allowed exception. Otherwise, never pop-ups or anything that can cover the play area. Mobile-first, 48 px minimum tap targets, WCAG AA, reduced-motion support, no flashing. The Full portfolio build shows a greyed-out, non-functional "Serious Bingo - coming soon" tile on the landing page; the live Lean site does not (build-time switch `VITE_SERIOUS_BINGO_TEASER`).
 
 ## Confirmed assumptions (`docs/01-requirements.md` section 7)
 

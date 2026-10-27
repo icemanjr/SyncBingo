@@ -31,6 +31,13 @@
 		@pages not path /assets/*
 		header @pages Cache-Control "no-cache"
 
+		# ads.txt exists only once AdSense is set up (ADR 0012); until then it's a 404, not the app's page.
+		@noAdsTxt {
+			path /ads.txt
+			not file
+		}
+		respond @noAdsTxt 404
+
 		# Client-side routes such as /join/... load index.html.
 		try_files {path} /index.html
 		file_server

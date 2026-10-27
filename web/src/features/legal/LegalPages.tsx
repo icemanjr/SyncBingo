@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { adConfig } from '../../app/ads'
 import { site } from '../../site'
 
 /**
@@ -55,8 +56,10 @@ function LegalPage({
 }
 
 export function PrivacyPage() {
+  // The page describes the build it is part of: real ads only where the build shows them (ADR 0012).
+  const ads = adConfig().provider === 'adsense'
   return (
-    <LegalPage title="Privacy" updated="16 October 2026">
+    <LegalPage title="Privacy" updated={ads ? '27 October 2026' : '16 October 2026'}>
       <p>
         SyncBingo is a party Bingo game. It has no accounts and no sign-up, and it keeps as little
         as it can, for as short a time as it can. It is run by {site.operator}.
@@ -101,22 +104,69 @@ export function PrivacyPage() {
       <p>
         Your browser keeps your game token (so a sleeping phone can rejoin), your light or dark
         choice and how you like your marks to look. A TV keeps its display token only until its tab
-        is closed. SyncBingo uses no cookies, no analytics and no tracking.
+        is closed. SyncBingo uses no cookies, no analytics and no tracking
+        {ads ? '; the ads come from Google, which works differently (see Ads below).' : '.'}
       </p>
 
       <h2>Who else sees it</h2>
-      <p>
-        No one. Data isn&apos;t sold or shared. The site runs on Amazon Web Services in the United
-        States, and its domain&apos;s DNS is at Cloudflare; the fonts are served by SyncBingo
-        itself. The ad spaces are empty placeholders today. If real ads are added, this page will
-        say so before they appear.
-      </p>
+      {ads ? (
+        <p>
+          No one gets your game. Data isn&apos;t sold, and SyncBingo never sends your name, card or
+          anything about your game to anyone. The site runs on Amazon Web Services in the United
+          States, and its domain&apos;s DNS is at Cloudflare; the fonts are served by SyncBingo
+          itself. The ads come from Google, as described next.
+        </p>
+      ) : (
+        <p>
+          No one. Data isn&apos;t sold or shared. The site runs on Amazon Web Services in the United
+          States, and its domain&apos;s DNS is at Cloudflare; the fonts are served by SyncBingo
+          itself. The ad spaces are empty placeholders today. If real ads are added, this page will
+          say so before they appear.
+        </p>
+      )}
+
+      {ads && (
+        <>
+          <h2>Ads</h2>
+          <p>
+            The banner spaces show ads from Google AdSense, which pay for running SyncBingo. The TV
+            display never shows ads.
+          </p>
+          <ul>
+            <li>
+              SyncBingo asks Google to treat every ad request as directed at children, so there are
+              no personalised ads and no remarketing: an ad is chosen for the page, not for you.
+            </li>
+            <li>
+              To show an ad, your browser fetches it from Google. Google receives your IP address
+              and browser details, and may use cookies or similar storage on your device, for
+              example to limit how often an ad repeats and to stop fraud.
+            </li>
+            <li>
+              In the EU, the UK and Switzerland you&apos;re asked first. You can change your choice
+              at any time with <strong>Privacy and cookie settings</strong> at the bottom of every
+              page.
+            </li>
+          </ul>
+          <p>
+            Google explains what it does with this in{' '}
+            <a
+              href="https://policies.google.com/technologies/partner-sites"
+              className="font-semibold text-accent-text underline"
+            >
+              How Google uses information from sites that use its services
+            </a>
+            .
+          </p>
+        </>
+      )}
 
       <h2>Children</h2>
       <p>
-        Families and classrooms play SyncBingo. It collects no personal information from anyone
-        beyond the name typed to play, which is gone within hours. A grown-up hosting for children
-        can suggest first names or nicknames.
+        Families and classrooms play SyncBingo. {ads ? 'SyncBingo itself' : 'It'} collects no
+        personal information from anyone beyond the name typed to play, which is gone within hours.
+        A grown-up hosting for children can suggest first names or nicknames.
+        {ads && ' Every ad is requested as directed at children, so none is personalised.'}
       </p>
 
       <h2>Changes</h2>

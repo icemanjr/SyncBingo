@@ -100,8 +100,8 @@ The host changes settings and the win pattern in **Options**, as a draft, and pr
 | ID | Requirement |
 |----|-------------|
 | FR-50 | Every page reserves fixed-size **banner slots**: top and bottom on mobile; left and right on desktop. **Exception:** the display view (FR-28) shows no ads, because it is shown to the whole room. |
-| FR-51 | No pop-ups, interstitials, overlays or anything that can cover the play area. |
-| FR-52 | Ad rendering sits behind a provider abstraction; the portfolio build shows placeholders. |
+| FR-51 | No pop-ups, interstitials, overlays or anything that can cover the play area. **One exception** (2026-10-27, ADR 0012): the consent message the law requires on a first visit from the EU, the UK or Switzerland, shown before any ad. |
+| FR-52 | Ad rendering sits behind a provider abstraction; the portfolio build and local development show placeholders. The live site uses **Google AdSense** (ADR 0012, owner 2026-10-27): every ad request is tagged as directed at children (no personalised ads, no remarketing); visitors in the EU, the UK and Switzerland get Google's consent message and can change their choice with **Privacy and cookie settings** in every page's footer; Auto ads stay off; the Privacy page describes the ads. |
 
 ## 4. Non-functional requirements
 

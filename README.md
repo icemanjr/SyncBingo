@@ -159,6 +159,8 @@ The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
 | [0008](docs/adr/0008-host-credited-wins.md) | Host credits wins |
 | [0009](docs/adr/0009-callable-items-and-faces.md) | Callable items with call and card faces; custom text sets |
 | [0010](docs/adr/0010-display-pairing-with-short-codes.md) | Pairing display screens with a short code |
+| [0011](docs/adr/0011-lean-hosting-on-one-instance.md) | Lean hosting on one instance; Valkey; Full design kept in CDK |
+| [0012](docs/adr/0012-adsense-child-directed-ads.md) | Google AdSense, child-directed, with Google's consent message |
 
 ## Roadmap
 

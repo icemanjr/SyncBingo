@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Browser, type Page } from '@playwright/test'
-import { grabBall, laptop, password, phone, startRound } from './game'
+import { grabBall, hostGame, laptop, password, phone, startRound } from './game'
 
 /**
  * Every screen, in light and dark, checked by axe-core against WCAG 2.1 A and AA (docs/06 §3): contrast,
@@ -88,6 +88,53 @@ for (const colorScheme of ['light', 'dark'] as const) {
     expect(problems, problems.join('\n')).toEqual([])
   })
 }
+
+/**
+ * Every colour theme (FR-50a), in light and dark, on a player's round screen with called balls and a mark:
+ * a player picks the theme on their own device, so one game covers them all.
+ */
+test('every colour theme passes WCAG 2.1 AA checks, light and dark', async ({ browser }) => {
+  test.setTimeout(180_000)
+  const { host, code } = await hostGame(browser)
+  const problems: string[] = []
+  const players: Page[] = []
+  for (const theme of ['Ocean', 'Forest', 'Halloween', 'Winter']) {
+    for (const colorScheme of ['light', 'dark'] as const) {
+      const context = await browser.newContext({ ...phone, colorScheme })
+      await context.addInitScript((chosen) => {
+        localStorage.setItem('syncbingo:palette', chosen)
+      }, theme)
+      const page = await context.newPage()
+      await page.goto(`/join/${code}`)
+      await page.getByLabel('Game password').fill(password)
+      await page.getByLabel('Your name').fill(`${theme} ${colorScheme}`)
+      await page.getByRole('button', { name: 'Get my card' }).click()
+      await expect(page.getByRole('grid', { name: 'Your card' })).toBeVisible()
+      players.push(page)
+    }
+  }
+
+  await startRound(host)
+  for (let i = 0; i < 3; i++) await grabBall(host)
+  for (const page of players) {
+    await page.getByRole('gridcell').first().click()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', /.+/)
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze()
+    const who = await page.evaluate(
+      () =>
+        `${document.documentElement.dataset.palette ?? ''} ${document.documentElement.classList.contains('dark') ? 'dark' : 'light'}`,
+    )
+    for (const v of results.violations) {
+      problems.push(
+        `${who}: ${v.id} ${v.help}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`,
+      )
+    }
+  }
+
+  expect(problems, problems.join('\n')).toEqual([])
+})
 
 test('nothing animates for people who ask their device for reduced motion', async ({ browser }) => {
   const page = await (await browser.newContext({ ...phone, reducedMotion: 'reduce' })).newPage()

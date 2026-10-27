@@ -5,10 +5,12 @@ import '@fontsource-variable/figtree'
 import '@fontsource-variable/bricolage-grotesque'
 import './index.css'
 import App from './App.tsx'
+import { installPalettes } from './app/palettes'
 import { applyTheme, loadThemePreference } from './app/theme'
 
 // Before the first render, so a dark-mode page never flashes light.
 applyTheme(loadThemePreference())
+installPalettes()
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing #root element')

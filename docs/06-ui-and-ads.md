@@ -116,6 +116,10 @@ The agreed reference is the design canvas made on 2026-10-15 (host lobby and rou
 
 A three-way switch in every page's header: **System** (the default: follows the device, including when the device switches at sunset), **Light** and **Dark**. Remembered on the device; nothing is sent to the server. Colours are defined by meaning (page, surface, ink, muted ink, accent, danger…) with a light and a dark value each, so every screen supports both, and body and muted text meet 4.5:1 in both. The join QR stays black on white in either theme so phones can scan it. The display view has no header and follows the screen's own setting.
 
+### Colour themes (FR-50a)
+
+Five palettes, defined once in `web/src/app/palettes.ts` and applied with `data-palette` on `<html>`, so the light/dark switch keeps working: **Classic** (index.css), **Ocean**, **Forest**, **Halloween** and **Winter**. They change the page, surfaces, accent, last ball and group colours, never the text colours or the B-I-N-G-O letters. A unit test computes every text/background pair of every palette in light and dark (4.5:1 for text, 3:1 for the accent as a border), and an axe scan runs on a player's round screen in each. The host picks the game's theme in Options (*Look*, any time, no notice); players see it unless they chose their own under **My marks** → **Colours**. The host console and the display always show the game's theme; pages outside a game stay Classic.
+
 ### Mark style (FR-51)
 
 On the play screen, **⚙ My marks** opens a small panel with a live preview cell:

@@ -900,6 +900,7 @@ export interface components {
             unmarking?: null | components["schemas"]["Unmarking"];
             freeSpace?: null | components["schemas"]["FreeSpace"];
             cardSize?: null | components["schemas"]["CardSize"];
+            theme?: null | components["schemas"]["Theme"];
             showRoundNumbers?: null | boolean;
             multipleWins?: null | components["schemas"]["MultipleWins"];
         };
@@ -908,6 +909,11 @@ export interface components {
             you: null | components["schemas"]["PlayerView"];
             host: null | components["schemas"]["HostBody"];
         };
+        /**
+         * @default Classic
+         * @enum {unknown}
+         */
+        Theme: "Classic" | "Ocean" | "Forest" | "Halloween" | "Winter";
         /** @enum {unknown} */
         Unmarking: "Off" | "MismarksOnly" | "Any";
         VisibleRequest: {
@@ -926,6 +932,7 @@ export interface components {
             redrawPolicy: components["schemas"]["RedrawPolicy"];
             multipleWins: components["schemas"]["MultipleWins"];
             showRoundNumbers: boolean;
+            theme?: components["schemas"]["Theme"];
         };
         /** @enum {unknown} */
         WinDetection: "Off" | "AlertHost" | "AlertHostAndPause" | null;

@@ -32,6 +32,17 @@ public sealed class RulesUpdatedTests
     }
 
     [Fact]
+    public void A_new_colour_theme_mid_round_is_not_a_rule_change()
+    {
+        var session = InState(SessionState.Manual);
+
+        var events = session.ApplyRules(SessionSettings.Default with { Theme = Theme.Halloween }, session.WinConditionId, Now).Value;
+
+        events.ShouldHaveSingleItem().ShouldBeOfType<SettingsChanged>().Settings.Theme.ShouldBe(Theme.Halloween);
+        session.NextBallFrom.ShouldBeNull("no notice to read, so the next ball needn't wait");
+    }
+
+    [Fact]
     public void Changes_in_the_lobby_need_no_notice()
     {
         var session = NewSession();

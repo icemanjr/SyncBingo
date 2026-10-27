@@ -1,4 +1,5 @@
 import type { Schemas } from '../../api/client'
+import { palettes } from '../../app/palettes'
 import { selectionName, type PatternData } from './patterns'
 
 export type Settings = Schemas['SettingsBody']
@@ -103,6 +104,17 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
           { value: 'AlertHostAndPause', label: 'Alert me and pause' },
           { value: 'Off', label: 'Off' },
         ],
+      },
+    ],
+  },
+  {
+    title: 'Look',
+    settings: [
+      {
+        key: 'theme',
+        label: 'Colour theme',
+        help: 'For everyone’s screens and the display. Players can pick their own on their phone.',
+        choices: palettes.map((p) => ({ value: p.value, label: p.label })),
       },
     ],
   },

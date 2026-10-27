@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { usePalette, usePaletteChoice } from '../../app/palettes'
 import { Link, useNavigate, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
@@ -66,6 +67,10 @@ export function PlayScreen() {
   const game = useGame(code, me?.token)
   const player = useMemo(() => playerApi(code, me?.token ?? ''), [code, me?.token])
   const [markStyle, setMarkStyle] = useMarkStyle()
+  // The host's colour theme, unless this player chose their own on this device (FR-50a).
+  const [paletteChoice, setPaletteChoice] = usePaletteChoice()
+  const gameTheme = game.snapshot?.game.settings.theme
+  usePalette(paletteChoice === 'game' ? gameTheme : paletteChoice)
   const [styling, setStyling] = useState(false)
   const [open, setOpen] = useState<'rules' | 'board'>()
   const extras = useAction()
@@ -502,6 +507,11 @@ export function PlayScreen() {
         <MarkStylePanel
           style={markStyle}
           onChange={setMarkStyle}
+          palette={{
+            choice: paletteChoice,
+            game: gameTheme ?? 'Classic',
+            onChange: setPaletteChoice,
+          }}
           onClose={() => {
             setStyling(false)
           }}

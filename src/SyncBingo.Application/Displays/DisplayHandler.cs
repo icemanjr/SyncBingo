@@ -34,7 +34,7 @@ public sealed class DisplayHandler(ISessionStore store, ITokenService tokens, IE
         var display = new DisplayRecord(Guid.NewGuid().ToString("N"), kind, clock.UtcNow);
         return await store.TryAddDisplayAsync(code, display, token.Hash, MaxDisplays, cancellationToken).ConfigureAwait(false)
             ? Result.Success(new DisplayIssued(display.DisplayId, token.Token))
-            : new DomainError(DomainErrorCode.Conflict, $"A game can have up to {MaxDisplays} displays. Disconnect one first.");
+            : TooManyDisplays();
     }
 
     public async Task<Result<IReadOnlyList<DisplayRecord>>> ListAsync(GameCode code, Caller caller, CancellationToken cancellationToken)
@@ -85,6 +85,10 @@ public sealed class DisplayHandler(ISessionStore store, ITokenService tokens, IE
 
         return Result.Success(links.Count);
     }
+
+    /// <summary>The game already has <see cref="MaxDisplays"/> displays.</summary>
+    internal static DomainError TooManyDisplays() =>
+        new(DomainErrorCode.Conflict, $"A game can have up to {MaxDisplays} displays. Disconnect one first.");
 
     private async Task<DomainError?> CheckAsync(GameCode code, Caller caller, CancellationToken cancellationToken)
     {

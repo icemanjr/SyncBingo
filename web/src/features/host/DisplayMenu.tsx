@@ -5,7 +5,7 @@ import { Button, ErrorText, Panel } from '../game/ui'
 import type { HostApi } from './hostApi'
 
 /**
- * **Open display ⧉** (docs/06): read-only screens for the room (FR-28). Open one in a new tab or copy its
+ * **Display** (docs/06): read-only screens for the room (FR-28). Open one in a new tab or copy its
  * link, connect a smart TV with the code it shows (ADR 0010), see and disconnect displays, and set the note
  * shown under the join QR (FR-49). Not rules, so it works in auto mode too.
  */
@@ -101,7 +101,7 @@ export function DisplayMenu({
             Connect a TV
           </label>
           <p id="tv-code-help" className="text-sm text-ink-muted">
-            On the TV, open syncbingo.com/tv and type the code it shows.
+            On the TV, open {window.location.host}/tv and type the code it shows.
           </p>
           <div className="flex flex-wrap gap-2">
             <input

@@ -131,7 +131,7 @@ public sealed class Participant
 
         if (!session.Settings.FreeMarking && (CardRules.CalledMask(card.Card, session) & Bit(cell)) == 0)
         {
-            return Refuse("Only called numbers can be marked in this game.");
+            return Refuse("Only called squares can be marked in this game.");
         }
 
         return Change(card, card.Marks | Bit(cell), session);
@@ -168,7 +168,7 @@ public sealed class Participant
         {
             return Refuse(session.Settings.Unmarking == Unmarking.Off
                 ? "Marks can't be removed in this game. Use Undo before the next ball."
-                : "Only squares whose number hasn't been called can be unmarked.");
+                : "Only marks on squares that haven't been called can be removed.");
         }
 
         return Change(card, card.Marks & ~bit, session);
@@ -324,18 +324,21 @@ public sealed class Participant
         return replaced;
     }
 
-    /// <summary>Whether a card qualifies for the current win condition (FR-23); see <see cref="CardRules.Qualifies"/>.</summary>
+    /// <summary>
+    /// Whether a card qualifies for the current win condition (FR-23): the pattern's cells are all called, and
+    /// also marked when <see cref="SessionSettings.RequireMarksForClaims"/> is on.
+    /// </summary>
     public Result<bool> Qualifies(int cardId, Session session)
     {
         var matches = Matches(cardId, session);
         return matches.IsSuccess ? Result.Success(matches.Value > 0) : matches.Error!;
     }
 
-    /// <summary>How many lines (pattern masks) a card completes under claim rules; see <see cref="CardRules.MatchCount"/>.</summary>
     /// <summary>The selected patterns this card completes, by the same rules as <see cref="Matches"/>.</summary>
     public IReadOnlyList<string> CompletedPatterns(int cardId, Session session) =>
         FindCard(cardId) is { } card ? CardRules.CompletedPatterns(card.Card, card.Marks, session) : [];
 
+    /// <summary>How many lines (pattern masks) a card completes under claim rules; see <see cref="CardRules.MatchCount"/>.</summary>
     public Result<int> Matches(int cardId, Session session)
     {
         ArgumentNullException.ThrowIfNull(session);

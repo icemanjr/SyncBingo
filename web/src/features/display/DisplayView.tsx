@@ -39,13 +39,15 @@ export function DisplayView() {
   const centred = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
 
   if (!token)
-    return centred('Open this display from the host’s “Open display” menu, or connect a TV at /tv.')
+    return centred(
+      `Open this display from the host’s Display menu, or connect a TV at ${window.location.host}/tv.`,
+    )
   if (disconnected) return centred('The host disconnected this display.')
   if (gone) return centred('This game has ended. Thanks for playing!')
   if (!game.snapshot) return centred(game.error ? game.error.detail : 'Connecting…')
 
   const view = game.snapshot.game
-  if (view.state === 'Ended') return centred('The game has ended. Thanks for playing!')
+  if (view.state === 'Ended') return centred('This game has ended. Thanks for playing!')
 
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const lobby = view.state === 'BetweenRounds'

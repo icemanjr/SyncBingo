@@ -49,11 +49,11 @@ public sealed record GameView(
 /// each item's ball text (<c>Board[n − 1]</c> is item n, as the board's groups list item numbers), and
 /// <see cref="Squares"/> every square's text in alphabetical order, to size text for Max (FR-51) without
 /// saying which square goes with which ball. Calls carry both of their own texts.
-/// </summary>
 /// <see cref="GroupItems"/>: the set has groups, so it is dealt by group, one per card column.
 /// <see cref="Labels"/> are the groups' short labels, in board order, for the card's column headers.
 /// <see cref="BoardSide"/> says which face <see cref="Board"/> holds (FR-29): ball text by default, square text
 /// when the host chose it. <see cref="PlayersMayDownload"/>: the host lets players download the set (in the lobby).
+/// </summary>
 public sealed record ContentView(
     string Name,
     bool GroupItems,
@@ -161,9 +161,14 @@ public sealed record CardView(int CardId, IReadOnlyList<int> Cells, uint Marks, 
 {
     /// <summary>A card as its holder may see it: with a set, faces and placeholder cells (see above).</summary>
     public static CardView ForPlayer(int cardId, Card card, uint marks, ContentSet? content) =>
-        content is null
-            ? new CardView(cardId, [.. card.Cells], marks)
-            : new CardView(cardId, Placeholders(card), marks, FacesOf(card, content));
+        new(cardId, CellsFor(card, content), marks, content is null ? null : FacesOf(card, content));
+
+    /// <summary>
+    /// The cells a player may see: the numbers, or with a set only placeholders. Every reply and notice that
+    /// gives a player a card goes through here, so none can leak the answer key.
+    /// </summary>
+    public static IReadOnlyList<int> CellsFor(Card card, ContentSet? content) =>
+        content is null ? [.. card.Cells] : Placeholders(card);
 
     /// <summary>A card as the host sees it when checking a claim: real item numbers and, with a set, the faces.</summary>
     public static CardView ForHost(int cardId, Card card, uint marks, ContentSet? content) =>
@@ -224,10 +229,10 @@ public sealed class GameQueries(ISessionStore store)
                     return Errors.NotInGame();
                 }
 
-                var settings = session.Settings;
-                var seesCalls = settings.ShowBallToPlayers || settings.HighlightMatches || settings.ShowCallBoard;
                 return Result.Success(new GameSnapshot(
-                    Public(session, seesCalls, session.LeaderboardVisible, Audience.Players), PlayerOf(stored.Participant, session.Content), null));
+                    Public(session, session.Settings.PlayersSeeCalls, session.LeaderboardVisible, Audience.Players),
+                    PlayerOf(stored.Participant, session.Content),
+                    null));
             case CallerRole.Display:
                 return Result.Success(new GameSnapshot(Public(session, showCalls: true, session.LeaderboardVisible, Audience.Display), null, null));
             default:

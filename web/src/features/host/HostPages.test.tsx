@@ -249,7 +249,7 @@ describe('the host console', () => {
     renderConsole()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Award' }))
-    expect(screen.getByText("Award a Bingo that isn't on the called numbers?")).toBeInTheDocument()
+    expect(screen.getByText("Award a Bingo that isn't on the called balls?")).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(api.sent.some((s) => s.path.endsWith('/wins'))).toBe(false)
 
@@ -323,7 +323,7 @@ describe('the host console', () => {
     const waiting = within(players).getByRole('region', { name: 'Waiting' })
     expect(waiting).toHaveTextContent('Late')
     expect(waiting).toHaveTextContent(
-      'They’ll join automatically when it ends: End round or Clear cards.',
+      'get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel).',
     )
     expect(within(waiting).queryByRole('button', { name: /card/ })).not.toBeInTheDocument()
 

@@ -84,16 +84,4 @@ public static class CardRules
         var called = CalledMask(card, session);
         return marks is { } m && session.Settings.RequireMarksForClaims ? called & m : called;
     }
-
-    /// <summary>
-    /// Whether the card's called cells meet the current win condition, ignoring marks.
-    /// Used by win detection (FR-19): "this card has a winning line, noticed or not".
-    /// </summary>
-    public static bool MeetsWinCondition(Card card, Session session) => MatchCount(card, null, session) > 0;
-
-    /// <summary>
-    /// Whether the card qualifies for the current win condition: the pattern's cells are
-    /// all called, and also marked when <see cref="SessionSettings.RequireMarksForClaims"/> is on (FR-23).
-    /// </summary>
-    public static bool Qualifies(Card card, uint marks, Session session) => MatchCount(card, marks, session) > 0;
 }

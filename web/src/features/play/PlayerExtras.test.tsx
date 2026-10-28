@@ -60,7 +60,7 @@ describe('the player extras', () => {
       'aria-selected',
       'true',
     )
-    expect(screen.getByText('Only called numbers can be marked')).toBeInTheDocument()
+    expect(screen.getByText('Only called squares can be marked')).toBeInTheDocument()
     expect(screen.getByText('The free space must be earned')).toBeInTheDocument()
   })
 
@@ -104,12 +104,12 @@ describe('the player extras', () => {
     })
     renderPlay()
 
-    await userEvent.click(await screen.findByRole('checkbox', { name: 'Auto-fill missed numbers' }))
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Auto-fill missed squares' }))
 
     await waitFor(() => {
       expect(api.sent.find((s) => s.path.endsWith('/me/auto-fill'))?.body).toEqual({ on: true })
     })
-    expect(screen.getByRole('checkbox', { name: 'Auto-fill missed numbers' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Auto-fill missed squares' })).toBeChecked()
   })
 
   it('swaps the card between rounds when the host allows it', async () => {

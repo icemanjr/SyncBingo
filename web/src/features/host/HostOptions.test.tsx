@@ -280,7 +280,7 @@ describe('the rules notice (FR-47)', () => {
     )
 
     expect(screen.getByText('Pattern changed to Blackout')).toBeInTheDocument()
-    expect(screen.getByText('Only called numbers can be marked')).toBeInTheDocument()
+    expect(screen.getByText('Only called squares can be marked')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onClose).toHaveBeenCalled()
   })

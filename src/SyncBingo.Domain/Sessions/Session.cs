@@ -110,7 +110,6 @@ public sealed class Session
     /// <summary>Settings in force now.</summary>
     public SessionSettings Settings { get; private set; }
 
-    /// <summary>Id of the current <see cref="WinPattern"/>, e.g. <c>normal</c>.</summary>
     /// <summary>The selection key of the patterns this round is played for (<see cref="WinSelection"/>), e.g. <c>rows+columns+diagonals</c>.</summary>
     public string WinConditionId { get; private set; }
 
@@ -398,9 +397,11 @@ public sealed class Session
 
     /// <summary>
     /// "Use this set" (ADR 0009), or back to numbers with <paramref name="content"/> <c>null</c>: lobby only,
-    /// since every card is redealt. The card, free space and patterns stay as they are; a set with groups is
-    /// dealt by group (<see cref="ContentVariant"/>); a set that doesn't fit the card is refused with the reason. The last round's calls are cleared, because item ids mean
-    /// something else now. Callers deal every participant a new card.
+    /// since every card is redealt. The free space and patterns stay as they are; the card size too, unless the
+    /// set editor sends <paramref name="cardSize"/> with the set (FR-26a). A set with groups is dealt by group
+    /// (<see cref="ContentVariant"/>); a set that doesn't fit the card is refused with the reason. The last
+    /// round's calls are cleared, because item ids mean something else now. Callers deal every participant a
+    /// new card.
     /// </summary>
     public Result<IReadOnlyList<SessionEvent>> UseContent(ContentSet? content, DateTimeOffset now, CardSize? cardSize = null)
     {
@@ -544,7 +545,7 @@ public sealed class Session
 
         if (IsInRound && Settings.RoundScopedChanges(settings) is [_, ..] lobbyOnly)
         {
-            var names = lobbyOnly.Count == 1 ? lobbyOnly[0] : $"{string.Join(", ", lobbyOnly[..^1])} and {lobbyOnly[^1]}";
+            var names = JoinWithAnd(lobbyOnly);
             return Failure(DomainErrorCode.NotAllowed, $"{char.ToUpperInvariant(names[0])}{names[1..]} can only be changed between rounds.");
         }
 
@@ -613,7 +614,7 @@ public sealed class Session
     }
 
     /// <summary>
-    /// The last <see cref="ApplyRules"/> changed the card's shape (a free space added or taken away), so every
+    /// The last <see cref="ApplyRules"/> changed the card's shape (its size, or a free space added or taken away), so every
     /// participant needs a new card. Not stored: read straight after the command.
     /// </summary>
     public bool CardShapeChanged { get; private set; }
@@ -636,6 +637,10 @@ public sealed class Session
         return content is null ? Result.Success(standard) : ContentVariant.For(standard, content);
     }
 
+    /// <summary>"a", "a and b", "a, b and c".</summary>
+    private static string JoinWithAnd(List<string> names) =>
+        names.Count == 1 ? names[0] : $"{string.Join(", ", names[..^1])} and {names[^1]}";
+
     private static bool SameShape(CardLayout a, CardLayout b) =>
         a.Rows == b.Rows && a.Columns == b.Columns && a.FreeCell == b.FreeCell;
 
@@ -651,7 +656,7 @@ public sealed class Session
         }
 
         var missing = current!.Patterns.Where(pattern => !rules.TryGetPattern(pattern.Id, out _)).Select(pattern => pattern.Name).ToList();
-        var names = missing.Count == 1 ? missing[0] : $"{string.Join(", ", missing[..^1])} and {missing[^1]}";
+        var names = JoinWithAnd(missing);
         return new DomainError(
             DomainErrorCode.Invalid,
             $"A {rules.Layout.Rows} × {rules.Layout.Columns} card has no {names}: choose another pattern too.");
@@ -901,11 +906,6 @@ public sealed class Session
     }
 
     /// <summary>
-    /// The host's "Call board shows" (FR-29), under Displays: which face of a custom set's items every call
-    /// board shows. Presentation, not a rule, so like the join note it changes in any state but Ended, at
-    /// once; everyone hears, since every board changes.
-    /// </summary>
-    /// <summary>
     /// "Players can download this set" (ADR 0009): any time before the game ends; downloads themselves work
     /// only in the lobby (<see cref="PlayersCanDownloadNow"/>). Everyone hears, so players' apps show or hide
     /// the button.
@@ -1030,6 +1030,11 @@ public sealed class Session
             : null;
     }
 
+    /// <summary>
+    /// The host's "Call board shows" (FR-29), under Displays: which face of a custom set's items every call
+    /// board shows. Presentation, not a rule, so like the join note it changes in any state but Ended, at
+    /// once; everyone hears, since every board changes.
+    /// </summary>
     public Result<IReadOnlyList<SessionEvent>> SetBoardSide(BoardSide side, DateTimeOffset now)
     {
         if (State == SessionState.Ended)
@@ -1173,7 +1178,7 @@ public sealed class Session
     {
         if (State == SessionState.Ended)
         {
-            return WrongState("end the session");
+            return WrongState("end the game");
         }
 
         State = SessionState.Ended;
@@ -1302,9 +1307,7 @@ public sealed class Session
     /// </summary>
     private Audience AudienceOf(SessionEvent e) => e switch
     {
-        BallCalled => Settings.ShowBallToPlayers || Settings.HighlightMatches || Settings.ShowCallBoard
-            ? Audience.Everyone
-            : Audience.Host | Audience.Display,
+        BallCalled => Settings.PlayersSeeCalls ? Audience.Everyone : Audience.Host | Audience.Display,
         AutoCallingStarted or AutoCallingPaused or WinClaimed or ClaimDismissed or WinDetected => Audience.Host,
         JoinNoteChanged => Audience.Host | Audience.Display,
         _ => Audience.Everyone,
@@ -1317,7 +1320,9 @@ public sealed class Session
             : null;
 
     private DomainError WrongState(string action) =>
-        new(DomainErrorCode.WrongState, $"Cannot {action} while the session is {Describe(State)}.");
+        new(DomainErrorCode.WrongState, State == SessionState.Ended
+            ? "This game has ended."
+            : $"You can't {action} while the game is {Describe(State)}.");
 
     private static DomainError Failure(DomainErrorCode code, string message) => new(code, message);
 

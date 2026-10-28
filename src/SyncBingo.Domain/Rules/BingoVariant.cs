@@ -95,13 +95,13 @@ public sealed class BingoVariant
         {
             if (IsFreeForm)
             {
-                return OrderedPicks(BallMax, Layout.CellCount - (Layout.FreeCell is null ? 0 : 1));
+                return OrderedPicks(BallMax, Layout.ItemCells);
             }
 
             var total = 1L;
             for (var column = 0; column < Columns.Length; column++)
             {
-                total = SaturatingMultiply(total, OrderedPicks(Columns[column].Count, Layout.Rows - FreeCellsIn(column)));
+                total = SaturatingMultiply(total, OrderedPicks(Columns[column].Count, Layout.ItemCellsIn(column)));
             }
 
             return total;
@@ -194,10 +194,9 @@ public sealed class BingoVariant
     {
         if (IsFreeForm)
         {
-            var cellsToFill = Layout.CellCount - (Layout.FreeCell is null ? 0 : 1);
-            if (BallMax < cellsToFill)
+            if (BallMax < Layout.ItemCells)
             {
-                throw new ArgumentException($"Free-form dealing needs at least {cellsToFill} balls to fill a card.", "columns");
+                throw new ArgumentException($"Free-form dealing needs at least {Layout.ItemCells} balls to fill a card.", "columns");
             }
 
             return;
@@ -221,16 +220,13 @@ public sealed class BingoVariant
                 throw new ArgumentException("Column ranges must be in ascending order and must not overlap.", "columns");
             }
 
-            var cellsToFill = Layout.Rows - FreeCellsIn(column);
+            var cellsToFill = Layout.ItemCellsIn(column);
             if (range.Count < cellsToFill)
             {
                 throw new ArgumentException($"Column {range.Label} needs at least {cellsToFill} balls to fill a card.", "columns");
             }
         }
     }
-
-    private int FreeCellsIn(int column) =>
-        Layout.FreeCell is { } free && free % Layout.Columns == column ? 1 : 0;
 
     private void ValidatePresets()
     {

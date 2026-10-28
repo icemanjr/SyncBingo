@@ -24,6 +24,12 @@ import { PlayersPanel } from './PlayersPanel'
 import { CallingCard, RoundActions, StartCard } from './RoundControls'
 import { NumbersCard, SetCard } from './SetCard'
 
+/** Whole minutes in a .NET TimeSpan as JSON sends it ("00:10:00"). */
+const lockMinutes = (span: string) => {
+  const [hours = 0, minutes = 0] = span.split(':').map(Number)
+  return String(hours * 60 + minutes)
+}
+
 /**
  * The host console (docs/06, the design reference). In the lobby: how to join (QR, code, join note) beside
  * the next-round card and the players. During a round on a laptop, everything on one screen: the calling
@@ -154,7 +160,7 @@ export function HostConsole() {
         )}
         <span className="text-sm text-ink-muted">
           {players.length} player{players.length === 1 ? '' : 's'} ·{' '}
-          {view.state === 'BetweenRounds' ? 'joining open' : 'joining closed'}
+          {view.state === 'BetweenRounds' ? 'joining open' : 'late arrivals wait'}
         </span>
         <span className="ml-auto flex gap-2">
           <Button
@@ -210,7 +216,7 @@ export function HostConsole() {
           >
             <p>
               {data.lockedFor
-                ? 'Joining is locked for 10 minutes from one network after too many wrong passwords.'
+                ? `After too many wrong passwords, joining from one network is locked for ${lockMinutes(data.lockedFor)} minutes.`
                 : `${String(data.wrongInLastMinute)} wrong passwords in the last minute. Check the password you shared.`}
             </p>
             <Button
@@ -257,7 +263,10 @@ export function HostConsole() {
             {view.content && token ? (
               <SetCard code={code} token={token} content={view.content} host={host} />
             ) : (
-              <NumbersCard code={code} />
+              <NumbersCard
+                code={code}
+                balls={view.board.reduce((total, group) => total + group.balls.length, 0)}
+              />
             )}
             {playersPanel}
             {view.round > 0 && <RoundActions game={view} host={host} />}

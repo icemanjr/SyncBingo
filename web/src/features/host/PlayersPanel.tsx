@@ -164,8 +164,8 @@ export function PlayersPanel({
           </h3>
           <p className="text-sm text-ink-muted">
             {!lobby
-              ? 'They joined during the round. They’ll join automatically when it ends: End round or Clear cards.'
-              : 'No different cards are left for them. Add entries to the set to make more.'}
+              ? 'They arrived during the round and get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel).'
+              : 'Every different card is in use. Add entries to the set to make more.'}
           </p>
           <ul className="flex flex-col divide-y divide-line-soft">
             {waiting.map((player) => (

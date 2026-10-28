@@ -59,7 +59,7 @@ public enum FreeSpace
 
 /// <summary>
 /// Host settings (docs/01 §3.2). Defaults follow the documented decisions; the rest
-/// favour a friendly first game. <see cref="FreeSpace"/>, <see cref="RedrawPolicy"/> and
+/// favour a friendly first game. <see cref="FreeSpace"/>, <see cref="CardSize"/>, <see cref="RedrawPolicy"/> and
 /// <see cref="MultipleWins"/> change only in the lobby (see <see cref="Session.ApplyRules"/>).
 /// </summary>
 public sealed record SessionSettings
@@ -117,6 +117,9 @@ public sealed record SessionSettings
 
     public static SessionSettings Default { get; } = new();
 
+    /// <summary>Players get the called balls: some setting shows them a ball, a match or the board (FR-12 to FR-14).</summary>
+    public bool PlayersSeeCalls => ShowBallToPlayers || HighlightMatches || ShowCallBoard;
+
     /// <summary>
     /// The settings players notice, by wire name, for the "Rules updated" notice (FR-47). Left out
     /// on purpose: the auto-call interval and win detection (how the host runs the game), the
@@ -134,7 +137,7 @@ public sealed record SessionSettings
         ("unmarking", s => s.Unmarking),
     ];
 
-    /// <summary>Settings that shape a whole round, so they change only in the lobby: the cards' free space, redraws and multiple wins.</summary>
+    /// <summary>Settings that shape a whole round, so they change only in the lobby: the card's size and free space, redraws and multiple wins.</summary>
     private static readonly (string Name, Func<SessionSettings, object> Value)[] RoundScoped =
     [
         ("free space", s => s.FreeSpace),

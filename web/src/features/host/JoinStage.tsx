@@ -63,7 +63,7 @@ export function JoinStage({
           {window.location.host}, then the password you give them.
           <br />
           <br />
-          Joining closes when a round starts.
+          Anyone who arrives during a round waits, and gets a card as soon as it ends.
         </p>
       </div>
 

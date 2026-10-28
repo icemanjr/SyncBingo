@@ -36,9 +36,6 @@ import { limits, tidy } from './text'
 const input =
   'min-h-12 w-full rounded-xl border-2 border-line bg-surface px-3 focus-visible:outline-4 focus-visible:outline-accent'
 
-/** A file the host picked, as text. */
-const readFile = (file: File): Promise<string> => file.text()
-
 /**
  * The set editor (FR-44, ADR 0009): the host builds a custom set as a **draft** on this device, then sends
  * it whole with **Use this set**, so players get one redeal. With **Use groups** the groups are the card's
@@ -125,7 +122,7 @@ function Editor({ code, token }: { code: string; token: string }) {
   }
 
   const replaceFrom = async (file: File, merge: boolean) => {
-    const read = readSetFile(await readFile(file))
+    const read = readSetFile(await file.text())
     if ('error' in read) {
       setMessage(read.error)
       return
@@ -356,7 +353,7 @@ function Editor({ code, token }: { code: string; token: string }) {
               ? 'Over a million possible cards.'
               : `${cards.toLocaleString('en-US')} possible cards.`}
             {cards < maxPlayers &&
-              ` Up to ${String(cards)} players can each have their own card; anyone after that is told no unique cards are left. Add an entry to a group for more.`}
+              ` Up to ${String(cards)} players can each have their own card; anyone after that is told no unique cards are left. ${useGroups ? 'Add entries to the groups' : 'Add entries'} for more.`}
           </p>
         )}
         {problems.length > 0 && (

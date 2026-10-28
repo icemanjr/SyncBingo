@@ -1,4 +1,4 @@
-import { newId, squareOf, type Draft, type DraftEntry, type DraftGroup } from './draft'
+import { newId, squareOf, ungroupedOf, type Draft, type DraftEntry, type DraftGroup } from './draft'
 import { defaultLabel, limits, tidy } from './text'
 
 /**
@@ -121,9 +121,7 @@ export function writeSetFile(draft: Draft, useGroups = true): string {
     lines.push(`,\n  "groups": [\n${groups.join(',\n')}\n  ]`)
   }
 
-  const ungrouped = draft.entries.filter(
-    (entry) => entry.groupId === null || !draft.groups.some((g) => g.id === entry.groupId),
-  )
+  const ungrouped = ungroupedOf(draft)
   if (ungrouped.length > 0) lines.push(`,\n  "pairs": ${pairsBlock(ungrouped, '  ')}`)
   return `${lines.join('')}\n}\n`
 }

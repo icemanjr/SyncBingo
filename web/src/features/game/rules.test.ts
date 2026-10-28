@@ -7,8 +7,8 @@ describe('rule sentences (FR-47, FR-48)', () => {
   const off = (rule: string) => describeChange({ rule, value: 'false' }, noPatterns)
 
   it('state the rule as it stands, so they read right in the current rules too', () => {
-    expect(off('requireMarksForClaims')).toBe('Can call Bingo without marks')
-    expect(off('highlightMatches')).toBe('Called numbers are not highlighted')
+    expect(off('requireMarksForClaims')).toBe('You can call Bingo without marks')
+    expect(off('highlightMatches')).toBe('Called squares are not highlighted')
     expect(off('showBallToPlayers')).toBe('The called ball is not shown on your screen')
   })
 

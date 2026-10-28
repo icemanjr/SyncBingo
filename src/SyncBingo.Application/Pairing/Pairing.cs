@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using SyncBingo.Application.Displays;
 using SyncBingo.Application.Ports;
 using SyncBingo.Domain;
@@ -59,7 +60,7 @@ public sealed class PairingHandler(
     /// <summary>The TV asks for a code (anonymous; rate-limited per address by the API).</summary>
     public async Task<PairingStarted> StartAsync(CancellationToken cancellationToken)
     {
-        var pairingId = Convert.ToHexStringLower(Guid.NewGuid().ToByteArray()) + Convert.ToHexStringLower(Guid.NewGuid().ToByteArray());
+        var pairingId = RandomNumberGenerator.GetHexString(64, lowercase: true); // 256 bits: a secret only the TV knows
         for (var attempt = 0; attempt < CodeAttempts; attempt++)
         {
             var code = PairingCode.Generate(random);
@@ -95,7 +96,7 @@ public sealed class PairingHandler(
 
         if (existing.Value.Count >= DisplayHandler.MaxDisplays)
         {
-            return new DomainError(DomainErrorCode.Conflict, $"A game can have up to {DisplayHandler.MaxDisplays} displays. Disconnect one first.");
+            return DisplayHandler.TooManyDisplays();
         }
 
         if (!PairingCode.TryParse(typedCode, out var pairingCode)

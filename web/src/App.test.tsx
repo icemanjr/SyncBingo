@@ -55,6 +55,15 @@ describe('the landing page', () => {
   })
 })
 
+describe('an address the site does not have', () => {
+  it('says the page was not found and links back to the start', () => {
+    renderAt('/no-such-page')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to the start' })).toHaveAttribute('href', '/')
+  })
+})
+
 describe('the display view', () => {
   it('has no ads', () => {
     renderAt('/display/9ve4shp3k7mwa2qx')

@@ -53,7 +53,8 @@ public sealed class HostCommandHandler(SessionCommandRunner runner, IRandomSourc
                         return Result.Success(CommandOutcome.Of(outcome.Value));
                     }
 
-                    // A free space added or taken away (lobby only): the old cards no longer fit, so everyone gets a new one.
+                    // Another card size, or a free space added or taken away (lobby only): the old cards no longer fit,
+                    // so everyone gets a new one.
                     var notifications = await RoundHandler.ResetParticipantsAsync(runner.Store, session, random, ct).ConfigureAwait(false);
                     return notifications.IsSuccess ? Result.Success(new CommandOutcome(outcome.Value, notifications.Value)) : notifications.Error!;
                 },
@@ -202,8 +203,7 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
             }
 
             var id = stored.Participant.Id;
-            var cells = session.Content is null ? dealt.Value.Cells : CardView.Placeholders(dealt.Value);
-            notifications.Add((new Recipient.Participant(id), new CardReplaced(1, cells)));
+            notifications.Add((new Recipient.Participant(id), new CardReplaced(1, CardView.CellsFor(dealt.Value, session.Content))));
             notifications.Add((new Recipient.Host(), new ParticipantJoined(id, stored.Participant.Name.Display)));
         }
 
@@ -270,7 +270,9 @@ public sealed class RoundHandler(SessionCommandRunner runner, IRandomSource rand
 
             foreach (var replacement in replaced.Value)
             {
-                notifications.Add((new Recipient.Participant(stored.Participant.Id), new CardReplaced(replacement.CardId, session.Content is null ? replacement.NewCard.Cells : CardView.Placeholders(replacement.NewCard))));
+                notifications.Add((
+                    new Recipient.Participant(stored.Participant.Id),
+                    new CardReplaced(replacement.CardId, CardView.CellsFor(replacement.NewCard, session.Content))));
             }
         }
 

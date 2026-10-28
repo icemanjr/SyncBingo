@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
-import { ComingNext } from './app/ComingNext'
 import { FullScreen, Layout } from './app/Layout'
+import { NotFound } from './app/NotFound'
 import { CreateGamePage } from './features/host/CreateGamePage'
 import { HostConsole } from './features/host/HostConsole'
 import { DisplayView } from './features/display/DisplayView'
@@ -116,7 +116,7 @@ export function AppRoutes() {
         path="*"
         element={
           <Layout>
-            <ComingNext what="That page" />
+            <NotFound />
           </Layout>
         }
       />

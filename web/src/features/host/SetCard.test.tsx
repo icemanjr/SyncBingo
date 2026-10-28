@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import type { HostApi } from './hostApi'
-import { SetCard } from './SetCard'
+import { NumbersCard, SetCard } from './SetCard'
 
 const content = {
   name: 'Science vocabulary',
@@ -33,5 +33,17 @@ describe("the host's custom set card (ADR 0009)", () => {
     await userEvent.click(share)
 
     expect(host.setContentSharing).toHaveBeenCalledWith(true)
+  })
+})
+
+describe('the numbers card in the lobby', () => {
+  it.each([75, 60, 45])('names the range the card size uses: 1–%i', (balls) => {
+    render(
+      <MemoryRouter>
+        <NumbersCard code="9ve4shp3k7mwa2qx" balls={balls} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(`Numbers 1–${String(balls)}`)).toBeInTheDocument()
   })
 })

@@ -132,7 +132,7 @@ describe('the display view (FR-28)', () => {
   it('without a token, says how to open it', () => {
     renderDisplay()
 
-    expect(screen.getByText(/Open display/)).toBeInTheDocument()
+    expect(screen.getByText(/the host’s Display menu/)).toBeInTheDocument()
   })
 })
 

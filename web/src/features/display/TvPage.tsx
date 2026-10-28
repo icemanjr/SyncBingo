@@ -9,7 +9,7 @@ import { Button } from '../game/ui'
 
 /**
  * Connecting a smart TV or projector (ADR 0010): the TV's own browser opens /tv, which shows a short code;
- * the host types it under **Open display ⧉ → Connect a TV**, or scans the QR with the phone they host from.
+ * the host types it under **Display → Connect a TV**, or scans the QR with the phone they host from.
  * The page then becomes the display. Kept light: TV browsers are often old and slow.
  */
 export function TvPage({

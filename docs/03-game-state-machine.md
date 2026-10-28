@@ -58,7 +58,7 @@ stateDiagram-v2
 
 ## 3. Ball drawing
 
-1. Hopper = variant's ball set (1–75) minus balls already called this round.
+1. Hopper = the variant's balls (1–75 on 5 × 5, 1–60 on 4 × 4, 1–45 on 3 × 3, or a custom set's items) minus balls already called this round.
 2. Draw uses an injected random source (CSPRNG in production, seeded in tests).
 3. Each draw increments `sequence` and records `{ball, letter, calledAt}`.
 4. **Auto-fill:** for each participant who switched auto-fill on (only possible while the host makes it available), every card containing the *previous* ball that is not yet marked gets it marked, **before** the new ball is announced. A missed number therefore stays fillable by the player for one full call interval, and the last ball of a round is never auto-filled.

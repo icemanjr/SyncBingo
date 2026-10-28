@@ -48,7 +48,7 @@
 **End-to-end (Playwright)**
 1. Host creates a game, a participant joins via the join URL, and another via manual code entry.
 2. Host draws balls; participants mark; a winner is detected; host awards; leaderboard updates.
-3. Host switches Normal → Blackout mid-round, then clears cards; a late joiner is admitted only between rounds.
+3. Host switches Normal → Blackout mid-round, then clears cards; a late joiner waits during the round and gets a card when it ends.
 4. Participant phone "sleeps" (page reload) and recovers.
 5. Layout: ad slots reserve space and the card never shifts when an ad loads.
 6. Accessibility: every screen, light and dark, has no WCAG 2.1 A/AA violations by axe-core, and reduced motion switches animation off (`accessibility.spec.ts`).

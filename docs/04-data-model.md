@@ -39,7 +39,7 @@ For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 
 
 Cards are dealt through `ICardGenerator`; the standard implementation is `ColumnCardGenerator`, which follows the column ranges above. Cards hold item ids (ball numbers here), so other content such as "2 + 5" called and "7" marked can be added later with its own generator and content set (ADR 0009).
 
-**No identical cards in play (FR-39).** Two cards are the same when every cell holds the same number; the card's `fingerprint` captures exactly that. The generator deals a candidate and asks the caller to *claim* its fingerprint; if the claim fails (the card is already in play), it deals again, giving up with an error after 1,000 tries (a real 75-ball session never gets near that: there are about 5.5 × 10²⁶ distinct cards). The claim must be atomic so that two concurrent deals cannot both win the same card; see the `cards` set in §4.
+**No identical cards in play (FR-39).** Two cards are the same when every cell holds the same number; the card's `fingerprint` captures exactly that. The generator deals a candidate and the caller (`CardDealing.DealUniqueAsync`) *claims* its fingerprint in the store; if the claim fails (the card is already in play), it deals again, giving up after 1,000 tries with "No unique cards available" (a real 75-ball session never gets near that: there are about 5.5 × 10²⁶ distinct cards). The claim must be atomic so that two concurrent deals cannot both win the same card; see the `cards` set in §4.
 
 ## 3. Bitmask representation
 

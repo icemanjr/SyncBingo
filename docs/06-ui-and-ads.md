@@ -5,7 +5,7 @@
 | Screen | Route | Purpose |
 |--------|-------|---------|
 | Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
-| Host setup | `/host/new` | Choose game password and initial settings |
+| Host setup | `/host/new` | Choose the game password; every other setting is in Options, in the lobby |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Custom set editor (host) | `/host/{code}/set` | Opened from the lobby's *Custom set* card (**Use a custom set** with numbers, **Edit set** with a set). A draft kept in this browser per game: set name; **Open a set file** (replaces the draft), **Add from a file** (merges, with the skip report), **Download this draft**; **Free space text** (blank: FREE; checked like a square and never the same as one); **Card size** (sent with the set; changing it fits the groups like Use groups); **Use groups** (one group per card column, fitted when turned on: extra groups' pairs become ungrouped, missing columns are added empty); **Add an entry** (with *Ball and square match*, one text box when ticked; a group); with Use groups, **Ungrouped pairs** first (with a warning and **Remove all**, confirmed, whenever it has pairs), then each group in column order with **Rename** (once, for all its entries), its short **Label** and **Move up/down**; without, one list of entries; each entry **Edit**, a group menu (including *Ungrouped*), **Delete**; a search box past 20 entries. At the end: the **possible cards** (a warning below 100: "Up to 72 players can each have their own card…"), what still stops the set being used, the host-responsibility acknowledgement, **Use this set** (lobby only) and **Back to numbers**. On phones each entry's text gets the full width, its controls a row below (FR-44, ADR 0009) |
 | Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. With real ads on (ADR 0012), Privacy adds an **Ads** section: Google AdSense, every request child-directed, what Google receives, and how to change consent Linked from a footer on every page except the TV |
@@ -14,6 +14,9 @@
 | Name entry | same flow | Choose a unique name |
 | Play | `/play/:code` | Card, latest ball (if shown), Bingo button (during a round), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
+| TV | `/tv` | A smart TV's own browser shows a short pairing code and a QR, then becomes the display once the host approves (ADR 0010). No ads |
+| Pair | `/pair/:pairingCode` | What the TV's QR opens on the host's phone: **Show game … on the TV** for each game this browser hosts |
+| Not found | any other address | "Page not found", with **Back to the start** |
 
 ### Host console (sketch)
 
@@ -22,7 +25,7 @@ The design reference (Visual design, below) has the finished look. The layout:
 ```
 Laptop, during a round (everything on one screen, ad rails either side)
 ┌───────────────────────────────────────────────────────────────┐
-│ [Round 3] [Normal Bingo ✎]  6 players · joining closed        │
+│ [Round 3] [Normal Bingo ✎]  6 players · late arrivals wait    │
 │                                [Display] [Options] [⋯]        │
 ├──────────────────────────────────────┬────────────────────────┤
 │ LAST BALL  Before: O74 G60 G55 N40   │ ╔ Sam pressed Bingo ═╗ │
@@ -199,7 +202,7 @@ With *Show round numbers* off the button reads **Start New Round**. Pressing it 
 └──────────┘      host only: [ Cancel ]
 ```
 
-Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown and the round, the join page shows "A round is in progress. Join now and you'll be added as soon as it's done." and joining enters the waiting room (FR-5): the play screen shows "Round currently being played. You'll be added as soon as it's done." with **My marks**, the auto-fill switch and the call board as usual, but no card or Bingo button. The host's Players list shows them under **Waiting**, counted with the players, with "They'll join automatically when it ends: End round or Clear cards." and **Remove**. At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
+Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown and the round, the join page shows "A round is in progress. Join now and you'll be added as soon as it's done." and joining enters the waiting room (FR-5): the play screen shows "Round currently being played. You'll be added as soon as it's done." with **My marks**, the auto-fill switch and the call board as usual, but no card or Bingo button. The host's Players list shows them under **Waiting**, counted with the players, with "They arrived during the round and get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel)." and **Remove**. The console's status line reads "late arrivals wait" instead of "joining open", and the join panel says "Anyone who arrives during a round waits, and gets a card as soon as it ends." At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
 
 ### Claim alerts on the host console
 
@@ -257,7 +260,7 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 
 ### Display view (FR-28)
 
-Opened from the host console with **Open display**, in a new tab or on another device via its link or QR. It has its own read-only **display token** and its own connection, so popping it out never disconnects the host console. It shows only what the room should see:
+Opened from the host console's **Display** button, in a new tab or on another device via its link or QR. It has its own read-only **display token** and its own connection, so popping it out never disconnects the host console. It shows only what the room should see:
 
 ```
 During a round (16:9; left column 300 px, the board fills the rest, from the top)
@@ -293,9 +296,9 @@ Never shown: settings, claims, alerts, the participant list, inspect and award c
 └────────────────────────────────────────────┘
 ```
 
-**Open display ⧉** is a small menu: **Open in a new tab**, **Copy display link**, **Connect a TV**, the list of displays (each with **Disconnect**), and **Show with the join QR**: a text box (up to 80 characters) for the password or a hint, shown under the QR on every display and on the host console between rounds (FR-49). Blank shows nothing.
+**Display** opens a dialog: **Open in a new tab**, **Copy display link**, **Connect a TV** (its help names this site's own `/tv` address), **Password note**: a text box (up to 80 characters) for the password or a hint, shown under the QR on every display and on the host console between rounds (FR-49), then (with a custom set) **Call board shows** and the list of displays, each with **Disconnect**. Blank shows nothing.
 
-The host opens **Open display ⧉ → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; the same menu lists connected displays, each with **Disconnect**. It lives outside Options so it works in auto mode too. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
+The host opens **Display → Connect a TV** and types the code (or scans the QR on the phone signed in as host). The TV switches to the display view at once; the same menu lists connected displays, each with **Disconnect**. It lives outside Options so it works in auto mode too. The `/tv` and display pages stay lightweight (small bundle, no heavy animation) because smart TV browsers are often old and slow.
 
 ## 2. Ad slots
 

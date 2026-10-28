@@ -121,25 +121,30 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 
 ## 7. Frontend
 
-React 19 + TypeScript (strict), Vite, React Router, Zustand for session state, Tailwind CSS, `@microsoft/signalr`, `qrcode` for client-side QR rendering.
+React 19 + TypeScript (strict), Vite, React Router, Tailwind CSS v4; state lives in a `useGame` hook (the snapshot plus the event stream), no state library; `@microsoft/signalr`, `qrcode` for client-side QR rendering.
 
 ```
 web/src/
-├─ app/            # router, providers, layout (incl. AdSlot grid)
+├─ app/            # Layout (header, footer, ad slots), AdSlot + ads.ts (provider switch, ADR 0012),
+│                  # palettes.ts (colour themes), theme.ts (light/dark), NotFound
+├─ api/            # client.ts (openapi-fetch + ApiError) and schema.d.ts, generated from the API's OpenAPI
+├─ realtime/       # gameConnection.ts (SignalR, seq tracking, resync), pairingConnection.ts (TV pairing)
+├─ storage/        # sessions.ts (this browser's seat in each game), setDrafts.ts (set editor drafts)
 ├─ features/
-│  ├─ landing/
-│  ├─ host/        # create, console, settings, leaderboard
-│  ├─ join/        # code + password, name entry
-│  └─ play/        # card, ball display, bingo button, win overlay
-├─ api/            # typed REST client generated from OpenAPI
-├─ realtime/       # SignalR connection, reconnect + snapshot resync
-├─ domain/         # shared types, pattern previews
-└─ components/     # Card, Ball, AdSlot, Button, Toggle, ...
+│  ├─ game/        # shared by every screen: useGame (snapshot + events), gameEvents.ts (applyEvent),
+│  │               # rules.ts (Options sections, rule sentences), patterns, CallBoard, LastBall, Dialog, Menu, ui
+│  ├─ landing/     # the front door
+│  ├─ host/        # create, console, Options, own patterns, players, claims, displays, join panel
+│  ├─ play/        # join page, play screen, card, mark styles, rules panel
+│  ├─ display/     # display view, /tv pairing, /pair
+│  ├─ sets/        # the set editor and its pure logic (draft.ts, setFile.ts, text.ts)
+│  └─ legal/       # Terms and Privacy
+└─ test/           # Vitest setup, fixtures, fake API
 ```
 
-Routes: `/`, `/host/new`, `/host/:code`, `/join` (manual), `/join/:code` (QR target), `/play/:code`.
+Routes: `/`, `/host/new`, `/host/:code`, `/host/:code/set` (set editor), `/join` (manual), `/join/:code` (QR target), `/play/:code`, `/display/:code`, `/tv`, `/pair/:pairingCode`, `/terms`, `/privacy`, and a not-found page for anything else.
 
-State rules: server state lives in the store, rebuilt from the snapshot; optimistic UI only for marking, reconciled by the next event.
+State rules: each screen holds one snapshot (`useGame`), loaded from `GET /snapshot` and kept current by `applyEvent`; events it can't absorb, a gap in `seq` or a reconnect trigger a refetch. A command's reply may patch the snapshot at once (a mark or Undo returns the card's marks); there is no optimistic UI beyond that.
 
 ## 7a. Security notes
 

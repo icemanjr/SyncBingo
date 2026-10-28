@@ -8,7 +8,7 @@
 | Host setup | `/host/new` | Choose game password and initial settings |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Custom set editor (host) | `/host/{code}/set` | Opened from the lobby's *Custom set* card (**Use a custom set** with numbers, **Edit set** with a set). A draft kept in this browser per game: set name; **Open a set file** (replaces the draft), **Add from a file** (merges, with the skip report), **Download this draft**; **Free space text** (blank: FREE; checked like a square and never the same as one); **Card size** (sent with the set; changing it fits the groups like Use groups); **Use groups** (one group per card column, fitted when turned on: extra groups' pairs become ungrouped, missing columns are added empty); **Add an entry** (with *Ball and square match*, one text box when ticked; a group); with Use groups, **Ungrouped pairs** first (with a warning and **Remove all**, confirmed, whenever it has pairs), then each group in column order with **Rename** (once, for all its entries), its short **Label** and **Move up/down**; without, one list of entries; each entry **Edit**, a group menu (including *Ungrouped*), **Delete**; a search box past 20 entries. At the end: the **possible cards** (a warning below 100: "Up to 72 players can each have their own card…"), what still stops the set being used, the host-responsibility acknowledgement, **Use this set** (lobby only) and **Back to numbers**. On phones each entry's text gets the full width, its controls a row below (FR-44, ADR 0009) |
-| Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. Linked from a footer on every page except the TV |
+| Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. With real ads on (ADR 0012), Privacy adds an **Ads** section: Google AdSense, every request child-directed, what Google receives, and how to change consent Linked from a footer on every page except the TV |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
 | Name entry | same flow | Choose a unique name |
@@ -319,11 +319,22 @@ The host opens **Open display ⧉ → Connect a TV** and types the code (or scan
 </AdLayout>
 ```
 
-`AdSlot` takes a `provider` (`placeholder` in dev/portfolio builds; a real network later), enforces its fixed dimensions, and renders nothing interactive over the page. Ads are lazy and never block game rendering.
+`AdSlot` enforces its fixed dimensions (`overflow-hidden`, so nothing an ad draws leaves its box) and renders nothing interactive over the page. Ads are lazy and never block game rendering. The provider comes from the build (`web/src/app/ads.ts`): **placeholders** in development and the Full portfolio build, **Google AdSense** on the live site (ADR 0012):
+
+- AdSense's script loads once, when the first slot appears, so never on the TV display. Only the visible pair asks for an ad: top and bottom on a phone, the sides on a desktop. Each unit is asked once and never refreshed.
+- Every unit carries `data-tag-for-age-treatment="1"` (child treatment: no personalised ads, no remarketing), added by `AdSlot` itself.
+- An unfilled slot stays empty at its reserved size.
+- Visitors in the EU, the UK and Switzerland see Google's consent message on their first visit (the one exception to FR-51). The footer's **Privacy and cookie settings** opens it again; it appears only when ads are on.
+- **Turning it on** (the owner's steps):
+  1. Create the AdSense account and add syncbingo.com.
+  2. Put the publisher id in `web/.env` (`VITE_ADSENSE_CLIENT`). The next deploy carries the verification tag and `/ads.txt`; until then Caddy answers `/ads.txt` with 404.
+  3. In AdSense, set up Privacy & messaging → European regulations (Google's consent message), and keep **Auto ads off**.
+  4. Once the site is approved, create two display ad units, 320 × 50 and 160 × 600, and put their ids in `web/.env`.
+  5. Set the repository variable `AD_PROVIDER` to `adsense`. The live build then shows ads and the Privacy page describes them.
 
 **Launch considerations (not blockers for the portfolio build)**
 
-- The audience includes young children. Ad networks have child-directed rules and the US has COPPA; contextual (non-personalised) ads, a clear privacy page and no data collection should be part of any launch plan.
+- The audience includes young children. Ad networks have child-directed rules and the US has COPPA. Hence every request is child-directed and the Privacy page describes the ads (ADR 0012).
 - A **Terms of Use** page (linked from every page footer) states, among the usual terms, that hosts are responsible for any custom content they upload or display in their games (ADR 0009). The future custom-content **upload page** repeats this next to the upload control, and the host must tick an acknowledgement before uploading.
 - No real-money features are planned in the app (see 01 §6); the "Serious Bingo" tile is a non-interactive teaser.
 

@@ -8,7 +8,7 @@
 | **Application** | xUnit + fakes for ports | Command handlers: authorisation (who may run each command, and on whose cards), state preconditions, event emission, lost-update races (the fake store refuses stale saves) |
 | **Integration (API)** | `WebApplicationFactory` + Testcontainers (Redis) | REST endpoints, auth, rate limits, Redis layout, scheduler claiming, concurrent joins |
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |
-| **Frontend unit** | Vitest + Testing Library | Event-stream sequencing and resync, the API client, token storage (incl. blocked storage), AdSlot layout, pages, store reducers |
+| **Frontend unit** | Vitest + Testing Library | Event-stream sequencing and resync, the API client, token storage (incl. blocked storage), AdSlot layout and the ad provider switch (placeholders by default, child-directed AdSense units, never on the TV; ADR 0012), pages, store reducers |
 | **End-to-end** | Playwright (multiple browser contexts) | Host + 3 participants through full flows, mobile viewport emulation |
 | **Load** | k6 (WebSocket), `load/bingo.js` | Many games of real WebSocket players marking their cards; draw fan-out latency. Run against the live box off-hours (results: docs/10 §5b) |
 

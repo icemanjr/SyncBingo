@@ -231,6 +231,9 @@ jobs:
           target: caddy
           platforms: linux/amd64,linux/arm64
           push: true
+          # Real ads on the live site: set the repository variable AD_PROVIDER to "adsense" (ADR 0012).
+          build-args: |
+            VITE_AD_PROVIDER=${{ vars.AD_PROVIDER || 'placeholder' }}
           tags: |
             ${{ env.REGISTRY }}/syncbingo-web-caddy:latest
             ${{ env.REGISTRY }}/syncbingo-web-caddy:sha-${{ github.sha }}

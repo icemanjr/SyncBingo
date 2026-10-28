@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { AdSlot } from './AdSlot'
+import { adConfig, showConsentSettings } from './ads'
 import { ThemeToggle } from './ThemeToggle'
 
 /**
@@ -31,7 +32,7 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
           <ThemeToggle />
         </header>
         {children}
-        <footer className="mt-auto flex justify-center gap-2 pt-2 text-sm text-ink-muted">
+        <footer className="mt-auto flex flex-wrap justify-center gap-2 pt-2 text-sm text-ink-muted">
           {(
             [
               ['/terms', 'Terms'],
@@ -46,6 +47,16 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
               {label}
             </Link>
           ))}
+          {adConfig().provider === 'adsense' && (
+            // Google's consent message again, for visitors in the EU, the UK and Switzerland (ADR 0012).
+            <button
+              type="button"
+              onClick={showConsentSettings}
+              className="inline-flex min-h-12 items-center rounded-xl px-3 underline-offset-4 hover:underline focus-visible:outline-4 focus-visible:outline-accent"
+            >
+              Privacy and cookie settings
+            </button>
+          )}
         </footer>
       </main>
       <div className="hidden lg:block">

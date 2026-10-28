@@ -53,7 +53,7 @@
 - [x] **Waiting room** for late arrivals (built 2026-10-25, FR-5): people who arrive mid-round wait without a card, setting up their marks meanwhile, and join automatically when the game is back in the lobby; the host sees them apart under Waiting (A3 amended)
 *Order set by the owner, 2026-10-27: themes, the ad provider, the summary report, spoken ball calls, then translations.*
 - [x] **Themes** (built 2026-10-27, FR-50a): colour palettes (Classic, Ocean, Forest, Halloween, Winter), each in light and dark and contrast-checked; the host picks one for the game in Options, and a player may pick their own on their device. Colours only, nothing extra to download
-- [ ] **Real ad provider** integration, in the reserved banner slots (docs/06)
+- [x] **Real ad provider** (built 2026-10-27, ADR 0012): Google AdSense in the reserved banner slots, every request tagged as directed at children, Google's consent message for the EU, UK and Switzerland, and the Privacy page describing it. Ready but off: it goes live when the owner's AdSense account approves the site and the `AD_PROVIDER` repository variable is set (docs/06 §2)
 - [ ] **End-of-session summary report** (optional export)
 - [ ] **Spoken ball calls**
 - [ ] **Translations** (owner, 2026-10-25): every piece of user-facing text in one file per language (e.g. `web/src/locales/en.json`), so a translator copies the file and translates the values; **Spanish** first, translated by the owner. Points to settle when it starts:

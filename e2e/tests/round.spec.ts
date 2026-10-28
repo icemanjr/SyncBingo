@@ -69,9 +69,9 @@ test('a Bingo that is not on the called numbers is awarded only after the host c
   await startRound(host)
 
   await ava.getByRole('button', { name: 'BINGO!' }).click()
-  await expect(host.getByText(/Ava pressed Bingo · ✗ not on called numbers/)).toBeVisible()
+  await expect(host.getByText(/Ava pressed Bingo · ✗ not on called balls/)).toBeVisible()
   await host.getByRole('button', { name: 'Award', exact: true }).click()
-  await expect(host.getByText("Award a Bingo that isn't on the called numbers?")).toBeVisible()
+  await expect(host.getByText("Award a Bingo that isn't on the called balls?")).toBeVisible()
   await host.getByRole('button', { name: 'Award anyway' }).click()
 
   await expect(ava.getByText('🎉 You have Bingo!')).toBeVisible()

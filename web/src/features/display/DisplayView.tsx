@@ -45,7 +45,7 @@ export function DisplayView() {
   if (!game.snapshot) return centred(game.error ? game.error.detail : 'Connecting…')
 
   const view = game.snapshot.game
-  if (view.state === 'Ended') return centred('The game has ended. Thanks for playing!')
+  if (view.state === 'Ended') return centred('This game has ended. Thanks for playing!')
 
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const lobby = view.state === 'BetweenRounds'

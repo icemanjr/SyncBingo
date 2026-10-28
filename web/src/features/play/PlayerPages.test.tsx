@@ -135,7 +135,7 @@ describe('the play screen', () => {
       [snapshotPath]: { body: aPlayerSnapshot({ state: 'Manual', round: 1 }) },
       [`POST /api/sessions/${code}/marks`]: {
         status: 422,
-        body: { detail: 'Only called numbers can be marked in this game.', code: 'NotAllowed' },
+        body: { detail: 'Only called squares can be marked in this game.', code: 'NotAllowed' },
       },
     })
     renderAt(`/play/${code}`)
@@ -143,7 +143,7 @@ describe('the play screen', () => {
     await userEvent.click(await screen.findByRole('gridcell', { name: 'B 1' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Only called numbers can be marked in this game.',
+      'Only called squares can be marked in this game.',
     )
   })
 

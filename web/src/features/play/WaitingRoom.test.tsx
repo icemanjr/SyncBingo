@@ -54,7 +54,7 @@ describe('the waiting room (A3)', () => {
     expect(screen.queryByRole('grid', { name: 'Your card' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /BINGO/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'My marks' })).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Auto-fill missed numbers' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Auto-fill missed squares' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Call board' })).toBeInTheDocument()
   })
 

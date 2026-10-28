@@ -43,7 +43,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'highlightMatches',
         label: 'Highlight matching squares',
-        help: 'A called number glows on the card.',
+        help: 'A called square glows on the card.',
       },
       {
         key: 'showCallBoard',
@@ -68,7 +68,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'freeMarking',
         label: 'Mark any square',
-        help: 'Off: only called numbers can be marked.',
+        help: 'Off: only called squares can be marked.',
       },
       {
         key: 'unmarking',
@@ -76,14 +76,14 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
         help: 'Undo always works, back to the last ball.',
         choices: [
           { value: 'Any', label: 'Any mark' },
-          { value: 'MismarksOnly', label: 'Only marks on numbers not called' },
+          { value: 'MismarksOnly', label: 'Only marks on squares not called' },
           { value: 'Off', label: 'Never' },
         ],
       },
       {
         key: 'autoFillAvailable',
         label: 'Offer auto-fill',
-        help: 'Each player can switch it on for missed numbers.',
+        help: 'Each player can switch it on to mark what they missed.',
       },
       {
         key: 'requireMarksForClaims',
@@ -177,19 +177,20 @@ const sentences: Record<string, (value: string) => string> = {
       : 'The called ball is not shown on your screen',
   highlightMatches: (v) =>
     v === 'true'
-      ? 'Called numbers are highlighted on your card'
-      : 'Called numbers are not highlighted',
+      ? 'Called squares are highlighted on your card'
+      : 'Called squares are not highlighted',
   showCallBoard: (v) => (v === 'true' ? 'You can open the call board' : 'The call board is hidden'),
-  autoFillAvailable: (v) => (v === 'true' ? 'Auto-fill is available' : 'Auto-fill is turned off'),
+  autoFillAvailable: (v) =>
+    v === 'true' ? 'Auto-fill is available' : 'Auto-fill is not available',
   freeMarking: (v) =>
-    v === 'true' ? 'Any square can be marked' : 'Only called numbers can be marked',
+    v === 'true' ? 'Any square can be marked' : 'Only called squares can be marked',
   requireMarksForClaims: (v) =>
-    v === 'true' ? 'Bingo needs your squares marked' : 'Can call Bingo without marks',
+    v === 'true' ? 'Bingo needs your squares marked' : 'You can call Bingo without marks',
   unmarking: (v) =>
     v === 'Any'
       ? 'Any mark can be removed'
       : v === 'MismarksOnly'
-        ? 'Only marks on numbers not called can be removed'
+        ? 'Only marks on squares not called can be removed'
         : "Marks can't be removed (Undo still works)",
   freeSpace: (v) =>
     v === 'Earned'

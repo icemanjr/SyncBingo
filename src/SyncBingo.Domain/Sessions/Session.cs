@@ -1178,7 +1178,7 @@ public sealed class Session
     {
         if (State == SessionState.Ended)
         {
-            return WrongState("end the session");
+            return WrongState("end the game");
         }
 
         State = SessionState.Ended;
@@ -1320,7 +1320,9 @@ public sealed class Session
             : null;
 
     private DomainError WrongState(string action) =>
-        new(DomainErrorCode.WrongState, $"Cannot {action} while the session is {Describe(State)}.");
+        new(DomainErrorCode.WrongState, State == SessionState.Ended
+            ? "This game has ended."
+            : $"You can't {action} while the game is {Describe(State)}.");
 
     private static DomainError Failure(DomainErrorCode code, string message) => new(code, message);
 

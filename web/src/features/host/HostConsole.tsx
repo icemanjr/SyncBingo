@@ -24,6 +24,12 @@ import { PlayersPanel } from './PlayersPanel'
 import { CallingCard, RoundActions, StartCard } from './RoundControls'
 import { NumbersCard, SetCard } from './SetCard'
 
+/** Whole minutes in a .NET TimeSpan as JSON sends it ("00:10:00"). */
+const lockMinutes = (span: string) => {
+  const [hours = 0, minutes = 0] = span.split(':').map(Number)
+  return String(hours * 60 + minutes)
+}
+
 /**
  * The host console (docs/06, the design reference). In the lobby: how to join (QR, code, join note) beside
  * the next-round card and the players. During a round on a laptop, everything on one screen: the calling
@@ -210,7 +216,7 @@ export function HostConsole() {
           >
             <p>
               {data.lockedFor
-                ? 'Joining is locked for 10 minutes from one network after too many wrong passwords.'
+                ? `After too many wrong passwords, joining from one network is locked for ${lockMinutes(data.lockedFor)} minutes.`
                 : `${String(data.wrongInLastMinute)} wrong passwords in the last minute. Check the password you shared.`}
             </p>
             <Button

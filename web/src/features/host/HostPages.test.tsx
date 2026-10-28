@@ -249,7 +249,7 @@ describe('the host console', () => {
     renderConsole()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Award' }))
-    expect(screen.getByText("Award a Bingo that isn't on the called numbers?")).toBeInTheDocument()
+    expect(screen.getByText("Award a Bingo that isn't on the called balls?")).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(api.sent.some((s) => s.path.endsWith('/wins'))).toBe(false)
 

@@ -353,7 +353,7 @@ function Editor({ code, token }: { code: string; token: string }) {
               ? 'Over a million possible cards.'
               : `${cards.toLocaleString('en-US')} possible cards.`}
             {cards < maxPlayers &&
-              ` Up to ${String(cards)} players can each have their own card; anyone after that is told no unique cards are left. Add an entry to a group for more.`}
+              ` Up to ${String(cards)} players can each have their own card; anyone after that is told no unique cards are left. ${useGroups ? 'Add entries to the groups' : 'Add entries'} for more.`}
           </p>
         )}
         {problems.length > 0 && (

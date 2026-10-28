@@ -73,7 +73,7 @@ export function TvPage({
       </h1>
       {pairing && !expired ? (
         <>
-          <p className="text-2xl">Enter this code on the host:</p>
+          <p className="text-2xl">Enter this code on the host’s screen:</p>
           <p
             className="rounded-3xl bg-surface px-10 py-6 font-display text-8xl font-extrabold tracking-widest shadow-card"
             aria-label={`Code ${pairing.pairingCode.split('').join(' ')}`}

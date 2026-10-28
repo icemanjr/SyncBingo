@@ -42,7 +42,7 @@ function currentRules(game: Game, autoFillOn: boolean): string[] {
     say('freeSpace', game.card.freeCell === null ? 'None' : s.freeSpace),
     s.autoFillAvailable
       ? `Auto-fill is available, and ${autoFillOn ? 'on' : 'off'} for you`
-      : 'Auto-fill is turned off',
+      : 'Auto-fill is not available',
     say('requireMarksForClaims', s.requireMarksForClaims),
     say('multipleWins', s.multipleWins),
     say('showBallToPlayers', s.showBallToPlayers),

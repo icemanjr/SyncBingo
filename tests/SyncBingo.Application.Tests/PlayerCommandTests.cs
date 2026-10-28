@@ -66,7 +66,7 @@ public sealed class PlayerCommandTests
 
         var refused = await _app.Players.MarkAsync(code, Caller.Participant(ava), 1, 0, true, TestApp.Ct);
 
-        refused.Error!.Message.ShouldBe("Only called numbers can be marked in this game.");
+        refused.Error!.Message.ShouldBe("Only called squares can be marked in this game.");
         (await _app.PlayerAsync(code, ava)).Cards[0].Marks.ShouldBe(before);
     }
 

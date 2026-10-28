@@ -50,7 +50,7 @@ public sealed class MarkingTests
         var error = kit.Mark(UncalledCell).Error!;
 
         error.Code.ShouldBe(DomainErrorCode.NotAllowed);
-        error.Message.ShouldContain("Only called numbers");
+        error.Message.ShouldContain("Only called squares");
         kit.Marks.ShouldBe(Bits(Free));
     }
 

@@ -430,7 +430,7 @@ export function PlayScreen() {
               }}
               className="h-5 w-5"
             />
-            Auto-fill missed numbers
+            Auto-fill missed squares
           </label>
         )}
         {view.state === 'BetweenRounds' && view.content?.playersMayDownload && (

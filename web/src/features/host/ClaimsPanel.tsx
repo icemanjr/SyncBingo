@@ -78,7 +78,7 @@ export function ClaimsPanel({
                 {claim.name} pressed Bingo ·{' '}
                 {claim.matches > 0
                   ? `✓ ${String(claim.matches)} line${claim.matches > 1 ? 's' : ''}: ${patternNames(claim.completed, patterns)}`
-                  : '✗ not on called numbers'}
+                  : '✗ not on called balls'}
                 {claim.alreadyWon
                   ? ' · already won, nothing more to award'
                   : claim.awardable === 0 && claim.matches > 0 && ' · no awardable matches'}
@@ -124,7 +124,7 @@ export function ClaimsPanel({
             </div>
             {confirming?.claimId === claim.id && (
               <div role="alertdialog" aria-label="Confirm award" className="flex flex-col gap-2">
-                <p>Award a Bingo that isn&apos;t on the called numbers?</p>
+                <p>Award a Bingo that isn&apos;t on the called balls?</p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     disabled={busy}
@@ -154,7 +154,7 @@ export function ClaimsPanel({
             <p className="font-semibold">
               Detected: {data.name} has {patternNames(data.completed, patterns)} ({data.matches}{' '}
               line
-              {data.matches > 1 ? 's' : ''}) on called numbers
+              {data.matches > 1 ? 's' : ''}) on called balls
             </p>
             <div className="flex flex-wrap gap-2">
               <Button

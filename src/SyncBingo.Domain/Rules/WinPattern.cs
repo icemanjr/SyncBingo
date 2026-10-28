@@ -32,10 +32,10 @@ public sealed class WinPattern
         AnnouncedAs = announcedAs ?? name;
     }
 
-    /// <summary>Stable identifier used by the API, e.g. <c>normal</c> or <c>B</c>.</summary>
+    /// <summary>Stable identifier used by the API, e.g. <c>corners</c> or <c>B</c>.</summary>
     public string Id { get; }
 
-    /// <summary>Display name, e.g. <c>Normal Bingo</c>.</summary>
+    /// <summary>Display name, e.g. <c>Four Corners</c>.</summary>
     public string Name { get; }
 
     /// <summary>

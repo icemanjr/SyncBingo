@@ -13,9 +13,9 @@ public sealed record JoinSession(string Code, string Password, string Name);
 public sealed record SessionJoined(GameCode Code, string ParticipantId, string Token);
 
 /// <summary>
-/// Join runs under the session lock so the "only between rounds" check (FR-5) cannot
-/// race a round starting. The name and the card are claimed atomically in the store,
-/// and released again if a later step fails.
+/// Join runs under the session lock, so whether a joiner gets a card or waits (FR-5, the waiting room) cannot
+/// race a round starting. The name and the card are claimed atomically in the store, and released again if a
+/// later step fails.
 /// </summary>
 public sealed class JoinSessionHandler(
     ISessionStore store,

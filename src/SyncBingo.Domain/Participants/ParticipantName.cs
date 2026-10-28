@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
+using SyncBingo.Domain.Content;
 
 namespace SyncBingo.Domain.Participants;
 
@@ -21,12 +22,6 @@ public enum NameProblem
 public sealed record ParticipantName
 {
     public const int MaxLength = 20;
-
-    /// <summary>
-    /// Cap on UTF-16 code units, so stacked accent marks ("Zalgo" text) cannot make a
-    /// name that counts as short but draws huge.
-    /// </summary>
-    private const int MaxCodeUnits = MaxLength * 3;
 
     private const string AllowedPunctuation = "'-_.";
 
@@ -54,16 +49,17 @@ public sealed record ParticipantName
     {
         name = null;
 
-        // NFKC folds look-alike forms (full-width letters, ligatures, composed vs. decomposed accents) together.
-        var display = CollapseWhitespace((input ?? string.Empty).Normalize(NormalizationForm.FormKC));
+        // Tidied as set text is: NFKC folds look-alike forms (full-width letters, ligatures, composed vs. decomposed
+        // accents) together, and runs of spaces become one.
+        var display = ContentText.Tidy(input);
 
         problem = display switch
         {
             "" => NameProblem.Empty,
             _ when !display.EnumerateRunes().All(IsAllowed) => NameProblem.InvalidCharacters,
             _ when !display.EnumerateRunes().Any(Rune.IsLetterOrDigit) => NameProblem.NoLetterOrDigit,
-            _ when display.Length > MaxCodeUnits => NameProblem.TooLong,
-            _ when new StringInfo(display).LengthInTextElements > MaxLength => NameProblem.TooLong,
+            // Counted as a reader would, and capped in code units so stacked accents ("Zalgo" text) can't draw huge.
+            _ when !ContentText.Fits(display, MaxLength) => NameProblem.TooLong,
             _ => NameProblem.None,
         };
 
@@ -91,28 +87,4 @@ public sealed record ParticipantName
             UnicodeCategory.NonSpacingMark or
             UnicodeCategory.SpacingCombiningMark or
             UnicodeCategory.DecimalDigitNumber;
-
-    private static string CollapseWhitespace(string value)
-    {
-        var builder = new StringBuilder(value.Length);
-        var pendingSpace = false;
-        foreach (var c in value.Trim())
-        {
-            if (char.IsWhiteSpace(c))
-            {
-                pendingSpace = true;
-                continue;
-            }
-
-            if (pendingSpace)
-            {
-                builder.Append(' ');
-                pendingSpace = false;
-            }
-
-            builder.Append(c);
-        }
-
-        return builder.ToString();
-    }
 }

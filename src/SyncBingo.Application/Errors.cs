@@ -1,10 +1,9 @@
 using SyncBingo.Domain;
-using SyncBingo.Domain.Cards;
-using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application;
 
-internal static class Errors
+/// <summary>Refusals the application layer raises itself, worded to be shown to people (docs/05 §5).</summary>
+public static class Errors
 {
     /// <summary>An offensive name (<see cref="Domain.Participants.NameFilter"/>); the reason isn't spelled out.</summary>
     public static DomainError NameNotAllowed() =>
@@ -27,31 +26,4 @@ internal static class Errors
 
     public static DomainError NameTaken(string name) =>
         new(DomainErrorCode.Conflict, $"Someone is already playing as \"{name}\". Please pick another name.");
-}
-
-internal static class CardDealing
-{
-    /// <summary>
-    /// Deals a card no one else holds (FR-39), claiming its fingerprint atomically in the
-    /// store; the async counterpart of <see cref="CardGeneratorExtensions.GenerateUnique"/>.
-    /// When no free card turns up (a small set whose cards are nearly all held), "No unique cards available".
-    /// </summary>
-    public static async Task<Result<Card>> DealUniqueAsync(
-        this ICardGenerator generator,
-        IRandomSource random,
-        Func<string, CancellationToken, Task<bool>> tryClaim,
-        long possibleCards,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < CardGeneratorExtensions.MaxAttempts; attempt++)
-        {
-            var card = generator.Generate(random);
-            if (await tryClaim(card.Fingerprint, cancellationToken).ConfigureAwait(false))
-            {
-                return Result.Success(card);
-            }
-        }
-
-        return Session.NoUniqueCards(possibleCards);
-    }
 }

@@ -20,10 +20,9 @@ public static class ContentVariant
         ArgumentNullException.ThrowIfNull(set);
 
         var layout = standard.Layout;
-        var cellsToFill = layout.CellCount - (layout.FreeCell is null ? 0 : 1);
-        if (set.Pairs.Length < cellsToFill)
+        if (set.Pairs.Length < layout.ItemCells)
         {
-            return Refuse($"This card needs at least {cellsToFill} entries; the set has {set.Pairs.Length}.");
+            return Refuse($"This card needs at least {layout.ItemCells} entries; the set has {set.Pairs.Length}.");
         }
 
         List<ColumnRange> columns = [];
@@ -45,7 +44,7 @@ public static class ContentVariant
             {
                 var name = set.Groups[column];
                 var count = set.Pairs.Count(pair => pair.Group == name);
-                var needed = layout.Rows - (layout.FreeCell is { } free && free % layout.Columns == column ? 1 : 0);
+                var needed = layout.ItemCellsIn(column);
                 if (count < needed)
                 {
                     return Refuse($"Group '{name}' has {count} entries; its column needs at least {needed}.");

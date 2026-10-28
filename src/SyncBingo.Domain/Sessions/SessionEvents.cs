@@ -17,7 +17,7 @@ public enum SessionState
     /// <summary>In a round with the timer drawing every interval. "Pause" returns to <see cref="Manual"/>.</summary>
     Auto,
 
-    /// <summary>Terminal: the host ended the session (or it expired).</summary>
+    /// <summary>Terminal: the host ended the session. (An expired session isn't ended: it is simply gone.)</summary>
     Ended,
 }
 
@@ -141,7 +141,7 @@ public sealed record ContentSharingChanged(bool PlayersMayDownload) : SessionEve
 /// <summary>The host chose which side of a custom set's items the call boards show (FR-29).</summary>
 public sealed record BoardSideChanged(BoardSide Side) : SessionEvent;
 
-/// <summary>The host added a pattern of their own (FR-21a); everyone's pattern list changes.</summary>
+/// <summary>The host added or renamed a pattern of their own (FR-21a); everyone's pattern list changes.</summary>
 public sealed record PatternsChanged : SessionEvent;
 
 /// <summary>

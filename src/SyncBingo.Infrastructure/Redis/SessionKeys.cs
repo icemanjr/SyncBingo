@@ -24,7 +24,10 @@ internal sealed class SessionKeys
         All = [Meta, Participants, Names, Tokens, TokenOwners, Cards, Displays];
     }
 
-    /// <summary>Hash: <c>session</c> (snapshot JSON) and <c>password</c> (hash).</summary>
+    /// <summary>
+    /// Hash: <c>session</c> (snapshot JSON), <c>password</c> (hash) and, with a custom set, <c>content</c> (its file)
+    /// and <c>content-id</c> (a hash of the file, see <see cref="ContentCache"/>).
+    /// </summary>
     public RedisKey Meta { get; }
 
     /// <summary>Hash: participant id → <c>{"v": version, "p": snapshot}</c>.</summary>
@@ -33,7 +36,7 @@ internal sealed class SessionKeys
     /// <summary>Hash: normalised name → participant id.</summary>
     public RedisKey Names { get; }
 
-    /// <summary>Hash: token hash → caller (<c>host</c>, <c>display</c> or <c>participant:{id}</c>).</summary>
+    /// <summary>Hash: token hash → caller (<c>host</c>, <c>display:{id}</c> or <c>participant:{id}</c>).</summary>
     public RedisKey Tokens { get; }
 
     /// <summary>Hash: participant id → their token hash, so removing a player can revoke it.</summary>

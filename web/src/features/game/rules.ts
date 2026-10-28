@@ -3,7 +3,7 @@ import { palettes } from '../../app/palettes'
 import { selectionName, type PatternData } from './patterns'
 
 export type Settings = Schemas['SettingsBody']
-export type SettingKey = Exclude<keyof Settings, never>
+export type SettingKey = keyof Settings
 
 interface Choice {
   value: string

@@ -97,7 +97,7 @@ export function describe(problem: EntryProblem): string {
 
 /**
  * Adds an entry (tidied), into `groupId` or ungrouped; refuses it with the problem instead if it breaks a
- * rule (`checkEntry`). With `matched`, the square is the ball's text.
+ * rule (`checkEntry`). A `square` of `null` means the square is the ball's text (Ball and square match).
  */
 export function addEntry(
   draft: Draft,

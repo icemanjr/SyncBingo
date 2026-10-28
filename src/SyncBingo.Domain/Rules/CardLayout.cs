@@ -39,6 +39,12 @@ public sealed class CardLayout
     /// <summary>Mask with every cell on the card set.</summary>
     public uint AllCells => CellCount == MaxCells ? uint.MaxValue : (1u << CellCount) - 1;
 
+    /// <summary>The squares that hold a ball: every cell but the free one.</summary>
+    public int ItemCells => CellCount - (FreeCell is null ? 0 : 1);
+
+    /// <summary>The squares of one column that hold a ball: its rows, less the free cell if it is in that column.</summary>
+    public int ItemCellsIn(int column) => Rows - (FreeCell is { } free && free % Columns == column ? 1 : 0);
+
     /// <summary>Mask with only the free cell set, or 0 when the card has none.</summary>
     public uint FreeCellMask => FreeCell is { } free ? 1u << free : 0;
 

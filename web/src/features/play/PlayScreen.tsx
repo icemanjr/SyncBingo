@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { usePalette, usePaletteChoice } from '../../app/palettes'
 import { Link, useNavigate, useParams } from 'react-router'
+import { usePalette, usePaletteChoice } from '../../app/palettes'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
 import { useSecondsLeft } from '../game/Countdown'
@@ -13,9 +13,8 @@ import { Menu } from '../game/Menu'
 import { RulesNotice } from '../game/RulesNotice'
 import { useAction } from '../game/useAction'
 import { useGame } from '../game/useGame'
-import { Button, ErrorText } from '../game/ui'
+import { Button, ErrorText, Panel } from '../game/ui'
 import { CallBoard } from '../game/CallBoard'
-import { Panel } from '../game/ui'
 import { Card } from './Card'
 import { MarkStylePanel } from './MarkStylePanel'
 import { downloadSet } from '../game/downloadSet'
@@ -145,19 +144,21 @@ export function PlayScreen() {
       m.type === 'WinAwarded' || m.type === 'ParticipantRemoved' || m.type === 'ParticipantLeft',
   )
 
+  // A mark or Undo replies with the card's marks: shown at once, without waiting for a refetch.
+  const showMarks = (cardId: number, marks: number) => {
+    game.patch((s) => ({
+      ...s,
+      you: s.you && {
+        ...s.you,
+        cards: s.you.cards.map((c) => (c.cardId === cardId ? { ...c, marks } : c)),
+      },
+    }))
+  }
+
   const toggle = (cell: number, marked: boolean) => {
     if (!card) return
     void marking.run(async () => {
-      const result = await player.mark(card.cardId, cell, marked)
-      game.patch((s) => ({
-        ...s,
-        you: s.you && {
-          ...s.you,
-          cards: s.you.cards.map((c) =>
-            c.cardId === card.cardId ? { ...c, marks: result.marks } : c,
-          ),
-        },
-      }))
+      showMarks(card.cardId, (await player.mark(card.cardId, cell, marked)).marks)
     })
   }
 
@@ -355,16 +356,7 @@ export function PlayScreen() {
             disabled={marking.busy}
             onClick={() =>
               void marking.run(async () => {
-                const result = await player.undo(card.cardId)
-                game.patch((s) => ({
-                  ...s,
-                  you: s.you && {
-                    ...s.you,
-                    cards: s.you.cards.map((c) =>
-                      c.cardId === card.cardId ? { ...c, marks: result.marks } : c,
-                    ),
-                  },
-                }))
+                showMarks(card.cardId, (await player.undo(card.cardId)).marks)
               })
             }
             className={toolClass}

@@ -1,11 +1,22 @@
-import type { Schemas } from '../../api/client'
-import { ApiError } from '../../api/client'
+import { ApiError, type Schemas } from '../../api/client'
 
-/** The game's custom set file, or the API's refusal. */
-async function fetchSet(code: string, token: string): Promise<Response> {
+/**
+ * A request to the game's set (`/content`), sent with plain `fetch`: its body is the set file itself, which the
+ * typed client would treat as JSON. Throws the API's refusal as an {@link ApiError}.
+ */
+async function contentRequest(
+  code: string,
+  token: string,
+  init: { method?: string; query?: string; body?: string } = {},
+): Promise<Response> {
   const response = await fetch(
-    new Request(`${window.location.origin}/api/sessions/${code}/content`, {
-      headers: { Authorization: `Bearer ${token}` },
+    new Request(`${window.location.origin}/api/sessions/${code}/content${init.query ?? ''}`, {
+      method: init.method ?? 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      body: init.body,
     }),
   )
   if (!response.ok)
@@ -15,7 +26,7 @@ async function fetchSet(code: string, token: string): Promise<Response> {
 
 /** The game's custom set file as text, e.g. to start editing it. */
 export async function fetchSetFile(code: string, token: string): Promise<string> {
-  return (await fetchSet(code, token)).text()
+  return (await contentRequest(code, token)).text()
 }
 
 /**
@@ -28,28 +39,16 @@ export async function applySetFile(
   file: string,
   cardSize?: Schemas['CardSize'],
 ): Promise<void> {
-  const query = cardSize ? `?cardSize=${cardSize}` : ''
-  const response = await fetch(
-    new Request(`${window.location.origin}/api/sessions/${code}/content${query}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: file,
-    }),
-  )
-  if (!response.ok)
-    throw ApiError.from(response.status, await response.json().catch(() => undefined))
+  await contentRequest(code, token, {
+    method: 'PUT',
+    query: cardSize ? `?cardSize=${cardSize}` : '',
+    body: file,
+  })
 }
 
 /** Back to numbers: the standard balls and a new card for everyone. */
 export async function backToNumbers(code: string, token: string): Promise<void> {
-  const response = await fetch(
-    new Request(`${window.location.origin}/api/sessions/${code}/content`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-  )
-  if (!response.ok)
-    throw ApiError.from(response.status, await response.json().catch(() => undefined))
+  await contentRequest(code, token, { method: 'DELETE' })
 }
 
 /**
@@ -57,7 +56,7 @@ export async function backToNumbers(code: string, token: string): Promise<void> 
  * it, in the lobby. Saved under the name the server gives it ("Science vocabulary.json").
  */
 export async function downloadSet(code: string, token: string): Promise<void> {
-  const response = await fetchSet(code, token)
+  const response = await contentRequest(code, token)
 
   const disposition = response.headers.get('Content-Disposition') ?? ''
   const named = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1]

@@ -53,7 +53,8 @@ public sealed class HostCommandHandler(SessionCommandRunner runner, IRandomSourc
                         return Result.Success(CommandOutcome.Of(outcome.Value));
                     }
 
-                    // A free space added or taken away (lobby only): the old cards no longer fit, so everyone gets a new one.
+                    // Another card size, or a free space added or taken away (lobby only): the old cards no longer fit,
+                    // so everyone gets a new one.
                     var notifications = await RoundHandler.ResetParticipantsAsync(runner.Store, session, random, ct).ConfigureAwait(false);
                     return notifications.IsSuccess ? Result.Success(new CommandOutcome(outcome.Value, notifications.Value)) : notifications.Error!;
                 },

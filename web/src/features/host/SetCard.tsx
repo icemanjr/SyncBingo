@@ -37,7 +37,7 @@ export function SetCard({
         <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Custom set</p>
         <p className="font-display text-lg font-bold">{content.name}</p>
         <p className="text-sm text-ink-muted">
-          {content.groupItems ? 'Dealt by group, one per column' : 'Dealt anywhere on the card'}
+          {content.groupItems ? 'Dealt grouped by column' : 'Dealt anywhere on the card'}
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

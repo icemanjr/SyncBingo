@@ -170,7 +170,7 @@ describe('the host console', () => {
     })
     renderConsole()
 
-    expect(await screen.findByRole('button', { name: /Grab ball \d…/ })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /Grab ball in \d…/ })).toBeDisabled()
   })
 
   it("awards a claim with the claim's id, so a double tap counts once", async () => {
@@ -323,7 +323,7 @@ describe('the host console', () => {
     const waiting = within(players).getByRole('region', { name: 'Waiting' })
     expect(waiting).toHaveTextContent('Late')
     expect(waiting).toHaveTextContent(
-      'get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel).',
+      'Return to the lobby to allow them to join (End round, Clear cards or Cancel).',
     )
     expect(within(waiting).queryByRole('button', { name: /card/ })).not.toBeInTheDocument()
 
@@ -380,6 +380,6 @@ describe('the host console', () => {
     localStorage.clear()
     renderConsole()
 
-    expect(screen.getByText("This browser isn't hosting that game.")).toBeInTheDocument()
+    expect(screen.getByText('This browser is not hosting that game.')).toBeInTheDocument()
   })
 })

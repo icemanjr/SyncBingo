@@ -32,6 +32,6 @@ describe('rule sentences (FR-47, FR-48)', () => {
     const free = (value: string) => describeChange({ rule: 'freeSpace', value }, noPatterns)
     expect(free('AlwaysMarked')).toBe('The free space is always marked')
     expect(free('Earned')).toBe('The free space must be earned')
-    expect(free('None')).toBe('No free space: every square is a ball')
+    expect(free('None')).toBe('No free space: every square has a matching ball to be drawn')
   })
 })

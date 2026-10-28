@@ -107,7 +107,7 @@ describe('the set editor (FR-44)', () => {
 
     const parked = screen.getByRole('region', { name: 'Ungrouped pairs' })
     expect(within(parked).getByRole('alert')).toHaveTextContent(
-      'The set can’t be used until each of these is moved into a group or removed.',
+      'The set cannot be used until each of these is moved into a group or removed.',
     )
     expect(within(parked).getByText('Producer')).toBeInTheDocument()
     expect(
@@ -197,7 +197,7 @@ describe('the set editor (FR-44)', () => {
 
     await userEvent.type(screen.getByLabelText('Free space text'), 'Producer')
     expect(
-      screen.getByText('The free space can’t say “Producer”: that’s already a square.'),
+      screen.getByText('The free space cannot say “Producer”: that is already a square.'),
     ).toBeInTheDocument()
     await userEvent.clear(screen.getByLabelText('Free space text'))
     await userEvent.type(screen.getByLabelText('Free space text'), 'Science!')

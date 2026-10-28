@@ -274,7 +274,7 @@ public sealed class Session
         {
             if (content is null)
             {
-                throw new InvalidOperationException($"Stored session {snapshot.Code} uses a custom set that wasn't found.");
+                throw new InvalidOperationException($"Stored session {snapshot.Code} uses a custom set that was not found.");
             }
 
             // Saved before a set's groups always meant dealing by group: such a set was dealt free-form.
@@ -973,7 +973,7 @@ public sealed class Session
 
         if (Variant.Patterns.FirstOrDefault(pattern => pattern.Masks is [var only] && only == mask) is { } same)
         {
-            return Failure(DomainErrorCode.Invalid, $"That's the same shape as '{same.Name}'.");
+            return Failure(DomainErrorCode.Invalid, $"That is the same shape as '{same.Name}'.");
         }
 
         _customPatterns.Add(new CustomPattern($"custom-{_customPatterns.Count + 1}", tidy, Settings.CardSize, mask));
@@ -995,7 +995,7 @@ public sealed class Session
         var index = _customPatterns.FindIndex(pattern => pattern.Id == id);
         if (index < 0)
         {
-            return Failure(DomainErrorCode.NotFound, "That pattern isn't one of this game's own.");
+            return Failure(DomainErrorCode.NotFound, "That pattern is not one of this game's own.");
         }
 
         if (CheckPatternName(name, except: id) is { } badName)
@@ -1322,7 +1322,7 @@ public sealed class Session
     private DomainError WrongState(string action) =>
         new(DomainErrorCode.WrongState, State == SessionState.Ended
             ? "This game has ended."
-            : $"You can't {action} while the game is {Describe(State)}.");
+            : $"You cannot {action} while the game is {Describe(State)}.");
 
     private static DomainError Failure(DomainErrorCode code, string message) => new(code, message);
 

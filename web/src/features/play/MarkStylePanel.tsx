@@ -132,7 +132,7 @@ export function MarkStylePanel({
         </label>
 
         <label className="flex flex-col gap-1 font-semibold">
-          Colors
+          Color theme
           <select
             value={palette.choice}
             onChange={(e) => {

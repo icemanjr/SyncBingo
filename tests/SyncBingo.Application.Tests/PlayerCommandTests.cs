@@ -93,7 +93,7 @@ public sealed class PlayerCommandTests
 
         var refused = await _app.Players.SetAutoFillAsync(code, Caller.Participant(ava), true, TestApp.Ct);
 
-        refused.Error!.Message.ShouldBe("The host hasn't made auto-fill available.");
+        refused.Error!.Message.ShouldBe("The host has not made auto-fill available.");
         (await _app.PlayerAsync(code, ava)).AutoFillOn.ShouldBeFalse();
     }
 

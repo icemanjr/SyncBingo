@@ -167,8 +167,8 @@ public sealed class Participant
         if (!allowed)
         {
             return Refuse(session.Settings.Unmarking == Unmarking.Off
-                ? "Marks can't be removed in this game. Use Undo before the next ball."
-                : "Only marks on squares that haven't been called can be removed.");
+                ? "Marks cannot be removed in this game. Use Undo before the next ball."
+                : "Only marks on squares that have not been called can be removed.");
         }
 
         return Change(card, card.Marks & ~bit, session);
@@ -212,7 +212,7 @@ public sealed class Participant
 
         if (on && !session.Settings.AutoFillAvailable)
         {
-            return Refuse("The host hasn't made auto-fill available.");
+            return Refuse("The host has not made auto-fill available.");
         }
 
         AutoFillOn = on;

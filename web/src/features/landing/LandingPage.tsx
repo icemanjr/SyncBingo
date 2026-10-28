@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 
 const steps = [
-  ['Host a game', 'Pick a password and put the game code on a TV or a laptop.'],
+  ['Host a game', 'Pick a password, display the game code on this device or a TV.'],
   ['Everyone scans to join', 'Each player gets their own card on their own phone.'],
   ['Call, mark, shout Bingo', 'The app checks every claim against the balls actually called.'],
 ] as const

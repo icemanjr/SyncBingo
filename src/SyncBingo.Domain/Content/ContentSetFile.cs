@@ -229,7 +229,7 @@ public static class ContentSetFile
     private static string Quote(string text) => JsonSerializer.Serialize(text, StringOptions);
 
     private static Result<ContentSet> NotASetFile() =>
-        Refuse("This isn't a SyncBingo set file. Download one from the set editor to see the format.");
+        Refuse("This is not a SyncBingo set file. Download one from the set editor to see the format.");
 
     private static Result<ContentSet> Refuse(string message) => Result.Failure<ContentSet>(DomainErrorCode.Invalid, message);
 }

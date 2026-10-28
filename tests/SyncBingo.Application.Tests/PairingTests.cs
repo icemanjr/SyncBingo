@@ -64,7 +64,7 @@ public sealed class PairingTests
         _app.Clock.UtcNow += TimeSpan.FromMinutes(10);
 
         (await _handler.ApproveAsync(code, Caller.Host, tv.Code.ToString(), TestApp.Ct)).Error!.Message
-            .ShouldBe("That code isn't valid or has expired. Check the code on the TV.");
+            .ShouldBe("That code is not valid or has expired. Check the code on the TV.");
         _notifier.Paired.ShouldBeEmpty();
     }
 

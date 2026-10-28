@@ -102,7 +102,7 @@ public sealed class PairingHandler(
         if (!PairingCode.TryParse(typedCode, out var pairingCode)
             || await pairings.TryClaimAsync(pairingCode, cancellationToken).ConfigureAwait(false) is not { } pairingId)
         {
-            return new DomainError(DomainErrorCode.NotFound, "That code isn't valid or has expired. Check the code on the TV.");
+            return new DomainError(DomainErrorCode.NotFound, "That code is not valid or has expired. Check the code on the TV.");
         }
 
         var issued = await displays.IssueAsync(code, caller, DisplayKind.Tv, cancellationToken).ConfigureAwait(false);

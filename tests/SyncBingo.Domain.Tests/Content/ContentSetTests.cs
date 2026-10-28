@@ -120,7 +120,7 @@ public sealed class ContentSetTests
         var entries = Words(23);
         entries.Add(new ContentEntry("ring\u0007", "ok"));
 
-        Refusal(entries).ShouldContain("Ball 24 has characters that can't be shown");
+        Refusal(entries).ShouldContain("Ball 24 has characters that cannot be shown");
     }
 
     [Fact]

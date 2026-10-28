@@ -10,16 +10,16 @@ public static class Errors
         new(DomainErrorCode.Invalid, "Please choose a different name.");
 
     public static DomainError SessionNotFound() =>
-        new(DomainErrorCode.NotFound, "That game doesn't exist or has ended. Check the code with your host.");
+        new(DomainErrorCode.NotFound, "That game does not exist or has ended. Check the code with your host.");
 
     public static DomainError WrongPassword() =>
-        new(DomainErrorCode.Unauthorized, "That password isn't right. Check it with your host.");
+        new(DomainErrorCode.Unauthorized, "That password is not right. Check it with your host.");
 
     public static DomainError NotInGame() =>
-        new(DomainErrorCode.NotFound, "You're no longer in this game.");
+        new(DomainErrorCode.NotFound, "You are no longer in this game.");
 
     public static DomainError PlayerNotFound() =>
-        new(DomainErrorCode.NotFound, "That player isn't in this game.");
+        new(DomainErrorCode.NotFound, "That player is not in this game.");
 
     public static DomainError Busy() =>
         new(DomainErrorCode.Conflict, "A lot happened at once. Please try again.");

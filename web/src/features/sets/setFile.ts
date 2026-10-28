@@ -8,7 +8,7 @@ import { defaultLabel, limits, tidy } from './text'
 export const fileFormat = 1
 
 const notASetFile =
-  "This isn't a SyncBingo set file. Download one from the set editor to see the format."
+  'This is not a SyncBingo set file. Download one from the set editor to see the format.'
 
 /** A file's groups and pairs as a draft; or why it can't be read. The set's own rules are checked later. */
 export function readSetFile(text: string): { draft: Draft } | { error: string } {

@@ -256,7 +256,7 @@ public sealed class ContentSet
         }
         else if (!ContentText.IsPrintable(text))
         {
-            problems.Add($"{side} {number} has characters that can't be shown");
+            problems.Add($"{side} {number} has characters that cannot be shown");
         }
     }
 

@@ -120,14 +120,14 @@ public sealed class RedisSessionStore(IConnectionMultiplexer redis, RedisStoreOp
         var stored = await Db.HashGetAsync(meta, ["content", "content-id"]).ConfigureAwait(false);
         if (stored[0].IsNull || stored[1].IsNull)
         {
-            throw new InvalidOperationException("Stored session uses a custom set that wasn't found.");
+            throw new InvalidOperationException("Stored session uses a custom set that was not found.");
         }
 
         var file = stored[0].ToString();
         var set = ContentSetFile.Read(file);
         if (!set.IsSuccess)
         {
-            throw new InvalidOperationException($"Stored custom set can't be read: {set.Error}");
+            throw new InvalidOperationException($"Stored custom set cannot be read: {set.Error}");
         }
 
         _contents.Add(stored[1].ToString(), file, set.Value);

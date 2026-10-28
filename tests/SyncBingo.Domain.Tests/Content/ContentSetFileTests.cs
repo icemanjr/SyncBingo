@@ -134,14 +134,14 @@ public sealed class ContentSetFileTests
     [Fact]
     public void The_free_spaces_text_must_be_text() =>
         ContentSetFile.Read(NormalBingo().Replace("\"format\": 1", "\"format\": 1, \"free\": 7", StringComparison.Ordinal))
-            .Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
+            .Error!.Message.ShouldStartWith("This is not a SyncBingo set file.");
 
     [Theory]
     [InlineData("\"label\": 5")]
     [InlineData("\"label\": null")]
     public void A_label_must_be_text(string label) =>
         ContentSetFile.Read(NormalBingo().Replace("\"name\": \"B\"", $"\"name\": \"B\", {label}", StringComparison.Ordinal))
-            .Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
+            .Error!.Message.ShouldStartWith("This is not a SyncBingo set file.");
 
     [Fact]
     public void Two_groups_with_the_same_name_are_refused()
@@ -169,7 +169,7 @@ public sealed class ContentSetFileTests
     [InlineData("""{ "format": 1.5, "pairs": [] }""")]
     [InlineData("""{ "format": 0, "pairs": [] }""")]
     public void Anything_else_is_not_a_set_file(string json) =>
-        ContentSetFile.Read(json).Error!.Message.ShouldStartWith("This isn't a SyncBingo set file.");
+        ContentSetFile.Read(json).Error!.Message.ShouldStartWith("This is not a SyncBingo set file.");
 
     [Fact]
     public void A_file_from_a_newer_version_says_so() =>

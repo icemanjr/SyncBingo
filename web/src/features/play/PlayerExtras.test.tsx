@@ -157,7 +157,7 @@ describe('the player extras', () => {
     expect(document.documentElement.dataset.palette).toBe('Ocean')
 
     await userEvent.click(screen.getByRole('button', { name: 'My marks' }))
-    const colors = screen.getByLabelText('Colors')
+    const colors = screen.getByLabelText('Color theme')
     expect(colors).toHaveDisplayValue('The game’s (Ocean)')
     await userEvent.selectOptions(colors, 'Halloween')
     expect(document.documentElement.dataset.palette).toBe('Halloween')

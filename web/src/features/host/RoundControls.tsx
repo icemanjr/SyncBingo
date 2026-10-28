@@ -168,7 +168,7 @@ export function CallingCard({ game, host }: { game: Game; host: HostApi }) {
                 disabled={busy || reading > 0}
                 onClick={() => void run(host.grabBall)}
               >
-                {reading > 0 ? `Grab ball ${String(reading)}…` : 'Grab ball'}
+                {reading > 0 ? `Grab ball in ${String(reading)}…` : 'Grab ball'}
               </Button>
               <Button
                 look="outline"

@@ -311,7 +311,7 @@ function Editor({ code, token }: { code: string; token: string }) {
               role="alert"
               className="rounded-xl bg-notice p-2 text-sm font-semibold text-notice-ink"
             >
-              The set can’t be used until each of these is moved into a group or removed.
+              The set cannot be used until each of these is moved into a group or removed.
             </p>
           )}
           <EntryList
@@ -364,7 +364,7 @@ function Editor({ code, token }: { code: string; token: string }) {
           </ul>
         )}
         {!lobby && game.snapshot && (
-          <p className="text-sm text-ink-muted">The set can change between rounds, in the lobby.</p>
+          <p className="text-sm text-ink-muted">The set can be changed between rounds.</p>
         )}
         <label className="flex min-h-12 items-start gap-3">
           <input

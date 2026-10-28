@@ -97,7 +97,7 @@ public sealed class PlayerManagementTests
 
         var result = await _app.Manage.AwardWinAsync(code, Caller.Host, new AwardWin("nobody"), TestApp.Ct);
 
-        result.Error!.Message.ShouldBe("That player isn't in this game.");
+        result.Error!.Message.ShouldBe("That player is not in this game.");
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public sealed class PlayerManagementTests
         var player = Caller.Participant(ava);
         (await _app.Manage.RemoveParticipantAsync(code, Caller.Host, ava, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        (await _app.Players.MarkAsync(code, player, 1, 0, true, TestApp.Ct)).Error!.Message.ShouldBe("You're no longer in this game.");
+        (await _app.Players.MarkAsync(code, player, 1, 0, true, TestApp.Ct)).Error!.Message.ShouldBe("You are no longer in this game.");
         (await _app.Players.ClaimBingoAsync(code, player, 1, TestApp.Ct)).Error!.Code.ShouldBe(DomainErrorCode.NotFound);
     }
 

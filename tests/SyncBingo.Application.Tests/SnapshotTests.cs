@@ -110,7 +110,7 @@ public sealed class SnapshotTests
         var ava = await _app.JoinAsync(code, "Ava");
         (await _app.Manage.RemoveParticipantAsync(code, Caller.Host, ava, TestApp.Ct)).IsSuccess.ShouldBeTrue();
 
-        (await Queries.SnapshotAsync(code, Caller.Participant(ava), TestApp.Ct)).Error!.Message.ShouldBe("You're no longer in this game.");
+        (await Queries.SnapshotAsync(code, Caller.Participant(ava), TestApp.Ct)).Error!.Message.ShouldBe("You are no longer in this game.");
     }
 
     [Fact]

@@ -316,7 +316,7 @@ describe('the set file', () => {
     ]) {
       expect(readSetFile(bad)).toEqual({
         error:
-          "This isn't a SyncBingo set file. Download one from the set editor to see the format.",
+          'This is not a SyncBingo set file. Download one from the set editor to see the format.',
       })
     }
     expect(readSetFile('{ "format": 2, "pairs": [] }')).toEqual({
@@ -373,14 +373,14 @@ describe('the free space’s text', () => {
 
   it('is checked like a square, and can’t be one', () => {
     expect(checkFreeText({ ...words(3), free: 'WORD 2' })).toBe(
-      'The free space can’t say “WORD 2”: that’s already a square.',
+      'The free space cannot say “WORD 2”: that is already a square.',
     )
     expect(checkFreeText({ ...words(3), free: 'sixteen letters!' })).toBe(
       'The free space’s text can be up to 15 characters.',
     )
     expect(checkFreeText({ ...words(3), free: '' })).toBeUndefined()
     expect(setProblems({ ...words(24), free: 'word 1' }, false)).toEqual([
-      'The free space can’t say “word 1”: that’s already a square.',
+      'The free space cannot say “word 1”: that is already a square.',
     ])
   })
 

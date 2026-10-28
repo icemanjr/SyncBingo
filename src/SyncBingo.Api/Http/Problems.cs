@@ -52,7 +52,7 @@ public static class Problems
 
             var (status, detail) = exception switch
             {
-                BadHttpRequestException bad => (bad.StatusCode, "The request isn't valid. Check its fields and values."),
+                BadHttpRequestException bad => (bad.StatusCode, "The request is not valid. Check its fields and values."),
                 TimeoutException => (StatusCodes.Status503ServiceUnavailable, "The game is busy. Please try again."),
                 _ => (0, null),
             };

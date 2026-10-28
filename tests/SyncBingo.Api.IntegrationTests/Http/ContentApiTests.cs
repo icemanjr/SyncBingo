@@ -210,7 +210,7 @@ public sealed class ContentApiTests : IAsyncDisposable
         using (var privateSet = await download())
         {
             privateSet.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
-            (await Json(privateSet)).GetProperty("detail").GetString().ShouldBe("The host hasn't shared this set.");
+            (await Json(privateSet)).GetProperty("detail").GetString().ShouldBe("The host has not shared this set.");
         }
 
         (await _client.SendAsync(HttpMethod.Put, $"/api/sessions/{code}/content/sharing", hostToken, new { playersMayDownload = true }))
@@ -241,8 +241,8 @@ public sealed class ContentApiTests : IAsyncDisposable
 
     [Theory]
     [InlineData("""{ "format": 1, "pairs": [ ["too few"] ] }""", "A set needs 8–500 entries, not 1")]
-    [InlineData("""{ "not": "a set" }""", "This isn't a SyncBingo set file.")]
-    [InlineData("""[1, 2, 3]""", "This isn't a SyncBingo set file.")]
+    [InlineData("""{ "not": "a set" }""", "This is not a SyncBingo set file.")]
+    [InlineData("""[1, 2, 3]""", "This is not a SyncBingo set file.")]
     public async Task A_bad_set_is_refused_with_what_to_fix(string file, string detail)
     {
         var (code, hostToken) = await NewGameAsync();

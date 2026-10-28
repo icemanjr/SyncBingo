@@ -56,9 +56,9 @@ public sealed class CustomPatternTests
     {
         var session = NewSession();
 
-        session.AddPattern("Corners again", [0, 4, 20, 24], Now).Error!.Message.ShouldBe("That's the same shape as 'Four Corners'.");
+        session.AddPattern("Corners again", [0, 4, 20, 24], Now).Error!.Message.ShouldBe("That is the same shape as 'Four Corners'.");
         session.AddPattern("Plus", Plus, Now);
-        session.AddPattern("Plus again", Plus, Now).Error!.Message.ShouldBe("That's the same shape as 'Plus'.");
+        session.AddPattern("Plus again", Plus, Now).Error!.Message.ShouldBe("That is the same shape as 'Plus'.");
     }
 
     [Fact]

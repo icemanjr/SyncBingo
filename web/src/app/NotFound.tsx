@@ -6,7 +6,7 @@ export function NotFound() {
     <div className="m-auto flex flex-col items-center gap-4 p-6 text-center">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">Page not found</h1>
       <p className="text-lg text-ink-muted">
-        That address isn’t part of SyncBingo. To join a game, scan its QR code or type its game
+        That address is not part of SyncBingo. To join a game, scan its QR code or type its game
         code.
       </p>
       <Link

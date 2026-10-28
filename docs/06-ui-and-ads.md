@@ -25,7 +25,7 @@ The design reference (Visual design, below) has the finished look. The layout:
 ```
 Laptop, during a round (everything on one screen, ad rails either side)
 ┌───────────────────────────────────────────────────────────────┐
-│ [Round 3] [Normal Bingo ✎]  6 players · late arrivals wait    │
+│ [Round 3] [Normal Bingo ✎]  6 players · late arrivals wait … │
 │                                [Display] [Options] [⋯]        │
 ├──────────────────────────────────────┬────────────────────────┤
 │ LAST BALL  Before: O74 G60 G55 N40   │ ╔ Sam pressed Bingo ═╗ │
@@ -176,7 +176,7 @@ A panel over the top of the card or board, on participants' screens, the display
 
 - **Rules updated** appears when the host applies changes mid-round, listing each change in plain words; a pattern change shows the new pattern's grid (as in FR-48), and tapping the notice opens the *Patterns and current rules* panel. The round-start version, shown during the countdown, reads **This round: Four Corners** with the pattern's shape drawn as a small 5×5 grid.
 - It closes with **X** (48 px target) or by itself when the next ball is called. It never hides the BINGO button, and it is announced to screen readers (`aria-live="polite"`). It has no animation under reduced motion and never flashes.
-- For 3 seconds after a *Rules updated* notice the host's **Grab ball** button counts down ("Grab ball 3…") and **Auto mode** is disabled, so everyone has time to read before the next ball.
+- For 3 seconds after a *Rules updated* notice the host's **Grab ball** button counts down ("Grab ball in 3…") and **Auto mode** is disabled, so everyone has time to read before the next ball.
 
 ### Lobby and round countdown (FR-45, FR-46)
 
@@ -202,7 +202,7 @@ With *Show round numbers* off the button reads **Start New Round**. Pressing it 
 └──────────┘      host only: [ Cancel ]
 ```
 
-Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown and the round, the join page shows "A round is in progress. Join now and you'll be added as soon as it's done." and joining enters the waiting room (FR-5): the play screen shows "Round currently being played. You'll be added as soon as it's done." with **My marks**, the auto-fill switch and the call board as usual, but no card or Bingo button. The host's Players list shows them under **Waiting**, counted with the players, with "They arrived during the round and get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel)." and **Remove**. The console's status line reads "late arrivals wait" instead of "joining open", and the join panel says "Anyone who arrives during a round waits, and gets a card as soon as it ends." At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
+Clients count down locally to the server's `endsAt`, so there is no message per second. During the countdown and the round, the join page shows "A round is in progress. Join now and you'll be added as soon as it's done." and joining enters the waiting room (FR-5): the play screen shows "Round currently being played. You'll be added as soon as it's done." with **My marks**, the auto-fill switch and the call board as usual, but no card or Bingo button. The host's Players list shows them under **Waiting**, counted with the players, with "New players cannot get a card during a round. Return to the lobby to allow them to join (End round, Clear cards or Cancel)." and **Remove**. The console's status line reads "late arrivals wait until the end of the round" instead of "joining open", and the join panel says "Anyone who arrives during a round waits, and gets a card as soon as it ends." At zero the slot shows "–" until the first ball (manual), or the first ball itself (auto).
 
 ### Claim alerts on the host console
 
@@ -340,6 +340,13 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 - The audience includes young children. Ad networks have child-directed rules and the US has COPPA. Hence every request is child-directed and the Privacy page describes the ads (ADR 0012).
 - A **Terms of Use** page (linked from every page footer) states, among the usual terms, that hosts are responsible for any custom content they upload or display in their games (ADR 0009). The future custom-content **upload page** repeats this next to the upload control, and the host must tick an acknowledgement before uploading.
 - No real-money features are planned in the app (see 01 §6); the "Serious Bingo" tile is a non-interactive teaser.
+
+## 2a. Wording
+
+- American spelling (owner, 2026-10-28): color, center, canceled, -ize. British English comes later as its own translation.
+- **Error messages don't use contractions** (owner, 2026-10-28): every refusal from the server and every error the web app shows reads "cannot", "is not", "does not", which feels more formal for an error. Everything else (help, notices, rules, buttons) may use them.
+- Server messages are written to be shown to people as they are (docs/05 §5); the game is a "game" to people, never a "session".
+- Never call SyncBingo "Kahoot-style"; it is phone-first, drop-in party Bingo.
 
 ## 3. Accessibility and kid-friendliness
 

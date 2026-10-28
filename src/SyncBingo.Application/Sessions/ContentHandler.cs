@@ -65,7 +65,7 @@ public sealed class ContentHandler(SessionCommandRunner runner, IRandomSource ra
         {
             return new DomainError(
                 DomainErrorCode.Forbidden,
-                session.PlayersMayDownload ? "The set can be downloaded between rounds." : "The host hasn't shared this set.");
+                session.PlayersMayDownload ? "The set can be downloaded between rounds." : "The host has not shared this set.");
         }
 
         // Not 404 when there is no set: clients read a 404 as "the game is over".

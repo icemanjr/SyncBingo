@@ -59,7 +59,7 @@ export function HostConsole() {
   if (!token) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <p>This browser isn't hosting that game.</p>
+        <p>This browser is not hosting that game.</p>
         <Link to="/host/new" className="font-semibold text-accent-text underline">
           Host a new game
         </Link>
@@ -160,7 +160,9 @@ export function HostConsole() {
         )}
         <span className="text-sm text-ink-muted">
           {players.length} player{players.length === 1 ? '' : 's'} ·{' '}
-          {view.state === 'BetweenRounds' ? 'joining open' : 'late arrivals wait'}
+          {view.state === 'BetweenRounds'
+            ? 'joining open'
+            : 'late arrivals wait until the end of the round'}
         </span>
         <span className="ml-auto flex gap-2">
           <Button

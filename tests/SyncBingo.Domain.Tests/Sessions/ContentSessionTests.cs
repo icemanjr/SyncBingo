@@ -175,7 +175,7 @@ public sealed class ContentSessionTests
         session.UseContent(Sums(), Now);
 
         Should.Throw<InvalidOperationException>(() => Session.Restore(session.ToSnapshot()))
-            .Message.ShouldContain("custom set that wasn't found");
+            .Message.ShouldContain("custom set that was not found");
     }
 }
 

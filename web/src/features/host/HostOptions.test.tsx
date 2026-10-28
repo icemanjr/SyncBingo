@@ -139,7 +139,7 @@ describe('Options (FR-32)', () => {
     expect(screen.getByRole('combobox', { name: 'Free space' })).toBeDisabled()
     expect(screen.getByRole('combobox', { name: 'Multiple wins' })).toBeDisabled()
     expect(
-      screen.getByText('Change these in the lobby: they shape a whole round.'),
+      screen.getByText('Round options can only be changed between rounds.'),
     ).toBeInTheDocument()
   })
 

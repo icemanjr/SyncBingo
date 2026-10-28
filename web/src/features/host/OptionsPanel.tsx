@@ -278,7 +278,7 @@ export function OptionsPanel({
             <legend className="mb-1 font-semibold">{section.title}</legend>
             {section.title === 'Between rounds' && inRound && (
               <p className="text-sm text-ink-muted">
-                Change these in the lobby: they shape a whole round.
+                Round options can only be changed between rounds.
               </p>
             )}
             {section.settings.map(field)}

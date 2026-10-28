@@ -73,7 +73,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'unmarking',
         label: 'Removing marks',
-        help: 'Undo always works, back to the last ball.',
+        help: "Players can always 'Undo', which will revert back to how their card appeared when the last ball was drawn.",
         choices: [
           { value: 'Any', label: 'Any mark' },
           { value: 'MismarksOnly', label: 'Only marks on squares not called' },
@@ -135,7 +135,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'freeSpace',
         label: 'Free space',
-        help: 'Earned: marked once a called ball is not on the card. None: the center is a square like any other, and every card is redealt.',
+        help: "Earned: 'Free space' cannot be marked until a ball is called that does not have a match on the card. None: There is no 'Free space'; the center square is treated like any other. (This will cause cards to be redealt.)",
         betweenRounds: true,
         choices: [
           { value: 'AlwaysMarked', label: 'Always marked' },
@@ -185,7 +185,9 @@ const sentences: Record<string, (value: string) => string> = {
   freeMarking: (v) =>
     v === 'true' ? 'Any square can be marked' : 'Only called squares can be marked',
   requireMarksForClaims: (v) =>
-    v === 'true' ? 'Bingo needs your squares marked' : 'You can call Bingo without marks',
+    v === 'true'
+      ? "Bingo only counts if it's marked on your card"
+      : 'You can call Bingo without marks',
   unmarking: (v) =>
     v === 'Any'
       ? 'Any mark can be removed'
@@ -196,7 +198,7 @@ const sentences: Record<string, (value: string) => string> = {
     v === 'Earned'
       ? 'The free space must be earned'
       : v === 'None'
-        ? 'No free space: every square is a ball'
+        ? 'No free space: every square has a matching ball to be drawn'
         : 'The free space is always marked',
   redrawPolicy: (v) =>
     v === 'ParticipantsMayRedraw'
@@ -204,7 +206,7 @@ const sentences: Record<string, (value: string) => string> = {
       : 'Only the host swaps cards',
   multipleWins: (v) =>
     v === 'EveryDeclaredWin'
-      ? 'Every line you declare can win'
+      ? 'Every matched pattern can win'
       : v === 'OncePerRound'
         ? 'One win per card per round'
         : 'One win per card per pattern',

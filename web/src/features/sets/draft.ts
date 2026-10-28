@@ -85,7 +85,7 @@ export function describe(problem: EntryProblem): string {
         ? `What is called can be up to ${String(problem.max)} characters.`
         : `A square can be up to ${String(problem.max)} characters.`
     case 'unprintable':
-      return 'That has characters that can’t be shown.'
+      return 'That has invalid characters.'
     case 'duplicate':
       return 'That entry is already in the set.'
     case 'clash':
@@ -264,7 +264,7 @@ export function checkFreeText(draft: Draft): string | undefined {
   if (!fits(free, limits.square) || !isPrintable(free))
     return `The free space’s text can be up to ${String(limits.square)} characters.`
   if (draft.entries.some((entry) => key(tidy(squareOf(entry))) === key(free)))
-    return `The free space can’t say “${free}”: that’s already a square.`
+    return `The free space cannot say “${free}”: that is already a square.`
   return undefined
 }
 

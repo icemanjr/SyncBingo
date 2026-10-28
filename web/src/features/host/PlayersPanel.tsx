@@ -164,7 +164,7 @@ export function PlayersPanel({
           </h3>
           <p className="text-sm text-ink-muted">
             {!lobby
-              ? 'They arrived during the round and get a card as soon as the game is back in the lobby (End round, Clear cards or Cancel).'
+              ? 'New players cannot get a card during a round. Return to the lobby to allow them to join (End round, Clear cards or Cancel).'
               : 'Every different card is in use. Add entries to the set to make more.'}
           </p>
           <ul className="flex flex-col divide-y divide-line-soft">

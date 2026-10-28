@@ -129,7 +129,7 @@ public sealed class ApiTests : IAsyncDisposable
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var problem = await Json(response);
         problem.GetProperty("code").GetString().ShouldBe("WrongState");
-        problem.GetProperty("detail").GetString().ShouldBe("You can't grab a ball while the game is between rounds.");
+        problem.GetProperty("detail").GetString().ShouldBe("You cannot grab a ball while the game is between rounds.");
     }
 
     [Fact]

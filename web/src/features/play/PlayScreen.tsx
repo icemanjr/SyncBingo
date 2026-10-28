@@ -106,7 +106,7 @@ export function PlayScreen() {
   if (!me) {
     return (
       <div className="m-auto flex flex-col items-center gap-3 text-center">
-        <p>You haven't joined this game on this device.</p>
+        <p>You have not joined this game on this device.</p>
         <Link to={`/join/${code}`} className="font-semibold text-accent-text underline">
           Join the game
         </Link>

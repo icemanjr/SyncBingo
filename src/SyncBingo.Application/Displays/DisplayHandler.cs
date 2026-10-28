@@ -61,7 +61,7 @@ public sealed class DisplayHandler(ISessionStore store, ITokenService tokens, IE
 
         if (!await store.RemoveDisplayAsync(code, displayId, cancellationToken).ConfigureAwait(false))
         {
-            return new DomainError(DomainErrorCode.NotFound, "That display isn't connected.");
+            return new DomainError(DomainErrorCode.NotFound, "That display is not connected.");
         }
 
         await publisher.NotifyAsync(code, new Recipient.Display(displayId), new DisplayDisconnected(), cancellationToken).ConfigureAwait(false);

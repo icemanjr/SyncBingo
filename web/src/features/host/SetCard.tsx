@@ -93,14 +93,21 @@ export function SetCard({
 }
 
 /** In the lobby while the game uses numbers: the way into the set editor (FR-44). */
-export function NumbersCard({ code }: { code: string }) {
+export function NumbersCard({
+  code,
+  balls,
+}: {
+  code: string
+  /** How many numbers the card size uses: 75, 60 on 4 × 4, 45 on 3 × 3 (FR-26a). */
+  balls: number
+}) {
   return (
     <section
       aria-label="Custom set"
       className="flex flex-col gap-2 rounded-3xl bg-surface p-4 shadow-card"
     >
       <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Balls</p>
-      <p className="font-display text-lg font-bold">Numbers 1–75</p>
+      <p className="font-display text-lg font-bold">Numbers 1–{balls}</p>
       <p className="text-sm text-ink-muted">
         Or play with your own words, sums or clues: a custom set.
       </p>

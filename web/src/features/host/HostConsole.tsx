@@ -154,7 +154,7 @@ export function HostConsole() {
         )}
         <span className="text-sm text-ink-muted">
           {players.length} player{players.length === 1 ? '' : 's'} ·{' '}
-          {view.state === 'BetweenRounds' ? 'joining open' : 'joining closed'}
+          {view.state === 'BetweenRounds' ? 'joining open' : 'late arrivals wait'}
         </span>
         <span className="ml-auto flex gap-2">
           <Button
@@ -257,7 +257,10 @@ export function HostConsole() {
             {view.content && token ? (
               <SetCard code={code} token={token} content={view.content} host={host} />
             ) : (
-              <NumbersCard code={code} />
+              <NumbersCard
+                code={code}
+                balls={view.board.reduce((total, group) => total + group.balls.length, 0)}
+              />
             )}
             {playersPanel}
             {view.round > 0 && <RoundActions game={view} host={host} />}

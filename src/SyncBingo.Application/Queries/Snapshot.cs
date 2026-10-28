@@ -161,9 +161,14 @@ public sealed record CardView(int CardId, IReadOnlyList<int> Cells, uint Marks, 
 {
     /// <summary>A card as its holder may see it: with a set, faces and placeholder cells (see above).</summary>
     public static CardView ForPlayer(int cardId, Card card, uint marks, ContentSet? content) =>
-        content is null
-            ? new CardView(cardId, [.. card.Cells], marks)
-            : new CardView(cardId, Placeholders(card), marks, FacesOf(card, content));
+        new(cardId, CellsFor(card, content), marks, content is null ? null : FacesOf(card, content));
+
+    /// <summary>
+    /// The cells a player may see: the numbers, or with a set only placeholders. Every reply and notice that
+    /// gives a player a card goes through here, so none can leak the answer key.
+    /// </summary>
+    public static IReadOnlyList<int> CellsFor(Card card, ContentSet? content) =>
+        content is null ? [.. card.Cells] : Placeholders(card);
 
     /// <summary>A card as the host sees it when checking a claim: real item numbers and, with a set, the faces.</summary>
     public static CardView ForHost(int cardId, Card card, uint marks, ContentSet? content) =>

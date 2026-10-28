@@ -39,8 +39,9 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
     /// Swap a card for a new unique one between rounds, if the host allows it (FR-20, FR-39).
     /// Runs under the session lock so it cannot race the countdown or a host redraw. The new
     /// card is claimed only once the redraw is allowed; the old one is released once it is saved.
+    /// Returns the new card as the player may see it: with a set, placeholders, never item numbers.
     /// </summary>
-    public async Task<Result<Card>> RedrawCardAsync(GameCode code, Caller caller, int cardId, CancellationToken cancellationToken)
+    public async Task<Result<CardReplaced>> RedrawCardAsync(GameCode code, Caller caller, int cardId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(code);
         ArgumentNullException.ThrowIfNull(caller);
@@ -89,10 +90,9 @@ public sealed class PlayerCommandHandler(SessionCommandRunner runner, IEventPubl
         }
 
         await Store.ReleaseCardAsync(code, replaced.Value.OldCard.Fingerprint, cancellationToken).ConfigureAwait(false);
-        await publisher.NotifyAsync(
-                code, new Recipient.Participant(caller.ParticipantId!), new CardReplaced(cardId, session.Content is null ? newCard.Cells : CardView.Placeholders(newCard)), cancellationToken)
-            .ConfigureAwait(false);
-        return Result.Success(newCard);
+        var seen = new CardReplaced(cardId, CardView.CellsFor(newCard, session.Content));
+        await publisher.NotifyAsync(code, new Recipient.Participant(caller.ParticipantId!), seen, cancellationToken).ConfigureAwait(false);
+        return Result.Success(seen);
     }
 
     /// <summary>

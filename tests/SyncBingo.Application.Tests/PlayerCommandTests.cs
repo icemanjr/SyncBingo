@@ -1,5 +1,6 @@
 using SyncBingo.Application.Ports;
 using SyncBingo.Domain;
+using SyncBingo.Domain.Rules;
 using SyncBingo.Domain.Sessions;
 
 namespace SyncBingo.Application.Tests;
@@ -175,12 +176,29 @@ public sealed class PlayerCommandTests
         var ava = await _app.JoinAsync(code, "Ava");
         var old = (await _app.PlayerAsync(code, ava)).Cards[0].Card;
 
-        var card = (await _app.Players.RedrawCardAsync(code, Caller.Participant(ava), 1, TestApp.Ct)).Value;
+        var shown = (await _app.Players.RedrawCardAsync(code, Caller.Participant(ava), 1, TestApp.Ct)).Value;
 
+        var card = (await _app.PlayerAsync(code, ava)).Cards[0].Card;
         card.ShouldNotBe(old);
-        (await _app.PlayerAsync(code, ava)).Cards[0].Card.ShouldBe(card);
+        shown.Cells.ShouldBe(card.Cells, "with numbers, the player sees the numbers");
         _app.Store.CardsInPlay(code).ShouldBe([card.Fingerprint]);
-        _app.Publisher.Notifications.ShouldContain(n => n.Recipient == new Recipient.Participant(ava) && n.Notification is CardReplaced);
+        _app.Publisher.Notifications.ShouldContain(n => n.Recipient == new Recipient.Participant(ava) && n.Notification == shown);
+    }
+
+    [Fact]
+    public async Task A_redraw_in_a_custom_set_game_shows_the_player_placeholders_never_item_numbers()
+    {
+        // Item numbers with the board's ball text would pair every clue with its word: the answer key.
+        const string Words = """
+            { "format": 1, "name": "Words", "pairs": [ ["a"], ["b"], ["c"], ["d"], ["e"], ["f"], ["g"], ["h"], ["i"], ["j"] ] }
+            """;
+        var code = await _app.NewGameAsync(SessionSettings.Default with { RedrawPolicy = RedrawPolicy.ParticipantsMayRedraw });
+        (await _app.Content.UseAsync(code, Caller.Host, Words, CardSize.ThreeByThree, TestApp.Ct)).IsSuccess.ShouldBeTrue();
+        var ava = await _app.JoinAsync(code, "Ava");
+
+        var shown = (await _app.Players.RedrawCardAsync(code, Caller.Participant(ava), 1, TestApp.Ct)).Value;
+
+        shown.Cells.ShouldBe([1, 2, 3, 4, 0, 6, 7, 8, 9], "cell positions, with the free space as 0");
     }
 
     [Fact]

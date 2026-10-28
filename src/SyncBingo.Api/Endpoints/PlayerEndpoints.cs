@@ -43,7 +43,7 @@ internal static class PlayerEndpoints
         game.MapPost("/cards/redraw", (string code, CardRequest request, ClaimsPrincipal user, PlayerCommandHandler players, CancellationToken ct) =>
             Routes.ForCaller(code, user, async (game, caller) =>
                 (await players.RedrawCardAsync(game, caller, request.CardId, ct))
-                    .ToHttp(card => TypedResults.Ok(new CardBody(request.CardId, card.Cells)))))
+                    .ToHttp(card => TypedResults.Ok(new CardBody(card.CardId, card.Cells)))))
             .Produces<CardBody>().WithName("RedrawCard");
     }
 }

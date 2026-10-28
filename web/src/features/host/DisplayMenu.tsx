@@ -101,7 +101,7 @@ export function DisplayMenu({
             Connect a TV
           </label>
           <p id="tv-code-help" className="text-sm text-ink-muted">
-            On the TV, open syncbingo.com/tv and type the code it shows.
+            On the TV, open {window.location.host}/tv and type the code it shows.
           </p>
           <div className="flex flex-wrap gap-2">
             <input

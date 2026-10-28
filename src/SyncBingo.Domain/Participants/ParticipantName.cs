@@ -31,14 +31,14 @@ public sealed record ParticipantName
         Key = key;
     }
 
-    /// <summary>The name as shown to everyone: trimmed, single-spaced, Unicode-normalised.</summary>
+    /// <summary>The name as shown to everyone: trimmed, single-spaced, Unicode-normalized.</summary>
     public string Display { get; }
 
     /// <summary>The lowercase form compared for uniqueness.</summary>
     public string Key { get; }
 
     /// <summary>
-    /// Validates and normalises a name. Allowed: letters in any script (with accents),
+    /// Validates and normalizes a name. Allowed: letters in any script (with accents),
     /// digits, spaces and <c>' - _ .</c>, with at least one letter or digit; 1–20
     /// characters as a reader would count them.
     /// </summary>

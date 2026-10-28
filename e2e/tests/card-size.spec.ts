@@ -3,7 +3,7 @@ import { hostGame, joinGame } from './game'
 
 /**
  * Card sizes (FR-26a): the host picks a 3 × 3 card in Options, and the player is dealt one, B I N over
- * balls 1–45 with a free centre. The letter patterns go, since they need a 5 × 5 card.
+ * balls 1–45 with a free center. The letter patterns go, since they need a 5 × 5 card.
  */
 test('the host switches to a 3 × 3 card and everyone gets one', async ({ browser }) => {
   const { host, code } = await hostGame(browser)

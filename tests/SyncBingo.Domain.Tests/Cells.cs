@@ -3,7 +3,7 @@ namespace SyncBingo.Domain.Tests;
 /// <summary>Builds masks from explicit cell indices, independently of the code under test.</summary>
 internal static class Cells
 {
-    public const int FreeCentre = 12;
+    public const int FreeCenter = 12;
 
     public static uint Of(params int[] cells) => cells.Aggregate(0u, (mask, cell) => mask | (1u << cell));
 

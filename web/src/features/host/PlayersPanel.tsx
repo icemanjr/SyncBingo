@@ -5,7 +5,7 @@ import { useAction } from '../game/useAction'
 import { Button, ErrorText } from '../game/ui'
 import type { HostApi } from './hostApi'
 
-const avatarColours = [
+const avatarColors = [
   'bg-accent',
   'bg-letter-b',
   'bg-letter-i',
@@ -90,7 +90,7 @@ export function PlayersPanel({
               <li key={player.participantId} className="flex min-h-13 items-center gap-3">
                 <span
                   aria-hidden="true"
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold text-white ${avatarColours[i % avatarColours.length] ?? 'bg-accent'}`}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold text-white ${avatarColors[i % avatarColors.length] ?? 'bg-accent'}`}
                 >
                   {player.name.slice(0, 1).toUpperCase()}
                 </span>

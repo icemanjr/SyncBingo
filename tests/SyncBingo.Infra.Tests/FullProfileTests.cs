@@ -120,8 +120,8 @@ public sealed class FullProfileTests
     [Fact]
     public void CloudFront_sends_the_API_paths_to_the_load_balancer_uncached()
     {
-        var behaviours = Stacks["Web"].FindResources("AWS::CloudFront::Distribution").Values.Single();
-        var json = System.Text.Json.JsonSerializer.Serialize(behaviours);
+        var behaviors = Stacks["Web"].FindResources("AWS::CloudFront::Distribution").Values.Single();
+        var json = System.Text.Json.JsonSerializer.Serialize(behaviors);
 
         json.ShouldContain("\"PathPattern\":\"/api/*\"");
         json.ShouldContain("\"PathPattern\":\"/hubs/*\"");

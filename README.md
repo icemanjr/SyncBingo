@@ -15,12 +15,12 @@ There are no accounts, no downloads and no personal data. A session lives only a
 ### Key features
 
 - **Easy to join.** Players scan a QR code or type the game code, enter the host's game password, pick a name and they're in. Anyone who arrives mid-round waits a moment and gets a card as soon as the round ends.
-- **Live, synchronised calls.** When a ball is drawn, it reaches every phone at once. The host chooses automatic calling on a timer, or calls each ball aloud.
+- **Live, synchronized calls.** When a ball is drawn, it reaches every phone at once. The host chooses automatic calling on a timer, or calls each ball aloud.
 - **Digital cards.** 75-ball cards on 5 × 5, or quicker games on 4 × 4 (60 balls) and 3 × 3 (45 balls), that fit a small phone screen without scrolling. Players mark their own squares; careless marking can cost you, unless the host limits marking to called numbers for young children.
 - **Many ways to win.** Normal Bingo (row, column or diagonal), Four Corners, the letters **B I N G O**, Blackout, or patterns the host draws; several can be in play at once. The host can switch mid-round, say from Normal to Blackout, without clearing the cards.
 - **Your own balls.** A custom set turns the game into vocabulary, times tables or trivia: "2 + 5" is called and players mark "7", or a definition is called and they mark the word. The host builds it in a set editor and keeps it as a file.
 - **On the big screen.** A read-only display for a TV or projector, paired with a short code, shows the call board, the join QR and the winners.
-- **Colour themes.** The host picks the game's colours (Ocean, Forest, Halloween, Winter…); each player can choose their own, in light or dark.
+- **Color themes.** The host picks the game's colors (Ocean, Forest, Halloween, Winter…); each player can choose their own, in light or dark.
 - **The host is in charge.** Pause for a prize, start a new round, inspect a card, award a win, show the leaderboard.
 - **Kid mode or serious mode.** Settings such as marking only called numbers, limits on unmarking, an always-available Undo, auto-fill for missed numbers (each player opts in), highlighting matching squares, win celebrations and automatic win detection make it forgiving for small children; turn them off for adults who want to pay attention.
 - **Drop-out proof.** A phone that goes to sleep reconnects with the same name, card and marks.
@@ -141,7 +141,7 @@ Podman works too; see [07 — Infrastructure](docs/07-infrastructure.md).
 | Level | Tooling | Focus |
 |-------|---------|-------|
 | Domain unit | xUnit, Shouldly, FsCheck | Card generation, win patterns, state machine, game codes |
-| Application | xUnit with fakes | Command handlers, authorisation, events |
+| Application | xUnit with fakes | Command handlers, authorization, events |
 | Integration | WebApplicationFactory + Testcontainers (Redis) | Redis store atomicity and expiry, endpoints, auth, rate limits, scheduler, concurrency |
 | Real-time | SignalR .NET client | Event delivery, audiences, reconnect and resync |
 | Frontend unit | Vitest + Testing Library | Pages, components, the event reducer, the set editor's logic, theme contrast, ad slots |
@@ -174,11 +174,11 @@ The full strategy is in [08 — Testing strategy](docs/08-testing-strategy.md).
    - **1b. Lean launch:** the live site at syncbingo.com on one small instance (Valkey, multi-architecture images, Caddy, deploy pipeline)
 2. **Polish and hardening:** accessibility pass, Playwright and k6 suites, load test on the live box ✓
 3. **Full AWS design:** CDK stacks (both profiles), OIDC pipeline, dashboards ✓; still to come: deployed for an evening to prove it works, then torn down, and a legal review of the Terms and Privacy drafts
-4. **Next features:** custom content sets (text) with a set editor ✓, card sizes and the host's own patterns ✓, a waiting room for late arrivals ✓, colour themes ✓, real ads ✓ (off until AdSense approves the site); next an end-of-session summary, spoken ball calls and a Spanish translation
+4. **Next features:** custom content sets (text) with a set editor ✓, card sizes and the host's own patterns ✓, a waiting room for late arrivals ✓, color themes ✓, real ads ✓ (off until AdSense approves the site); next an end-of-session summary, spoken ball calls and a Spanish translation
 5. **Serious Bingo** (only if the site gets regular traffic): the host takes payment outside the app and assigns card(s) to players, several per player if bought; cards expire each round
 
 Details are in [09 — Roadmap](docs/09-roadmap.md).
 
 ## License
 
-Source-available for portfolio review and evaluation only; see [LICENSE](LICENSE). Hosting or monetising this software requires written permission.
+Source-available for portfolio review and evaluation only; see [LICENSE](LICENSE). Hosting or monetizing this software requires written permission.

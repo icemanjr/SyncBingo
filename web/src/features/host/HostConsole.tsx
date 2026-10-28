@@ -44,7 +44,7 @@ export function HostConsole() {
   const token = seat?.role === 'host' ? seat.token : undefined
   const game = useGame(code, token)
   const host = useMemo(() => hostApi(code, token ?? ''), [code, token])
-  usePalette(game.snapshot?.game.settings.theme) // the host sees the game's colours (FR-50a)
+  usePalette(game.snapshot?.game.settings.theme) // the host sees the game's colors (FR-50a)
   const [inspecting, setInspecting] = useState<string>()
   const [open, setOpen] = useState<'options' | 'displays' | 'leaderboard' | 'end'>()
   const [tab, setTab] = useState<'board' | 'bingo' | 'players'>('board')

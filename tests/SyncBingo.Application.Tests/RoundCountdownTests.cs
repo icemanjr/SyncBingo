@@ -23,7 +23,7 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public async Task Someone_joining_during_the_countdown_gets_a_card_if_it_is_cancelled()
+    public async Task Someone_joining_during_the_countdown_gets_a_card_if_it_is_canceled()
     {
         var code = await _app.NewGameAsync();
         (await _app.Round.StartCountdownAsync(code, Caller.Host, false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
@@ -36,7 +36,7 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public async Task Cancelling_the_countdown_cancels_the_scheduled_start()
+    public async Task Canceling_the_countdown_cancels_the_scheduled_start()
     {
         var code = await _app.NewGameAsync();
         (await _app.Round.StartCountdownAsync(code, Caller.Host, false, TestApp.Ct)).IsSuccess.ShouldBeTrue();
@@ -110,7 +110,7 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public async Task Taking_the_free_space_away_deals_everyone_a_card_with_a_ball_in_the_centre()
+    public async Task Taking_the_free_space_away_deals_everyone_a_card_with_a_ball_in_the_center()
     {
         var code = await _app.NewGameAsync();
         var id = await _app.JoinAsync(code, "Ava");

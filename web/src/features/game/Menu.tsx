@@ -20,7 +20,7 @@ export function Menu({
   label: string
   items: MenuItem[]
   icon?: ReactNode
-  /** Replaces the round icon button's look, e.g. a labelled tool button. */
+  /** Replaces the round icon button's look, e.g. a labeled tool button. */
   triggerClassName?: string
   /** Opens upwards, for a menu near the bottom of the screen. */
   above?: boolean

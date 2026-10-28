@@ -15,9 +15,9 @@
 - [ ] Leaderboard and session stats; host inspect card; kick
 - [x] API: display links, the displays list and disconnect, and the join note (FR-28, FR-49); TV pairing with a short code (ADR 0010)
 - [x ] Call board as the host's default view (Options button for rules), shareable with participants; pop-out read-only display view for projectors (no ads); smart TV / projector pairing with a short code (ADR 0010)
-- [ ] Ad layout with placeholder slots (web: done); greyed-out Serious Bingo tile in the Full build only (`VITE_SERIOUS_BINGO_TEASER`)
+- [ ] Ad layout with placeholder slots (web: done); grayed-out Serious Bingo tile in the Full build only (`VITE_SERIOUS_BINGO_TEASER`)
 - [x] Dark mode with a System / Light / Dark switch (FR-50)
-- [x] Player-chosen mark shape, colour and opacity (FR-51)
+- [x] Player-chosen mark shape, color and opacity (FR-51)
 - [x] Players: patterns and current rules (FR-48), call board, auto-fill switch, card swaps, leaderboard
 
 ## Phase 1b — Lean launch (live at SyncBingo.com, ADR 0011, docs/10)
@@ -30,7 +30,7 @@
 - [x] Measure real bytes per game: about 7 MB per 30-player party of 5 rounds, 26.7 KB of Valkey memory per game (docs/10 §5a); Lean price verified ($7)
 
 ## Phase 2 — Polish and hardening
-- [x] Accessibility pass: every screen scanned with axe-core (WCAG 2.1 AA, light and dark) on every PR; the card's grid fixed; reduced motion honoured (docs/06 §3)
+- [x] Accessibility pass: every screen scanned with axe-core (WCAG 2.1 AA, light and dark) on every PR; the card's grid fixed; reduced motion honored (docs/06 §3)
 - [x] Rate limiting (wrong passwords, game creation, marks), `Idempotency-Key` on awards, OpenAPI document
 - [x] Profanity filter for player names (FR-4); ended games expire after 5 minutes, and an expired game reads as ended on every screen (docs/04 §4)
 - [x] OpenAPI-generated client (types from the API's own description; CI checks they're current)
@@ -52,12 +52,12 @@
 - [ ] *Deferred:* **90-ball Bingo** (3 × 9 tickets with blank squares, won by one line, two lines or a full house): blank squares and "any two lines" are new kinds of card and pattern, so it waits for demand
 - [x] **Waiting room** for late arrivals (built 2026-10-25, FR-5): people who arrive mid-round wait without a card, setting up their marks meanwhile, and join automatically when the game is back in the lobby; the host sees them apart under Waiting (A3 amended)
 *Order set by the owner, 2026-10-27: themes, the ad provider, the summary report, spoken ball calls, then translations.*
-- [x] **Themes** (built 2026-10-27, FR-50a): colour palettes (Classic, Ocean, Forest, Halloween, Winter), each in light and dark and contrast-checked; the host picks one for the game in Options, and a player may pick their own on their device. Colours only, nothing extra to download
+- [x] **Themes** (built 2026-10-27, FR-50a): color palettes (Classic, Ocean, Forest, Halloween, Winter), each in light and dark and contrast-checked; the host picks one for the game in Options, and a player may pick their own on their device. Colors only, nothing extra to download
 - [x] **Real ad provider** (built 2026-10-27, ADR 0012): Google AdSense in the reserved banner slots, every request tagged as directed at children, Google's consent message for the EU, UK and Switzerland, and the Privacy page describing it. Ready but off: it goes live when the owner's AdSense account approves the site and the `AD_PROVIDER` repository variable is set (docs/06 §2)
 - [ ] *If AdSense asks for more content* (owner, 2026-10-27): the landing page gains a short overview of what SyncBingo is and a **glossary** of how SyncBingo uses its terms, since some mean other things elsewhere. For example: a **game** runs from when the host creates it (and its password) until the host ends it; a **round** lasts until the cards are wiped clean of marks; the **host** runs the game and can't also play (A5), so a host who wants to play joins from another device. The glossary in `docs/README.md` is the starting point
 - [ ] **End-of-session summary report** (optional export)
 - [ ] **Spoken ball calls**
-- [ ] **Translations** (owner, 2026-10-25): every piece of user-facing text in one file per language (e.g. `web/src/locales/en.json`), so a translator copies the file and translates the values; **Spanish** first, translated by the owner. Points to settle when it starts:
+- [ ] **Translations** (owner, 2026-10-25): every piece of user-facing text in one file per language (e.g. `web/src/locales/en.json`), so a translator copies the file and translates the values; **Spanish** first, translated by the owner. The site's own English is American (owner, 2026-10-28); a **British English** file (colour, centre, cancelled, -ise) can come in the same pass, as its own language. Points to settle when it starts:
   - **Web text** through a small i18n library (e.g. react-i18next), with plurals ("1 win" / "2 wins") and inserted values ("Remove {name}?").
   - **Server messages** (refusals, notices such as "No unique cards available…") sent as a code plus values, so the web phrases them in the player's language and the text lives in one place.
   - **Choosing a language:** the browser's by default, with a switch in the footer; each person chooses their own, so one game can mix languages.

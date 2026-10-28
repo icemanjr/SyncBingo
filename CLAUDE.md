@@ -77,7 +77,7 @@ docs/                          design documents and ADRs
   - With **Use groups**, there is one group per card column, dealt like B-I-N-G-O; without it, items go anywhere on the card.
   - A small set can make fewer different cards than there are players; the next joiner is told "No unique cards available" (FR-39).
 - **Displays** (FR-28): read-only screens for the room, opened from a display link or a TV paired with a short code at `/tv` (ADR 0010). They show no ads.
-- **Themes** (FR-50a): the host's colour palette for the game; each player can override it on their own device. Light and dark mode are separate, per device.
+- **Themes** (FR-50a): the host's color palette for the game; each player can override it on their own device. Light and dark mode are separate, per device.
 
 ## Key architectural rules (see `docs/adr/`)
 
@@ -99,7 +99,7 @@ docs/                          design documents and ADRs
   - Google's consent message for the EU, UK and Switzerland is the one allowed exception to "never pop-ups or anything that can cover the play area". Keep Auto ads off in the AdSense account.
 - **UI:**
   - Mobile-first, 48 px minimum tap targets, WCAG AA in light and dark and every theme (axe scans in e2e), reduced-motion support, no flashing.
-  - The Full build shows a greyed-out "Serious Bingo – coming soon" tile on the landing page; the live site does not (`VITE_SERIOUS_BINGO_TEASER`).
+  - The Full build shows a grayed-out "Serious Bingo – coming soon" tile on the landing page; the live site does not (`VITE_SERIOUS_BINGO_TEASER`).
 - **Wording:** never call it "Kahoot-style"; say "phone-first, drop-in party Bingo".
 
 ## Running and checking things

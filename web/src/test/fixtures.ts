@@ -123,7 +123,7 @@ export const aCall = (number: number, sequence = 1): Schemas['BallCall'] => ({
   source: 'Manual',
 })
 
-/** A player's snapshot: the game as a player sees it, and their own card (cells 1–24 around the free centre). */
+/** A player's snapshot: the game as a player sees it, and their own card (cells 1–24 around the free center). */
 export function aPlayerSnapshot(
   game: Partial<Schemas['GameView']> = {},
   marks = 1 << 12,

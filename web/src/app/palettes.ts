@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import type { Schemas } from '../api/client'
 
 /**
- * Colour themes (FR-50a): the host picks one for the game, and a player may pick another on their own device.
- * Colours only, so nothing extra is downloaded. Classic is the design in index.css; the others change the
- * page, surfaces, accent, last ball and group colours, in light and in dark, and leave text colours and the
+ * Color themes (FR-50a): the host picks one for the game, and a player may pick another on their own device.
+ * Colors only, so nothing extra is downloaded. Classic is the design in index.css; the others change the
+ * page, surfaces, accent, last ball and group colors, in light and in dark, and leave text colors and the
  * B-I-N-G-O letters alone, so every palette keeps the contrast checked in palettes.test.ts.
  */
 export type Palette = Schemas['Theme']
 
-/** The colour tokens a palette may change, as index.css names them (without the leading "--"). */
+/** The color tokens a palette may change, as index.css names them (without the leading "--"). */
 export type PaletteToken =
   | 'page'
   | 'surface'
@@ -23,7 +23,7 @@ export type PaletteToken =
   | 'ball'
   | 'ball-ink'
 
-type Colours = Record<PaletteToken, string>
+type Colors = Record<PaletteToken, string>
 
 export const palettes: { value: Palette; label: string }[] = [
   { value: 'Classic', label: 'Classic' },
@@ -33,11 +33,8 @@ export const palettes: { value: Palette; label: string }[] = [
   { value: 'Winter', label: 'Winter' },
 ]
 
-/** Each palette's colours, light and dark; Classic has none here, since index.css is Classic. */
-export const paletteColours: Record<
-  Exclude<Palette, 'Classic'>,
-  { light: Colours; dark: Colours }
-> = {
+/** Each palette's colors, light and dark; Classic has none here, since index.css is Classic. */
+export const paletteColors: Record<Exclude<Palette, 'Classic'>, { light: Colors; dark: Colors }> = {
   Ocean: {
     light: {
       page: '#f1f6fa',
@@ -152,17 +149,17 @@ export const paletteColours: Record<
   },
 }
 
-const block = (colours: Colours) =>
-  Object.entries(colours)
+const block = (colors: Colors) =>
+  Object.entries(colors)
     .map(([token, value]) => `--${token}:${value};`)
     .join('')
 
 /**
  * The palettes as CSS, keyed by `data-palette` on <html>. The dark rule is more specific than both the light
- * rule and index.css's `.dark`, so each palette's dark colours win in dark mode.
+ * rule and index.css's `.dark`, so each palette's dark colors win in dark mode.
  */
 export function paletteCss(): string {
-  return Object.entries(paletteColours)
+  return Object.entries(paletteColors)
     .map(
       ([name, { light, dark }]) =>
         `:root[data-palette="${name}"]{${block(light)}}:root.dark[data-palette="${name}"]{${block(dark)}}`,

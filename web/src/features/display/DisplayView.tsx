@@ -24,7 +24,7 @@ export function DisplayView() {
   const code = normalizeCode(useParams().code ?? '')
   const [token] = useState(() => takeDisplayToken(code))
   const game = useGame(code, token)
-  usePalette(game.snapshot?.game.settings.theme) // the room's screen shows the game's colours (FR-50a)
+  usePalette(game.snapshot?.game.settings.theme) // the room's screen shows the game's colors (FR-50a)
   const countdown = useSecondsLeft(
     game.snapshot?.game.state === 'Starting' ? game.snapshot.game.countdownEndsAt : null,
   )
@@ -36,18 +36,18 @@ export function DisplayView() {
     if (disconnected || gone) forgetDisplayToken(code)
   }, [disconnected, gone, code])
 
-  const centred = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
+  const centerd = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
 
   if (!token)
-    return centred(
+    return centerd(
       `Open this display from the host’s Display menu, or connect a TV at ${window.location.host}/tv.`,
     )
-  if (disconnected) return centred('The host disconnected this display.')
-  if (gone) return centred('This game has ended. Thanks for playing!')
-  if (!game.snapshot) return centred(game.error ? game.error.detail : 'Connecting…')
+  if (disconnected) return centerd('The host disconnected this display.')
+  if (gone) return centerd('This game has ended. Thanks for playing!')
+  if (!game.snapshot) return centerd(game.error ? game.error.detail : 'Connecting…')
 
   const view = game.snapshot.game
-  if (view.state === 'Ended') return centred('This game has ended. Thanks for playing!')
+  if (view.state === 'Ended') return centerd('This game has ended. Thanks for playing!')
 
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const lobby = view.state === 'BetweenRounds'

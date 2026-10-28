@@ -16,7 +16,7 @@ namespace SyncBingo.Domain.Tests.Rules;
 public sealed class Classic75PatternTests
 {
     private static readonly BingoVariant Variant = StandardVariants.Classic75;
-    private static readonly uint Free = Cells.Of(Cells.FreeCentre);
+    private static readonly uint Free = Cells.Of(Cells.FreeCenter);
 
     public static TheoryData<string, int[]> NormalLines => new()
     {
@@ -69,7 +69,7 @@ public sealed class Classic75PatternTests
     [MemberData(nameof(NormalLines))]
     public void Normal_is_not_won_when_a_line_misses_one_cell(string line, int[] cells)
     {
-        foreach (var missing in cells.Where(cell => cell != Cells.FreeCentre))
+        foreach (var missing in cells.Where(cell => cell != Cells.FreeCenter))
         {
             var marks = (Cells.Of(cells) | Free) & ~Cells.Of(missing);
 
@@ -78,11 +78,11 @@ public sealed class Classic75PatternTests
     }
 
     [Fact]
-    public void Lines_through_the_centre_need_only_four_marks_because_the_free_cell_counts()
+    public void Lines_through_the_center_need_only_four_marks_because_the_free_cell_counts()
     {
-        var middleRowWithoutCentre = Cells.Of(10, 11, 13, 14);
+        var middleRowWithoutCenter = Cells.Of(10, 11, 13, 14);
 
-        Normal.MatchCount(middleRowWithoutCentre | Variant.InitialMarks).ShouldBe(1);
+        Normal.MatchCount(middleRowWithoutCenter | Variant.InitialMarks).ShouldBe(1);
     }
 
     [Theory]
@@ -100,7 +100,7 @@ public sealed class Classic75PatternTests
         var complete = Cells.Of(cells) | Free;
 
         pattern.IsSatisfiedBy(complete).ShouldBeTrue();
-        foreach (var missing in cells.Where(cell => cell != Cells.FreeCentre))
+        foreach (var missing in cells.Where(cell => cell != Cells.FreeCenter))
         {
             pattern.IsSatisfiedBy(complete & ~Cells.Of(missing)).ShouldBeFalse($"{id} without cell {missing}");
         }
@@ -115,7 +115,7 @@ public sealed class Classic75PatternTests
     }
 
     [Fact]
-    public void A_fresh_card_has_only_the_free_centre_marked_and_wins_nothing()
+    public void A_fresh_card_has_only_the_free_center_marked_and_wins_nothing()
     {
         Variant.InitialMarks.ShouldBe(Free);
         Variant.Patterns.ShouldAllBe(pattern => !pattern.IsSatisfiedBy(Variant.InitialMarks));

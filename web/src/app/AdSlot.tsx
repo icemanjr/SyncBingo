@@ -44,7 +44,7 @@ const requested = new WeakSet<HTMLElement>()
 
 /**
  * One AdSense ad unit. Every request is tagged for child treatment (`data-tag-for-age-treatment="1"`, ADR
- * 0012): no personalised ads and no remarketing, since classrooms play. Each unit is asked for once, when it
+ * 0012): no personalized ads and no remarketing, since classrooms play. Each unit is asked for once, when it
  * appears; ads are never refreshed on a timer, which AdSense forbids anyway.
  */
 function AdSenseUnit({

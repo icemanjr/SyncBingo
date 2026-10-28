@@ -8,7 +8,7 @@ using static SyncBingo.Domain.Tests.Sessions.SessionTestKit;
 
 namespace SyncBingo.Domain.Tests.Sessions;
 
-/// <summary>A card with no free space (FR-26 <c>None</c>): the centre is an ordinary square.</summary>
+/// <summary>A card with no free space (FR-26 <c>None</c>): the center is an ordinary square.</summary>
 public sealed class NoFreeSpaceTests
 {
     private static readonly SessionSettings None = SessionSettings.Default with { FreeSpace = FreeSpace.None };
@@ -35,7 +35,7 @@ public sealed class NoFreeSpaceTests
         var card = CardGenerators.For(variant).Generate(new SeededRandom(1));
 
         card.Cells.ShouldNotContain(Card.FreeCellNumber);
-        card.Cells[12].ShouldBeInRange(31, 45, "the centre is an N square");
+        card.Cells[12].ShouldBeInRange(31, 45, "the center is an N square");
     }
 
     [Fact]

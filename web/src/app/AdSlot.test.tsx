@@ -138,7 +138,7 @@ describe('the Privacy page', () => {
 
     expect(screen.getByRole('heading', { name: 'Ads' })).toBeInTheDocument()
     expect(
-      screen.getByText(/directed at children, so there are\s+no personalised ads/),
+      screen.getByText(/directed at children, so there are\s+no personalized ads/),
     ).toBeInTheDocument()
     expect(screen.queryByText(/empty placeholders/)).toBeNull()
     expect(screen.getByRole('link', { name: /How Google uses information/ })).toHaveAttribute(

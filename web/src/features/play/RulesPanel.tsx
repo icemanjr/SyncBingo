@@ -38,7 +38,7 @@ function currentRules(game: Game, autoFillOn: boolean): string[] {
     say('freeMarking', s.freeMarking),
     say('unmarking', s.unmarking),
     'Undo always takes your card back to how it was at the last ball',
-    // A card with no centre square (4 × 4, FR-26a) has no free space whatever the setting.
+    // A card with no center square (4 × 4, FR-26a) has no free space whatever the setting.
     say('freeSpace', game.card.freeCell === null ? 'None' : s.freeSpace),
     s.autoFillAvailable
       ? `Auto-fill is available, and ${autoFillOn ? 'on' : 'off'} for you`

@@ -313,7 +313,7 @@ public sealed class ContentApiTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task The_hosts_colour_theme_reaches_every_player()
+    public async Task The_hosts_color_theme_reaches_every_player()
     {
         var (code, hostToken) = await NewGameAsync();
         var avaToken = await JoinAsync(code, "Ava");

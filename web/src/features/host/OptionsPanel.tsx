@@ -107,7 +107,7 @@ export function OptionsPanel({
     key === 'cardSize' && game.content?.groupItems
       ? 'grouped'
       : key === 'freeSpace' && draft.cardSize === 'FourByFour'
-        ? 'noCentre'
+        ? 'noCenter'
         : undefined
 
   const checkbox = (
@@ -219,8 +219,8 @@ export function OptionsPanel({
               </Link>
               .
             </>
-          ) : because === 'noCentre' ? (
-            'A 4 × 4 card has no centre square, so no free space.'
+          ) : because === 'noCenter' ? (
+            'A 4 × 4 card has no center square, so no free space.'
           ) : (
             info.help
           )}

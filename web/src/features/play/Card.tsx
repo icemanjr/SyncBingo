@@ -36,8 +36,8 @@ const LongPressMs = 500
 /**
  * A player's card. Each square is a toggle button (48 px or more): tap to mark, tap again to unmark (the
  * host's rules decide what's allowed). The mark sits behind the text, which stays bold on top with a halo
- * in the surface colour, so it reads at any opacity. "Highlight matching squares" outlines called, unmarked
- * squares with a dashed ring, so it doesn't rely on colour.
+ * in the surface color, so it reads at any opacity. "Highlight matching squares" outlines called, unmarked
+ * squares with a dashed ring, so it doesn't rely on color.
  *
  * Text is fitted to the squares (FR-51): it wraps at spaces only, shrinks a square if needed but never below
  * the chosen size's minimum, and is cut off with "…" past that. A cut-off square shows its full text on hover

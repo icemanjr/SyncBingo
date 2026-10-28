@@ -13,7 +13,7 @@ public sealed record CommandOutcome(
 }
 
 /// <summary>
-/// The pipeline every shared-state command follows (docs/02 §3.2): authorise, take the
+/// The pipeline every shared-state command follows (docs/02 §3.2): authorize, take the
 /// session lock, load, apply the domain rule, persist, keep the auto-call schedule in
 /// step with the state, then publish. Private notifications go out before the session
 /// events, so auto-fill reaches a player before the next ball is announced (FR-16).

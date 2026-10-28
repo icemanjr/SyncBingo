@@ -160,7 +160,7 @@ public sealed class ContentSetTests
     [InlineData("×2", "×")]
     [InlineData("élan", "É")]
     [InlineData("🎉 party", "🎉")]
-    public void A_group_without_a_label_is_labelled_with_its_first_letter(string group, string label) =>
+    public void A_group_without_a_label_is_labeled_with_its_first_letter(string group, string label) =>
         ContentSet.TryCreate("labels", Words(24), [group]).Value.LabelOf(group).ShouldBe(label);
 
     [Fact]

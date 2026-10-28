@@ -69,7 +69,7 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
   )
 }
 
-/** The logo: a bingo ball in the accent colour. */
+/** The logo: a bingo ball in the accent color. */
 export function BrandMark() {
   return (
     <span

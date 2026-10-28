@@ -10,7 +10,7 @@ const rowsFor = (balls: number) => Math.ceil(balls / SubColumns)
 
 /**
  * The call board (FR-27): every ball, grouped as the server says (B-I-N-G-O for standard Bingo), with
- * called balls marked by shape and weight as well as colour, and the last ball large on top. Each group's
+ * called balls marked by shape and weight as well as color, and the last ball large on top. Each group's
  * balls run down its columns, then across (docs/06), so "was 27 called?" means one short run under "I".
  */
 export function CallBoard({

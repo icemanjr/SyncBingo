@@ -3,7 +3,7 @@
  * can say what's wrong while the host types. The server checks again; its answer is the one that counts.
  */
 
-/** Trimmed, single-spaced (tabs and line breaks become spaces) and Unicode-normalised (NFKC). */
+/** Trimmed, single-spaced (tabs and line breaks become spaces) and Unicode-normalized (NFKC). */
 export const tidy = (value: string | null | undefined): string =>
   (value ?? '').normalize('NFKC').trim().replace(/\s+/g, ' ')
 

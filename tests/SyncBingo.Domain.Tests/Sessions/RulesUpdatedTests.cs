@@ -32,7 +32,7 @@ public sealed class RulesUpdatedTests
     }
 
     [Fact]
-    public void A_new_colour_theme_mid_round_is_not_a_rule_change()
+    public void A_new_color_theme_mid_round_is_not_a_rule_change()
     {
         var session = InState(SessionState.Manual);
 

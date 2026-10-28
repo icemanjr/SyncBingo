@@ -147,7 +147,7 @@ describe('the player extras', () => {
     )
   })
 
-  it('shows the host’s colour theme, unless the player picks their own (FR-50a)', async () => {
+  it('shows the host’s color theme, unless the player picks their own (FR-50a)', async () => {
     fakeApi({
       [snapshotPath]: { body: aPlayerSnapshot({ settings: { ...settings, theme: 'Ocean' } }) },
     })
@@ -157,13 +157,13 @@ describe('the player extras', () => {
     expect(document.documentElement.dataset.palette).toBe('Ocean')
 
     await userEvent.click(screen.getByRole('button', { name: 'My marks' }))
-    const colours = screen.getByLabelText('Colours')
-    expect(colours).toHaveDisplayValue('The game’s (Ocean)')
-    await userEvent.selectOptions(colours, 'Halloween')
+    const colors = screen.getByLabelText('Colors')
+    expect(colors).toHaveDisplayValue('The game’s (Ocean)')
+    await userEvent.selectOptions(colors, 'Halloween')
     expect(document.documentElement.dataset.palette).toBe('Halloween')
     expect(localStorage.getItem('syncbingo:palette')).toBe('Halloween')
 
-    await userEvent.selectOptions(colours, 'The game’s (Ocean)')
+    await userEvent.selectOptions(colors, 'The game’s (Ocean)')
     expect(document.documentElement.dataset.palette).toBe('Ocean')
     expect(localStorage.getItem('syncbingo:palette')).toBeNull()
   })

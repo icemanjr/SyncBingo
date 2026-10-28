@@ -1,10 +1,10 @@
 import { palettes, type Palette, type PaletteChoice } from '../../app/palettes'
 import { Button, Panel } from '../game/ui'
 import { Mark } from './Mark'
-import { colours, shapes, textSizes, type MarkStyle } from './markStyle'
+import { colors, shapes, textSizes, type MarkStyle } from './markStyle'
 
 /**
- * **⚙ My marks** (FR-51): shape, colour, opacity and text size, with a live preview, and the page's colours
+ * **⚙ My marks** (FR-51): shape, color, opacity and text size, with a live preview, and the page's colors
  * (FR-50a): the host's theme or one of the player's own. Kept on this device.
  */
 export function MarkStylePanel({
@@ -15,7 +15,7 @@ export function MarkStylePanel({
 }: {
   style: MarkStyle
   onChange: (style: MarkStyle) => void
-  /** The player's colours: their choice, the game's theme, and how to change the choice. */
+  /** The player's colors: their choice, the game's theme, and how to change the choice. */
   palette: { choice: PaletteChoice; game: Palette; onChange: (choice: PaletteChoice) => void }
   onClose: () => void
 }) {
@@ -66,27 +66,27 @@ export function MarkStylePanel({
         </fieldset>
 
         <fieldset>
-          <legend className="mb-1 font-semibold">Colour</legend>
+          <legend className="mb-1 font-semibold">Color</legend>
           <div className="flex flex-wrap gap-2">
-            {colours.map((colour) => (
+            {colors.map((color) => (
               <label
-                key={colour.value}
-                className={`flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl border-2 ${style.colour === colour.value ? 'border-ink ring-2 ring-accent' : 'border-line-soft'}`}
+                key={color.value}
+                className={`flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl border-2 ${style.color === color.value ? 'border-ink ring-2 ring-accent' : 'border-line-soft'}`}
               >
                 <input
                   type="radio"
-                  name="mark-colour"
-                  checked={style.colour === colour.value}
+                  name="mark-color"
+                  checked={style.color === color.value}
                   onChange={() => {
-                    onChange({ ...style, colour: colour.value })
+                    onChange({ ...style, color: color.value })
                   }}
-                  aria-label={colour.label}
+                  aria-label={color.label}
                   className="sr-only"
                 />
                 <span
                   aria-hidden="true"
                   className="h-7 w-7 rounded-full"
-                  style={{ backgroundColor: colour.value }}
+                  style={{ backgroundColor: color.value }}
                 />
               </label>
             ))}
@@ -132,7 +132,7 @@ export function MarkStylePanel({
         </label>
 
         <label className="flex flex-col gap-1 font-semibold">
-          Colours
+          Colors
           <select
             value={palette.choice}
             onChange={(e) => {

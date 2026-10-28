@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
 /**
- * A modal over the page: a sheet from the bottom on phones, centred on wider screens. Focus moves into it
+ * A modal over the page: a sheet from the bottom on phones, centerd on wider screens. Focus moves into it
  * and back afterwards; Escape and the backdrop close it unless `dismissible` is false (Options asks first
  * about unapplied changes, so it closes itself). Never used on a player's card screen, which must not be
  * covered (docs/06).

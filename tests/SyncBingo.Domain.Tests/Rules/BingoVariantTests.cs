@@ -12,7 +12,7 @@ public sealed class BingoVariantTests
         Classic.BallMax.ShouldBe(75);
         Classic.Layout.Rows.ShouldBe(5);
         Classic.Layout.Columns.ShouldBe(5);
-        Classic.Layout.FreeCell.ShouldBe(Cells.FreeCentre);
+        Classic.Layout.FreeCell.ShouldBe(Cells.FreeCenter);
         Classic.Columns.ShouldBe(
         [
             new ColumnRange("B", 1, 15),

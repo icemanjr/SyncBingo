@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Colours by meaning, not by hue, so each component is written once and both themes meet WCAG AA:
+ * Colors by meaning, not by hue, so each component is written once and both themes meet WCAG AA:
  * body text and muted text are at least 4.5:1 on the page and on surfaces, in light and in dark.
  */
 @theme inline {
@@ -27,7 +27,7 @@
   --color-notice-ink: var(--notice-ink);
   --color-notice-line: var(--notice-line);
   --color-info: var(--info);
-  /* The last ball, and the B-I-N-G-O letters, which also colour called balls (white text on all). */
+  /* The last ball, and the B-I-N-G-O letters, which also color called balls (white text on all). */
   --color-ball: var(--ball);
   --color-ball-ink: var(--ball-ink);
   --color-letter-b: var(--letter-b);

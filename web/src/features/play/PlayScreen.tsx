@@ -66,7 +66,7 @@ export function PlayScreen() {
   const game = useGame(code, me?.token)
   const player = useMemo(() => playerApi(code, me?.token ?? ''), [code, me?.token])
   const [markStyle, setMarkStyle] = useMarkStyle()
-  // The host's colour theme, unless this player chose their own on this device (FR-50a).
+  // The host's color theme, unless this player chose their own on this device (FR-50a).
   const [paletteChoice, setPaletteChoice] = usePaletteChoice()
   const gameTheme = game.snapshot?.game.settings.theme
   usePalette(paletteChoice === 'game' ? gameTheme : paletteChoice)

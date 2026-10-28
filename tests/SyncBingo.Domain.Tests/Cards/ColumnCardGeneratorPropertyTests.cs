@@ -29,12 +29,12 @@ public sealed class ColumnCardGeneratorPropertyTests
     }
 
     [Property(MaxTest = 500)]
-    public void Only_the_centre_is_free(int seed)
+    public void Only_the_center_is_free(int seed)
     {
         var card = Generator.Generate(new SeededRandom(seed));
 
         card.Cells.Length.ShouldBe(25);
-        card.Cells[Cells.FreeCentre].ShouldBe(Card.FreeCellNumber);
+        card.Cells[Cells.FreeCenter].ShouldBe(Card.FreeCellNumber);
         card.Cells.Count(number => number == Card.FreeCellNumber).ShouldBe(1);
     }
 

@@ -3,7 +3,7 @@
 **Status:** Accepted (owner, 2026-10-27)
 
 ## Context
-The live site pays for itself with banner ads in fixed, reserved slots (FR-50, FR-51); until now they were placeholders behind a provider switch (FR-52). Families and classrooms play, so many players are children: in the US, COPPA forbids personalised ads to children under 13 without parental consent. Visitors in the EU, the UK and Switzerland must agree before a site or its ad network stores anything on their device, and Google requires a Google-certified consent tool (IAB TCF) to serve ads to them.
+The live site pays for itself with banner ads in fixed, reserved slots (FR-50, FR-51); until now they were placeholders behind a provider switch (FR-52). Families and classrooms play, so many players are children: in the US, COPPA forbids personalized ads to children under 13 without parental consent. Visitors in the EU, the UK and Switzerland must agree before a site or its ad network stores anything on their device, and Google requires a Google-certified consent tool (IAB TCF) to serve ads to them.
 
 Networks considered:
 - **Google AdSense** accepts a new site with little traffic, after a site review.
@@ -12,7 +12,7 @@ Networks considered:
 
 ## Decision
 - **Network:** Google AdSense, on the live (Lean) site only. The Full portfolio build and local development keep the placeholders.
-- **Every ad request is tagged for child treatment** (`data-tag-for-age-treatment="1"`, which replaced the older child-directed tag). That means no personalised ads, no remarketing and no third-party ad requests. It earns less, and it's the safe position for a classroom audience. `AdSlot` adds the tag itself, so no slot can leave it out.
+- **Every ad request is tagged for child treatment** (`data-tag-for-age-treatment="1"`, which replaced the older child-directed tag). That means no personalized ads, no remarketing and no third-party ad requests. It earns less, and it's the safe position for a classroom audience. `AdSlot` adds the tag itself, so no slot can leave it out.
 - **Consent in the EU, UK and Switzerland:** Google's own consent message, set up in the AdSense account (Privacy & messaging) and shown by AdSense's script. To change a choice later there's a footer link, **Privacy and cookie settings**, instead of Google's floating button, which would sit over the page.
 - **The one exception to "no pop-ups" (FR-51):** that consent message. The law requires it, and it appears only on a first visit from those regions, before any ad. Everything else stays as before:
   - banners in fixed slots;
@@ -28,7 +28,7 @@ Networks considered:
 
 ## Consequences
 - **One third party.** Until now, every request went to SyncBingo only. With ads, browsers also talk to Google, which sees IP addresses and may set cookies. The Privacy page says so, and the planned legal review matters more now.
-- **Lower earnings.** Child-directed, non-personalised ads earn noticeably less than personalised ones. That's accepted.
+- **Lower earnings.** Child-directed, non-personalized ads earn noticeably less than personalized ones. That's accepted.
 - **AdSense may turn the site down** as having too little content, since it is mostly an app. The landing page may need more explanatory text to pass the review.
 - **No content security policy to loosen.** The site has none; if one is added later, it must allow Google's ad and consent domains.
 - **Testing:**

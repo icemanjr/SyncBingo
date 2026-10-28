@@ -33,7 +33,7 @@ One small instance (AWS Lightsail `micro_3_0`, below) runs `docker-compose.lean.
 All three restart unless stopped, and logs are capped at 3 × 10 MB per service for a small disk.
 
 **Deploys: the server pulls, nightly.**
-- After a merge to master, and only when every check passes, CI's `publish` job pushes both images to GitHub's container registry: `ghcr.io/icemanjr/syncbingo-api` and `ghcr.io/icemanjr/syncbingo-web-caddy`. Each is tagged `latest` and `sha-<commit>` and labelled with its commit. Both are for amd64 and arm64.
+- After a merge to master, and only when every check passes, CI's `publish` job pushes both images to GitHub's container registry: `ghcr.io/icemanjr/syncbingo-api` and `ghcr.io/icemanjr/syncbingo-web-caddy`. Each is tagged `latest` and `sha-<commit>` and labeled with its commit. Both are for amd64 and arm64.
 - At 04:00 server time, a systemd timer (`deploy/syncbingo-update.timer`) runs `deploy/update.sh` in `/opt/syncbingo`. The script:
   1. pulls `latest` and reads the commit from its label;
   2. stops there if that commit is already running;
@@ -83,7 +83,7 @@ flowchart TB
 | Real-time | WebSocket-only SignalR; ALB idle timeout raised above the heartbeat interval; Redis backplane |
 | State | ElastiCache for **Valkey** (single node for demo, replicated for production) |
 | Static site | S3 + CloudFront with SPA fallback to `index.html` |
-| Edge routing | CloudFront behaviours: default → S3; `/api/*` and `/hubs/*` → ALB with caching disabled and WebSocket support |
+| Edge routing | CloudFront behaviors: default → S3; `/api/*` and `/hubs/*` → ALB with caching disabled and WebSocket support |
 | TLS and DNS | ACM certificates; DNS records in Cloudflare, where `syncbingo.com` is registered (no Route 53 zone needed; docs/10 §2a) |
 | Secrets/config | SSM Parameter Store / Secrets Manager injected into tasks |
 | Network | Valkey in isolated subnets (no route out). The tasks run in public subnets with a public address and no NAT gateway, which would cost about $33 a month on its own; their security group lets in only the ALB, and the ALB only CloudFront (the AWS-managed origin-facing prefix list). For production, private subnets with a NAT gateway, or ECR with VPC endpoints |

@@ -21,21 +21,21 @@ erDiagram
 |--------|-----------|
 | **Session** | `code`, `passwordHash`, `state` (betweenRounds / starting / manual / auto / ended), `version`, `createdAt`, `lastActivityAt`, `variantId`, `currentRoundNumber`, `countdownEndsAt` and `startInAuto` (during a countdown), `customPatterns` (the host's own patterns, FR-21a: id, name, card size, mask) |
 | **Settings** | auto-call interval, showBallToPlayers, highlightMatches, showCallBoard, autoFillAvailable, freeMarking, unmarking (off / mismarksOnly / any), freeSpace (alwaysMarked / earned; lobby only), callBoardFace (ball / square), showRoundNumbers, multipleWins (oncePerRound / oncePerPattern / everyDeclaredWin; lobby only), requireMarksForClaims, winHighlight, winDetection, redrawPolicy, currentWinCondition |
-| **Participant** | `id`, `name`, `nameKey` (normalised), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
+| **Participant** | `id`, `name`, `nameKey` (normalized), `tokenHash`, `joinedAt`, `connected`, `autoFillOn`, `cards[]` |
 | **Claim** | `participantId`, `cardId`, `winCondition`, `claimedAt`, `matches` (lines completed at that moment; 0 = not qualified), `alreadyAwarded` (wins this card already got for this pattern this round), `awardable` (more wins possible under *Multiple wins*; 0 = "no awardable matches"), `status` (pending/awarded/dismissed) |
-| **Card** | `id`, `cells[25]` (numbers, centre = 0 for free; a number like any other with free space *None*), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask; the centre bit starts set with an *Always marked* free space and unset with an *Earned* one), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |
+| **Card** | `id`, `cells[25]` (numbers, center = 0 for free; a number like any other with free space *None*), `fingerprint` (the cells joined, e.g. `7-22-38-…`), `marks` (25-bit mask; the center bit starts set with an *Always marked* free space and unset with an *Earned* one), `undoMarks` + `undoSequence` (the marks to restore on Undo and the ball they belong to), `issuedInRound` |
 | **Round** | `number`, `startedAt`, `endedAt`, `winConditionsUsed[]`, `balls[]`, `wins[]` |
 | **BallCall** | `sequence`, `number`, `letter`, `calledAt`, `mode` (auto/manual) |
 | **WinRecord** | `round`, `participantId`, `cardId`, `winCondition`, `awardedAt`, `source` (detected/claimed/manual), `wins` (1, or more for a declared multiple win) |
 | **BingoVariant** | `id`, `ballMax` (75), `columns` (5), `rows` (5), `columnRanges`, `freeCell`, `patterns[]` |
 
-**Settings defaults** (`SessionSettings.Default`): 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show call board on, auto-fill available off, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*, card size *5 × 5*, colour theme *Classic*, call board shows the *ball* side, round numbers shown, multiple wins *once per pattern*. *Card size*, *Free space*, *Redraw policy* and *Multiple wins* are round-scoped: they shape a whole round, so they can change only in the lobby, and an Apply that changes one mid-round is refused (422, naming them) with nothing applied.
+**Settings defaults** (`SessionSettings.Default`): 10 s auto-call interval (allowed 3–120 s), show ball on, highlight matches off, show call board on, auto-fill available off, win highlight on, win detection *Alert host*, redraw policy *Host controls*, free marking on, require marks off, unmarking *Any*, free space *Always marked*, card size *5 × 5*, color theme *Classic*, call board shows the *ball* side, round numbers shown, multiple wins *once per pattern*. *Card size*, *Free space*, *Redraw policy* and *Multiple wins* are round-scoped: they shape a whole round, so they can change only in the lobby, and an Apply that changes one mid-round is refused (422, naming them) with nothing applied.
 
 A participant holds a **list** of cards. The MVP always has exactly one; the list exists so "Serious Bingo" (host-assigned cards, several per player) needs no model change.
 
 ## 2. Card generation
 
-For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the centre is the free cell), and place them in random order down the column (not sorted, as on a real card). A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
+For each column *c* (B, I, N, G, O): choose 5 distinct numbers from `[15c+1 … 15c+15]` (4 for the N column; the center is the free cell), and place them in random order down the column (not sorted, as on a real card). A redraw regenerates all 25 cells. Property tests assert: correct ranges, no duplicates within a card, free cell set.
 
 Cards are dealt through `ICardGenerator`; the standard implementation is `ColumnCardGenerator`, which follows the column ranges above. Cards hold item ids (ball numbers here), so other content such as "2 + 5" called and "7" marked can be added later with its own generator and content set (ADR 0009).
 
@@ -56,7 +56,7 @@ All keys are prefixed `bingo:`. The code is wrapped in braces, `s:{code}:…`, w
 |-----|------|----------|
 | `s:{code}:meta` | hash | `session`: the session snapshot as JSON (state, version, settings, round number, calls, claims, wins, round summaries, alerts already raised); `password`: the password hash; with a custom set (ADR 0009), `content`: the set's file (its ball/square pairs of text and ordered groups, ≤ 64 KB) and `content-id`: a hash of that file. The set sits with the session so the save script writes both together and they expire together; it is written only when it changes (the id differs), and each API instance caches parsed sets by id (at most 200, least recently used dropped), so a mark doesn't re-read 64 KB. The session snapshot records only the set's name and whether it is dealt by group |
 | `s:{code}:participants` | hash | field = participantId → `{"v": version, "p": participant snapshot}` (cards, marks, Undo state, auto-fill switch); a save is a Lua compare-and-set on `v` (02 §6) |
-| `s:{code}:names` | hash | normalised name → participantId (`HSETNX` enforces uniqueness) |
+| `s:{code}:names` | hash | normalized name → participantId (`HSETNX` enforces uniqueness) |
 | `s:{code}:tokens` | hash | tokenHash → caller: `host`, `display:{id}` or `participant:{id}` |
 | `s:{code}:token-owners` | hash | participantId (or `display:{id}`) → their tokenHash, so removing a player or display revokes the token in the same script |
 | `s:{code}:displays` | hash | display id → `{ displayId, kind (Link / Tv), createdAt }`; at most 10 (FR-28) |
@@ -83,7 +83,7 @@ Marks, Undo and the auto-fill switch update one `participants` field, checked ag
 - **Pairing** (ADR 0010): `pairing:{code}` (string, 10-minute TTL, deleted when used) holds the waiting TV's pairing id until a host approves it; the code is 6 characters from the game-code alphabet.
 - **Display token:** same mechanism, role `display`: **read-only**, sees only public game state (FR-28), and the host can revoke it. Stored as hashes in `s:{code}:tokens`, with the display itself in `s:{code}:displays`. The display link carries it in the URL **fragment** (`/display/{code}#t=…`), which browsers never send to the server, so it does not appear in server or CDN logs; the page moves it to `sessionStorage` and clears it from the address bar.
 - **Names** (`ParticipantName`):
-  - Unicode-normalised (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
+  - Unicode-normalized (NFKC, so full-width "ＳＡＭ" or a decomposed "é" count the same as the plain forms), trimmed, and inner whitespace collapsed to one space.
   - Allowed: letters in any script (with accents), digits, spaces and `' - _ .`, with at least one letter or digit. Emoji, symbols, and invisible or control characters (zero-width spaces, right-to-left overrides) are refused.
   - 1–20 characters as a reader counts them (grapheme clusters), plus a cap of 60 UTF-16 units against stacked accent marks.
   - Uniqueness compares the lowercase form (`Key`); the tidied form (`Display`) is what everyone sees.

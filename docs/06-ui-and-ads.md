@@ -4,7 +4,7 @@
 
 | Screen | Route | Purpose |
 |--------|-------|---------|
-| Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a greyed-out **Serious Bingo (coming soon)** |
+| Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a grayed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose the game password; every other setting is in Options, in the lobby |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Custom set editor (host) | `/host/{code}/set` | Opened from the lobby's *Custom set* card (**Use a custom set** with numbers, **Edit set** with a set). A draft kept in this browser per game: set name; **Open a set file** (replaces the draft), **Add from a file** (merges, with the skip report), **Download this draft**; **Free space text** (blank: FREE; checked like a square and never the same as one); **Card size** (sent with the set; changing it fits the groups like Use groups); **Use groups** (one group per card column, fitted when turned on: extra groups' pairs become ungrouped, missing columns are added empty); **Add an entry** (with *Ball and square match*, one text box when ticked; a group); with Use groups, **Ungrouped pairs** first (with a warning and **Remove all**, confirmed, whenever it has pairs), then each group in column order with **Rename** (once, for all its entries), its short **Label** and **Move up/down**; without, one list of entries; each entry **Edit**, a group menu (including *Ungrouped*), **Delete**; a search box past 20 entries. At the end: the **possible cards** (a warning below 100: "Up to 72 players can each have their own card…"), what still stops the set being used, the host-responsibility acknowledgement, **Use this set** (lobby only) and **Back to numbers**. On phones each entry's text gets the full width, its controls a row below (FR-44, ADR 0009) |
@@ -71,7 +71,7 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 - Changed fields are highlighted, and the button counts them: **Apply 3 changes** (disabled with no changes).
 - **Apply** sends every change in one request (`PUT /rules`); the server applies them in one step and every screen gets them together.
 - After Apply the button shows **Applied ✓** and stays disabled for about 1.5 s, so a double-click can't send the batch twice. There is no server-side lockout: nothing can be half-applied.
-- Settings that shape a whole round (card size: *5 × 5*, *4 × 4* or *3 × 3*; free space: *Always marked*, *Earned* or *None*; redraw policy; multiple wins) sit in a separate **Between rounds** section. A new card size, or choosing *None* or leaving it, redeals every card, as the help text says. The pattern list follows the card size in the draft (no letters on a smaller card; patterns it lacks are dropped, falling back to Normal Bingo). With a 4 × 4 card the free space is locked ("A 4 × 4 card has no centre square"); with a grouped set the card size is locked with a link to the **set editor**. During a round it is locked, with the note "Change these in the lobby", so everything Apply sends mid-round takes effect at once.
+- Settings that shape a whole round (card size: *5 × 5*, *4 × 4* or *3 × 3*; free space: *Always marked*, *Earned* or *None*; redraw policy; multiple wins) sit in a separate **Between rounds** section. A new card size, or choosing *None* or leaving it, redeals every card, as the help text says. The pattern list follows the card size in the draft (no letters on a smaller card; patterns it lacks are dropped, falling back to Normal Bingo). With a 4 × 4 card the free space is locked ("A 4 × 4 card has no center square"); with a grouped set the card size is locked with a link to the **set editor**. During a round it is locked, with the note "Change these in the lobby", so everything Apply sends mid-round takes effect at once.
 - Closing Options with unapplied changes asks **Discard changes?**
 - Options is **not available in auto mode**: the host presses **Pause** first, so no ball is called while new rules are announced. During the round countdown Options can be opened but **Apply** is disabled ("Cancel the countdown to change the rules").
 
@@ -84,7 +84,7 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 │ ROUND 1 · HOW TO WIN  │
 │ Normal Bingo ⓘ  (N 37)│  ← tap: patterns and rules (FR-48); the last ball (if shown)
 │ ┌───────────────────┐ │
-│ │ B  I  N  G  O     │ │  ← letter colours (Visual design)
+│ │ B  I  N  G  O     │ │  ← letter colors (Visual design)
 │ │ 07 22 38 51 66    │ │
 │ │ 12 19 41 49 70    │ │
 │ │ 03 27 FREE 58 62  │ │  ← the free space says FREE, or a set's own text
@@ -109,26 +109,26 @@ The agreed reference is the design canvas made on 2026-10-15 (host lobby and rou
 
 - **Look:** "party, but tidy". Deep plum ink, a violet accent and an amber last ball, on a faint lilac page. Dark mode is a deep plum page with lighter violet accents.
 - **Type:** **Figtree** for reading, **Bricolage Grotesque** for headings, numbers and big buttons. Both are self-hosted (`@fontsource-variable`, SIL Open Font License), so no request goes to a font service. Browsers fetch only the Latin files: 61 KB (Bricolage 41 KB, Figtree 20 KB) on top of the 140 KB first visit (docs/10 §5a).
-- **B-I-N-G-O colours:** B blue, I red, N grey, G green, O amber-brown, as on real bingo balls. They colour group headers and called balls, with white text that is AA on each. The letter is always written too, so colour is never the only cue.
+- **B-I-N-G-O colors:** B blue, I red, N gray, G green, O amber-brown, as on real bingo balls. They color group headers and called balls, with white text that is AA on each. The letter is always written too, so color is never the only cue.
 - **Contrast:** every text and background pair is checked by script, in both themes: 4.5:1 for text, 3:1 for borders.
-- **Tokens by meaning:** `page`, `surface`, `ink`, `accent`, `notice`, `ball`, `letter-*`, `group` in `web/src/index.css`, each with a light and a dark value. Components never name a colour directly.
+- **Tokens by meaning:** `page`, `surface`, `ink`, `accent`, `notice`, `ball`, `letter-*`, `group` in `web/src/index.css`, each with a light and a dark value. Components never name a color directly.
 - **Buttons:** one solid **primary** action per screen (Grab ball, Start Round, Join). Tinted **secondary** for the rest, **outline** for a second strong action (Auto mode), **quiet** text buttons for minor ones. All keep the 48 px tap target.
 - **Icons:** drawn (inline SVG), never text symbols or emoji, which some phones' fonts can't show.
 
 ### Theme (FR-50)
 
-A three-way switch in every page's header: **System** (the default: follows the device, including when the device switches at sunset), **Light** and **Dark**. Remembered on the device; nothing is sent to the server. Colours are defined by meaning (page, surface, ink, muted ink, accent, danger…) with a light and a dark value each, so every screen supports both, and body and muted text meet 4.5:1 in both. The join QR stays black on white in either theme so phones can scan it. The display view has no header and follows the screen's own setting.
+A three-way switch in every page's header: **System** (the default: follows the device, including when the device switches at sunset), **Light** and **Dark**. Remembered on the device; nothing is sent to the server. Colors are defined by meaning (page, surface, ink, muted ink, accent, danger…) with a light and a dark value each, so every screen supports both, and body and muted text meet 4.5:1 in both. The join QR stays black on white in either theme so phones can scan it. The display view has no header and follows the screen's own setting.
 
-### Colour themes (FR-50a)
+### Color themes (FR-50a)
 
-Five palettes, defined once in `web/src/app/palettes.ts` and applied with `data-palette` on `<html>`, so the light/dark switch keeps working: **Classic** (index.css), **Ocean**, **Forest**, **Halloween** and **Winter**. They change the page, surfaces, accent, last ball and group colours, never the text colours or the B-I-N-G-O letters. A unit test computes every text/background pair of every palette in light and dark (4.5:1 for text, 3:1 for the accent as a border), and an axe scan runs on a player's round screen in each. The host picks the game's theme in Options (*Look*, any time, no notice); players see it unless they chose their own under **My marks** → **Colours**. The host console and the display always show the game's theme; pages outside a game stay Classic.
+Five palettes, defined once in `web/src/app/palettes.ts` and applied with `data-palette` on `<html>`, so the light/dark switch keeps working: **Classic** (index.css), **Ocean**, **Forest**, **Halloween** and **Winter**. They change the page, surfaces, accent, last ball and group colors, never the text colors or the B-I-N-G-O letters. A unit test computes every text/background pair of every palette in light and dark (4.5:1 for text, 3:1 for the accent as a border), and an axe scan runs on a player's round screen in each. The host picks the game's theme in Options (*Look*, any time, no notice); players see it unless they chose their own under **My marks** → **Colors**. The host console and the display always show the game's theme; pages outside a game stay Classic.
 
 ### Mark style (FR-51)
 
 On the play screen, **⚙ My marks** opens a small panel with a live preview cell:
 
 - **Shape:** ● circle (default, like a dauber), ★ star, ♥ heart, ■ filled square, or ▢ tint (the whole cell's background).
-- **Colour:** a palette of 6 colours, each checked so a marked number stays readable in both themes, plus a high-contrast option.
+- **Color:** a palette of 6 colors, each checked so a marked number stays readable in both themes, plus a high-contrast option.
 - **Opacity:** a slider from 20% to 80% (45% by default), shown live on the preview cell.
 - **Text size:** Small, **Medium** (the default), Large, or Max, for whatever is in the squares (numbers now; words or short phrases of up to 15 characters with custom sets).
   - Text **wraps at spaces only**, never inside a word, as many lines as the square's height allows.
@@ -157,7 +157,7 @@ Tapping the pattern name opens this panel, in the lobby, during the countdown or
 └──────────────────────────┘   └──────────────────────────┘
 ```
 
-- **Patterns:** one grid per selected pattern, under "Any one of these wins:" when there are several. Line patterns show one example line ("Any of the 5 rows"). Grids are drawn from the shapes the server sends (docs/05 snapshot), never hard-coded, so other card sizes and patterns need no client change. Cells in the pattern are filled **and** outlined, not shown by colour alone; each grid has a text alternative ("Top row", "Column B", "Diagonal").
+- **Patterns:** one grid per selected pattern, under "Any one of these wins:" when there are several. Line patterns show one example line ("Any of the 5 rows"). Grids are drawn from the shapes the server sends (docs/05 snapshot), never hard-coded, so other card sizes and patterns need no client change. Cells in the pattern are filled **and** outlined, not shown by color alone; each grid has a text alternative ("Top row", "Column B", "Diagonal").
 - **Current rules:** every rule in force that applies to players, in plain words, including the player's own auto-fill switch; host-only settings are left out.
 - Tabs are real tabs for assistive technology (`role="tablist"`), each at least 48 px tall. The panel updates in place if the host applies new rules while it is open, and it never covers the BINGO button.
 
@@ -223,7 +223,7 @@ When many people type a wrong game password (10 within a minute), the host conso
 
 ### Call board (FR-27)
 
-All balls of the variant, called ones marked with a fill **and** a tick (never colour alone). The **last ball** sits large and **top centre, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasised too, and before the first call the slot shows "–". The board knows nothing about B-I-N-G-O. It draws whatever **groups of items** the server sends (see *Board data* below). For standard Bingo those are the five letters, which sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
+All balls of the variant, called ones marked with a fill **and** a tick (never color alone). The **last ball** sits large and **top center, above the letters**, as letter + number ("N 37"), so people at the back who misheard a call can check it; its cell on the board is emphasized too, and before the first call the slot shows "–". The board knows nothing about B-I-N-G-O. It draws whatever **groups of items** the server sends (see *Board data* below). For standard Bingo those are the five letters, which sit **side by side** across the board, and each letter's 15 numbers form a small block under it, read top to bottom, then left to right:
 
 ```
                  ┌──────┐                              ┌──────┐
@@ -250,11 +250,11 @@ All balls of the variant, called ones marked with a fill **and** a tick (never c
 }
 ```
 
-- Standard Bingo: five labelled groups, one per card column.
+- Standard Bingo: five labeled groups, one per card column.
 - A custom game with no columns (e.g. 40 items): one group with no label.
 - Content sets (ADR 0009): each item has a `callFace` (what is called: "2 + 5", a definition, later an image) and a `cardFace` (what is marked: "7", the word, the name). The board's cells show the side the host chose under **Call board shows** (FR-29). It always starts on the ball side, whatever the content, and only changes when the host switches it; while the large last-ball slot always shows the call face. `cellShape` follows the side shown: `square` for numbers, larger square cells for pictures, `wide` for words and definitions, so the layout rule gives each kind of content room.
 
-**As built for text sets (2026-10-19, PR 4 of custom content):** the board shows each group, in order and under its name, as a grid of wide tiles with the ball text cut off with "…" (full text on hover and for screen readers); a set dealt free-form is one block. The **last ball** becomes a rounded panel in the ball colour, its group's name over the call text, whose size steps down with length so a 120-character definition fits. Cards show the square text with tighter gaps (about 20% larger squares), group names above the columns cut off when long, and the host's card inspector and recent calls show text too. The FR-29 **Call board shows** choice is in the host's **Displays** menu (ball side by default): with definitions on the ball side the board's tiles say little ("An organism that m…"), so the host can switch every board to the square side.
+**As built for text sets (2026-10-19, PR 4 of custom content):** the board shows each group, in order and under its name, as a grid of wide tiles with the ball text cut off with "…" (full text on hover and for screen readers); a set dealt free-form is one block. The **last ball** becomes a rounded panel in the ball color, its group's name over the call text, whose size steps down with length so a 120-character definition fits. Cards show the square text with tighter gaps (about 20% larger squares), group names above the columns cut off when long, and the host's card inspector and recent calls show text too. The FR-29 **Call board shows** choice is in the host's **Displays** menu (ball side by default): with definitions on the ball side the board's tiles say little ("An organism that m…"), so the host can switch every board to the square side.
 
 **Layout rule.** For each candidate number of rows *r* (1 to the largest group's size): every group needs ⌈items ÷ *r*⌉ sub-columns; total columns = the sum, plus a small gap between groups; cell size = min(width ÷ columns, height ÷ *r*), adjusted for `cellShape`. Use the *r* with the largest cell. For standard Bingo this gives *r* = 5 (3 columns of 5 per letter, 15 × 5) on a 16:9 projector and *r* = 8 (8 + 7, 10 × 8) on 4:3 or upright screens; a single group of 40 on a projector comes out at about 4 rows of 10. The board is read-only, so on phones the cells may shrink below the 48 px tap-target size (nothing on it is tapped).
 
@@ -307,7 +307,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 - Banners only, and none on the display view (FR-28). No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
 - Slots are **fixed-size containers reserved at layout time**, so an ad loading late (or not at all) never shifts the card or buttons.
 - Mobile (< 1024 px): one banner at the top and one at the bottom (e.g. 320×50 or 320×100).
-- Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centred.
+- Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centerd.
 - The play area is sized so the full card and Bingo button fit on a small phone between the two reserved banners without scrolling.
 
 **Implementation**
@@ -325,7 +325,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 `AdSlot` enforces its fixed dimensions (`overflow-hidden`, so nothing an ad draws leaves its box) and renders nothing interactive over the page. Ads are lazy and never block game rendering. The provider comes from the build (`web/src/app/ads.ts`): **placeholders** in development and the Full portfolio build, **Google AdSense** on the live site (ADR 0012):
 
 - AdSense's script loads once, when the first slot appears, so never on the TV display. Only the visible pair asks for an ad: top and bottom on a phone, the sides on a desktop. Each unit is asked once and never refreshed.
-- Every unit carries `data-tag-for-age-treatment="1"` (child treatment: no personalised ads, no remarketing), added by `AdSlot` itself.
+- Every unit carries `data-tag-for-age-treatment="1"` (child treatment: no personalized ads, no remarketing), added by `AdSlot` itself.
 - An unfilled slot stays empty at its reserved size.
 - Visitors in the EU, the UK and Switzerland see Google's consent message on their first visit (the one exception to FR-51). The footer's **Privacy and cookie settings** opens it again; it appears only when ads are on.
 - **Turning it on** (the owner's steps):
@@ -344,7 +344,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 ## 3. Accessibility and kid-friendliness
 
 - Tap targets ≥ 48 px; the card scales to the viewport.
-- Marked / called / winning states use shape or icon as well as colour.
+- Marked / called / winning states use shape or icon as well as color.
 - Win celebration respects `prefers-reduced-motion` and avoids flashing (no more than three flashes per second).
 - Text contrast meets WCAG AA; large, simple typography for the current ball.
 - Screen-reader labels on every cell, e.g. "B 7, called, marked".

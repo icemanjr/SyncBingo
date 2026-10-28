@@ -5,7 +5,7 @@ import type { MarkStyle } from './markStyle'
  * arrive (ADR 0009) they pass `layer="over"` and the mark becomes a translucent overlay instead.
  */
 export function Mark({ style, layer = 'behind' }: { style: MarkStyle; layer?: 'behind' | 'over' }) {
-  const common = { opacity: style.opacity, color: style.colour }
+  const common = { opacity: style.opacity, color: style.color }
   const z = layer === 'over' ? 'z-20' : 'z-0'
   switch (style.shape) {
     case 'tint':
@@ -13,7 +13,7 @@ export function Mark({ style, layer = 'behind' }: { style: MarkStyle; layer?: 'b
         <span
           aria-hidden="true"
           className={`absolute inset-0 rounded-lg ${z}`}
-          style={{ ...common, backgroundColor: style.colour }}
+          style={{ ...common, backgroundColor: style.color }}
         />
       )
     case 'square':
@@ -21,7 +21,7 @@ export function Mark({ style, layer = 'behind' }: { style: MarkStyle; layer?: 'b
         <span
           aria-hidden="true"
           className={`absolute inset-1.5 rounded-md ${z}`}
-          style={{ ...common, backgroundColor: style.colour }}
+          style={{ ...common, backgroundColor: style.color }}
         />
       )
     case 'circle':
@@ -29,7 +29,7 @@ export function Mark({ style, layer = 'behind' }: { style: MarkStyle; layer?: 'b
         <span
           aria-hidden="true"
           className={`absolute inset-1 rounded-full ${z}`}
-          style={{ ...common, backgroundColor: style.colour }}
+          style={{ ...common, backgroundColor: style.color }}
         />
       )
     case 'star':

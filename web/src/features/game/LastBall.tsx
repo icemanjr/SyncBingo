@@ -53,7 +53,7 @@ function textClass(text: string, size: keyof typeof sizes): string {
  * as it changes. Before the first call it shows "–". Its text reads "B 5" (the test id finds it).
  *
  * With a custom set (ADR 0009) the call is text, from a word to a 120-character definition: the ball
- * becomes a rounded panel in the same colour, its group's name (if any) over the text, which wraps.
+ * becomes a rounded panel in the same color, its group's name (if any) over the text, which wraps.
  */
 export function LastBall({
   last,

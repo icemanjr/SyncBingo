@@ -36,8 +36,8 @@ public enum MultipleWins
 }
 
 /// <summary>
-/// The game's colour theme (FR-50a), chosen by the host for everyone; a player may pick another on their own
-/// device. Colours only: the palettes themselves live in the web app.
+/// The game's color theme (FR-50a), chosen by the host for everyone; a player may pick another on their own
+/// device. Colors only: the palettes themselves live in the web app.
 /// </summary>
 public enum Theme
 {
@@ -53,13 +53,13 @@ public enum FreeSpace
     AlwaysMarked,
     Earned,
 
-    /// <summary>No free space: the centre holds a ball like any other square, so a card needs one more item (FR-26).</summary>
+    /// <summary>No free space: the center holds a ball like any other square, so a card needs one more item (FR-26).</summary>
     None,
 }
 
 /// <summary>
 /// Host settings (docs/01 §3.2). Defaults follow the documented decisions; the rest
-/// favour a friendly first game. <see cref="FreeSpace"/>, <see cref="CardSize"/>, <see cref="RedrawPolicy"/> and
+/// favor a friendly first game. <see cref="FreeSpace"/>, <see cref="CardSize"/>, <see cref="RedrawPolicy"/> and
 /// <see cref="MultipleWins"/> change only in the lobby (see <see cref="Session.ApplyRules"/>).
 /// </summary>
 public sealed record SessionSettings
@@ -103,7 +103,7 @@ public sealed record SessionSettings
     /// <summary>FR-26. Changes apply from the next round.</summary>
     public FreeSpace FreeSpace { get; init; } = FreeSpace.AlwaysMarked;
 
-    /// <summary>FR-50a: the game's colours, for everyone (players may override on their device). Not a rule: no notice.</summary>
+    /// <summary>FR-50a: the game's colors, for everyone (players may override on their device). Not a rule: no notice.</summary>
     public Theme Theme { get; init; } = Theme.Classic;
 
     /// <summary>FR-26a: the card's size, lobby only; changing it deals everyone a new card.</summary>

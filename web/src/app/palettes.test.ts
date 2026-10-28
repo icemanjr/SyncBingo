@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { paletteColours, paletteCss, palettes } from './palettes'
+import { paletteColors, paletteCss, palettes } from './palettes'
 
-/** Classic's colours, read from index.css itself, so the test checks what the page really uses. */
+/** Classic's colors, read from index.css itself, so the test checks what the page really uses. */
 const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
 function tokensOf(selector: string): Record<string, string> {
   const body = new RegExp(`\\n${selector} \\{([^}]*)\\}`).exec(css)?.[1] ?? ''
@@ -47,26 +47,26 @@ const borderPairs: [string, string][] = [
   ['accent', 'surface'],
 ]
 
-describe('colour themes (FR-50a)', () => {
+describe('color themes (FR-50a)', () => {
   const all: { name: string; light: Record<string, string>; dark: Record<string, string> }[] = [
     { name: 'Classic', light, dark },
-    ...Object.entries(paletteColours).map(([name, colours]) => ({
+    ...Object.entries(paletteColors).map(([name, colors]) => ({
       name,
-      light: { ...light, ...colours.light },
-      dark: { ...dark, ...colours.dark },
+      light: { ...light, ...colors.light },
+      dark: { ...dark, ...colors.dark },
     })),
   ]
 
   for (const palette of all) {
     for (const mode of ['light', 'dark'] as const) {
       it(`${palette.name}, ${mode}: text meets 4.5:1 and the accent 3:1`, () => {
-        const colours = palette[mode]
+        const colors = palette[mode]
         for (const [fg, bg] of textPairs) {
-          const ratio = contrast(must(colours[fg]), must(colours[bg]))
+          const ratio = contrast(must(colors[fg]), must(colors[bg]))
           expect(ratio, `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5)
         }
         for (const [fg, bg] of borderPairs) {
-          const ratio = contrast(must(colours[fg]), must(colours[bg]))
+          const ratio = contrast(must(colors[fg]), must(colors[bg]))
           expect(ratio, `${fg} on ${bg}`).toBeGreaterThanOrEqual(3)
         }
       })
@@ -81,7 +81,7 @@ describe('colour themes (FR-50a)', () => {
       'Halloween',
       'Winter',
     ])
-    for (const name of Object.keys(paletteColours)) {
+    for (const name of Object.keys(paletteColors)) {
       expect(paletteCss()).toContain(`:root[data-palette="${name}"]{`)
       expect(paletteCss()).toContain(`:root.dark[data-palette="${name}"]{`)
     }
@@ -89,6 +89,6 @@ describe('colour themes (FR-50a)', () => {
 })
 
 function must(value: string | undefined): string {
-  if (value === undefined) throw new Error('missing colour')
+  if (value === undefined) throw new Error('missing color')
   return value
 }

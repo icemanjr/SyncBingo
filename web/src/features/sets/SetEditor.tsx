@@ -40,7 +40,7 @@ const input =
  * The set editor (FR-44, ADR 0009): the host builds a custom set as a **draft** on this device, then sends
  * it whole with **Use this set**, so players get one redeal. With **Use groups** the groups are the card's
  * columns, one each (ADR 0009): entries show in their groups, in column order, with any ungrouped pairs first
- * (to move, or remove all); groups can be renamed (their entries follow), relabelled and reordered; entries
+ * (to move, or remove all); groups can be renamed (their entries follow), relabeled and reordered; entries
  * edited, moved and deleted. Without it, entries are one list, dealt anywhere. Upload replaces the draft; Add
  * from file merges another set, reporting what it skipped. The draft is kept in this browser per game.
  */

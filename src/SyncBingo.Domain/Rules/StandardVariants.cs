@@ -6,18 +6,18 @@ namespace SyncBingo.Domain.Rules;
 public static class StandardVariants
 {
     /// <summary>
-    /// Standard 75-ball Bingo: a 5×5 card with a free centre, columns B I N G O
+    /// Standard 75-ball Bingo: a 5×5 card with a free center, columns B I N G O
     /// drawing from 1–15, 16–30, 31–45, 46–60 and 61–75.
     /// </summary>
     public static BingoVariant Classic75 { get; } = CreateClassic75();
 
     /// <summary>
-    /// A 4×4 card of 60 balls: columns B I N G drawing 15 each. It has no centre, so never a free space; Four
+    /// A 4×4 card of 60 balls: columns B I N G drawing 15 each. It has no center, so never a free space; Four
     /// Corners, lines and Blackout as on 5×5, no letters (they need a 5×5 card).
     /// </summary>
     public static BingoVariant Classic60 { get; } = CreateSmaller("classic-60", size: 4, freeCell: null);
 
-    /// <summary>A 3×3 card of 45 balls: columns B I N drawing 15 each, with a free centre. No letters.</summary>
+    /// <summary>A 3×3 card of 45 balls: columns B I N drawing 15 each, with a free center. No letters.</summary>
     public static BingoVariant Classic45 { get; } = CreateSmaller("classic-45", size: 3, freeCell: 4);
 
     /// <summary>The standard rules for a card size (FR-26a): 15 balls per column, so a game lasts about as long on any card.</summary>

@@ -62,7 +62,7 @@ public sealed class RedisCallSchedulerTests(RedisFixture redis)
     }
 
     [Fact]
-    public async Task A_cancelled_session_is_never_claimed()
+    public async Task A_canceled_session_is_never_claimed()
     {
         var scheduler = Scheduler();
         var code = NewCode();

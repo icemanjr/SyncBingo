@@ -8,7 +8,7 @@ import { useJoinQr } from './useJoinQr'
 /**
  * The lobby's join panel on the host console (docs/06, the design reference): **Join Now!**, the QR with
  * the game code under it and room around it for phone cameras, how joining works, and the password note
- * (FR-49): labelled and edited in place for the host; on the TV (no `host`) shown exactly as typed, with
+ * (FR-49): labeled and edited in place for the host; on the TV (no `host`) shown exactly as typed, with
  * no label, and not at all when empty. Never on the join page, so a mistyped code gets no hint.
  */
 export function JoinStage({

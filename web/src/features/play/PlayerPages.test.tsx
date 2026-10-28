@@ -321,7 +321,7 @@ describe('the play screen', () => {
 
     expect(JSON.parse(localStorage.getItem('syncbingo:mark-style') ?? '{}')).toMatchObject({
       shape: 'heart',
-      colour: 'var(--ink)',
+      color: 'var(--ink)',
       textSize: 'max',
     })
     expect(screen.getByRole('gridcell', { name: 'B 1' }).querySelector('span')).toHaveClass(

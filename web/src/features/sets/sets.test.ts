@@ -270,7 +270,7 @@ describe('what stops a draft being used', () => {
 })
 
 describe('the set file', () => {
-  it('reads the sample set: five groups labelled B-I-N-G-O, 75 clues and words', () => {
+  it('reads the sample set: five groups labeled B-I-N-G-O, 75 clues and words', () => {
     const draft = read(sample)
 
     expect(draft.name).toBe('Science vocabulary (sample)')

@@ -47,7 +47,7 @@ public sealed class CustomPatternTests
         var session = NewSession();
 
         session.AddPattern("Nothing", [], Now).Error!.Message.ShouldBe("Pick at least one square besides the free space.");
-        session.AddPattern("Centre", [12], Now).Error!.Message.ShouldBe("Pick at least one square besides the free space.");
+        session.AddPattern("Center", [12], Now).Error!.Message.ShouldBe("Pick at least one square besides the free space.");
         session.AddPattern("Off the card", [24, 25], Now).Error!.Message.ShouldBe("Every square of the pattern must be on the card.");
     }
 

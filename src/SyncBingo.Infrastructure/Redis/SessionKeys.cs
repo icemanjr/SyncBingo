@@ -33,7 +33,7 @@ internal sealed class SessionKeys
     /// <summary>Hash: participant id → <c>{"v": version, "p": snapshot}</c>.</summary>
     public RedisKey Participants { get; }
 
-    /// <summary>Hash: normalised name → participant id.</summary>
+    /// <summary>Hash: normalized name → participant id.</summary>
     public RedisKey Names { get; }
 
     /// <summary>Hash: token hash → caller (<c>host</c>, <c>display:{id}</c> or <c>participant:{id}</c>).</summary>

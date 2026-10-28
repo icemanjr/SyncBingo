@@ -20,7 +20,7 @@ function Ball({ text, className }: { text: string; className: string }) {
 
 /**
  * The front door (FR-1, the design reference): what SyncBingo is, **Join a game** (most visitors) and
- * **Host a game**, and how it works in three steps. The Full portfolio build also shows a greyed-out tile
+ * **Host a game**, and how it works in three steps. The Full portfolio build also shows a grayed-out tile
  * for what may come.
  */
 export function LandingPage() {

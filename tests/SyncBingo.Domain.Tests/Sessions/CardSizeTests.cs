@@ -38,7 +38,7 @@ public sealed class CardSizeTests
     }
 
     [Fact]
-    public void A_3x3_card_holds_balls_1_to_45_by_column_around_a_free_centre()
+    public void A_3x3_card_holds_balls_1_to_45_by_column_around_a_free_center()
     {
         var card = CardGenerators.For(StandardVariants.Classic45).Generate(new SeededRandom(2));
 

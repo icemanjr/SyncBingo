@@ -66,7 +66,7 @@ public sealed class ColumnCardGeneratorTests
             }
         }
 
-        // 4 columns × 15 numbers × 5 rows, plus N: 15 numbers × 4 rows, plus the free centre.
+        // 4 columns × 15 numbers × 5 rows, plus N: 15 numbers × 4 rows, plus the free center.
         seen.Count.ShouldBe((4 * 15 * 5) + (15 * 4) + 1);
     }
 

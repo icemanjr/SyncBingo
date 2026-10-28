@@ -135,7 +135,7 @@ export function PrivacyPage() {
           <ul>
             <li>
               SyncBingo asks Google to treat every ad request as directed at children, so there are
-              no personalised ads and no remarketing: an ad is chosen for the page, not for you.
+              no personalized ads and no remarketing: an ad is chosen for the page, not for you.
             </li>
             <li>
               To show an ad, your browser fetches it from Google. Google receives your IP address
@@ -166,7 +166,7 @@ export function PrivacyPage() {
         Families and classrooms play SyncBingo. {ads ? 'SyncBingo itself' : 'It'} collects no
         personal information from anyone beyond the name typed to play, which is gone within hours.
         A grown-up hosting for children can suggest first names or nicknames.
-        {ads && ' Every ad is requested as directed at children, so none is personalised.'}
+        {ads && ' Every ad is requested as directed at children, so none is personalized.'}
       </p>
 
       <h2>Changes</h2>

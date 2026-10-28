@@ -62,7 +62,7 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
         countdownEndsAt: data.endsAt ?? null,
         winCondition: data.winConditionId ?? game.winCondition,
       })
-    case 'RoundCountdownCancelled':
+    case 'RoundCountdownCanceled':
       return with_({ state: 'BetweenRounds', countdownEndsAt: null })
     case 'RoundStarted':
       return with_({

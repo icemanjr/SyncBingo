@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cardNumbers, grabBall, hostGame, joinGame, startRound } from './game'
 
-/** Every straight line on a 5×5 card, as cell indexes; the free centre (12) always counts. */
+/** Every straight line on a 5×5 card, as cell indexes; the free center (12) always counts. */
 const lines = [
   ...[0, 1, 2, 3, 4].map((row) => [0, 1, 2, 3, 4].map((col) => row * 5 + col)),
   ...[0, 1, 2, 3, 4].map((col) => [0, 1, 2, 3, 4].map((row) => row * 5 + col)),

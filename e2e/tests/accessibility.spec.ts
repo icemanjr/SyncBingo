@@ -90,10 +90,10 @@ for (const colorScheme of ['light', 'dark'] as const) {
 }
 
 /**
- * Every colour theme (FR-50a), in light and dark, on a player's round screen with called balls and a mark:
+ * Every color theme (FR-50a), in light and dark, on a player's round screen with called balls and a mark:
  * a player picks the theme on their own device, so one game covers them all.
  */
-test('every colour theme passes WCAG 2.1 AA checks, light and dark', async ({ browser }) => {
+test('every color theme passes WCAG 2.1 AA checks, light and dark', async ({ browser }) => {
   test.setTimeout(180_000)
   const { host, code } = await hostGame(browser)
   const problems: string[] = []

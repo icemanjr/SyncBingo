@@ -77,7 +77,7 @@ public sealed class ContentSessionTests
     }
 
     [Fact]
-    public void Grouped_balls_are_labelled_with_their_group()
+    public void Grouped_balls_are_labeled_with_their_group()
     {
         var session = NewSession();
         session.UseContent(ContentTestKit.Valid(ContentTestKit.TimesTables()), Now);

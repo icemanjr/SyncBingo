@@ -33,16 +33,16 @@ public sealed class RoundCountdownTests
     }
 
     [Fact]
-    public void Cancelling_returns_to_the_lobby_and_reopens_joining()
+    public void Canceling_returns_to_the_lobby_and_reopens_joining()
     {
         var session = InState(SessionState.Starting);
 
-        session.CancelCountdown(Now).Single<RoundCountdownCancelled>().Round.ShouldBe(1);
+        session.CancelCountdown(Now).Single<RoundCountdownCanceled>().Round.ShouldBe(1);
 
         session.State.ShouldBe(SessionState.BetweenRounds);
         session.CountdownEndsAt.ShouldBeNull();
         session.CheckCanAdmit(0).IsSuccess.ShouldBeTrue();
-        session.RoundNumber.ShouldBe(0, "the cancelled round never started");
+        session.RoundNumber.ShouldBe(0, "the canceled round never started");
     }
 
     [Fact]

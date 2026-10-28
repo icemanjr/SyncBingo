@@ -10,7 +10,7 @@ namespace SyncBingo.Domain.Content;
 public static class ContentText
 {
     /// <summary>
-    /// Trimmed, single-spaced (tabs and line breaks become spaces) and Unicode-normalised (NFKC), so
+    /// Trimmed, single-spaced (tabs and line breaks become spaces) and Unicode-normalized (NFKC), so
     /// "７" and "7", or a composed and a decomposed "é", are the same text.
     /// </summary>
     public static string Tidy(string? value)

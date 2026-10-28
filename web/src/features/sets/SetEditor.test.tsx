@@ -92,7 +92,7 @@ describe('the set editor (FR-44)', () => {
     expect((put?.body as { groups: unknown[] }).groups).toHaveLength(5)
   })
 
-  it('parks pairs as ungrouped while the host reorganises, then removes them all', async () => {
+  it('parks pairs as ungrouped while the host reorganizes, then removes them all', async () => {
     fakeApi({ [snapshotPath]: { body: aHostSnapshot() } })
     renderEditor()
     await userEvent.upload(await screen.findByLabelText('Open a set file'), sampleFile())

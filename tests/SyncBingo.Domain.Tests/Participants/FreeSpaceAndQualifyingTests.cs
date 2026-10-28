@@ -56,10 +56,10 @@ public sealed class FreeSpaceAndQualifyingTests
     }
 
     [Fact]
-    public void A_line_through_the_centre_needs_the_free_space_earned()
+    public void A_line_through_the_center_needs_the_free_space_earned()
     {
         var kit = new PlayerTestKit(Earned);
-        foreach (var ball in new[] { 3, 18, 48, 63 }) // middle row except the centre
+        foreach (var ball in new[] { 3, 18, 48, 63 }) // middle row except the center
         {
             kit.Call(ball);
         }

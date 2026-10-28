@@ -4,8 +4,8 @@
 
 | Level | Tooling | Focus |
 |-------|---------|-------|
-| **Domain unit** | xUnit, Shouldly, FsCheck | Card generation, pattern evaluation, state machine, auto-fill rule, name normalisation, game-code generator |
-| **Application** | xUnit + fakes for ports | Command handlers: authorisation (who may run each command, and on whose cards), state preconditions, event emission, lost-update races (the fake store refuses stale saves) |
+| **Domain unit** | xUnit, Shouldly, FsCheck | Card generation, pattern evaluation, state machine, auto-fill rule, name normalization, game-code generator |
+| **Application** | xUnit + fakes for ports | Command handlers: authorization (who may run each command, and on whose cards), state preconditions, event emission, lost-update races (the fake store refuses stale saves) |
 | **Integration (API)** | `WebApplicationFactory` + Testcontainers (Redis) | REST endpoints, auth, rate limits, Redis layout, scheduler claiming, concurrent joins |
 | **Realtime integration** | SignalR .NET client in tests | Event delivery, audience rules (host-only vs everyone), reconnect + snapshot resync |
 | **Frontend unit** | Vitest + Testing Library | Event-stream sequencing and resync, the API client, token storage (incl. blocked storage), AdSlot layout and the ad provider switch (placeholders by default, child-directed AdSense units, never on the TV; ADR 0012), pages, store reducers |
@@ -15,14 +15,14 @@
 ## 2. Key scenarios
 
 **Domain / property tests**
-- Every generated card has numbers in the correct column ranges, no duplicates, centre free; columns are shuffled and every number is equally likely in its column.
+- Every generated card has numbers in the correct column ranges, no duplicates, center free; columns are shuffled and every number is equally likely in its column.
 - The generator never deals a card that is already in play, deals every distinct card of a tiny variant before failing, and fails clearly when none are left.
 - Every pattern evaluates correctly for hand-built mark sets, including all 12 Normal Bingo lines and each letter shape.
 - Auto-fill marks only the *previous* ball, only on cards containing it, and never marks a ball that was not called.
 - *Free marking* (on/off) and *Unmarking* (off / mismarks only / any) work independently: every one of the six combinations behaves as specified; *Mismarks only* never removes a mark on a called square.
 - Card sizes (FR-26a): 15 balls per column on each size, no letters below 5 × 5, a 4 × 4 card never has a free space, a letter pattern refuses a smaller card, a grouped set's size changes only with the set, and restoring keeps the size.
 - Free space *None*: every square holds a ball, the variant keeps its columns and patterns, a 24-entry set refuses it (25 needed), and applying it in the lobby deals everyone a new card.
-- *Earned* free space: the centre is not counted, markable (with *Free marking* off) or auto-filled until a called ball is missing from the card; a card whose numbers are all called first earns it only on its first miss; Blackout and centre lines need it earned.
+- *Earned* free space: the center is not counted, markable (with *Free marking* off) or auto-filled until a called ball is missing from the card; a card whose numbers are all called first earns it only on its first miss; Blackout and center lines need it earned.
 - Undo restores the card to its marks at the last call whatever the unmarking setting, keeps auto-fill marks, before the first ball returns the card as dealt, and is a no-op when nothing changed since the last ball (FsCheck: any sequence of marks, unmarks and undos between two draws ends in a state reachable by the rules).
 - Auto-fill applies only to participants who switched it on, and only while the host makes it available.
 - Win detection uses called numbers, not marks; claims qualify on called numbers, plus marks when *Require marks* is on.
@@ -34,12 +34,12 @@
 - Two simultaneous joins with the same name → exactly one succeeds.
 - Concurrent joins and redraws never leave two identical cards in play; a redrawn or kicked player's card is released.
 - Token recovery: disconnect, reconnect, same card and marks.
-- *Start Round N* counts down 10 s, closes joining and redraws, can be cancelled, and starts the round at zero (in auto mode with its first ball if toggled); *Clear cards* returns to the lobby.
+- *Start Round N* counts down 10 s, closes joining and redraws, can be canceled, and starts the round at zero (in auto mode with its first ball if toggled); *Clear cards* returns to the lobby.
 - Rounds start in manual mode; Auto mode draws at once and then on the timer; Pause stops auto-calls; Grab ball works only in manual mode.
 - Scheduler: with two API instances, each tick draws exactly once; a killed instance's lease expires and draws resume.
 - Participants never receive other participants' cards; host-only events never reach participants.
 - Realtime: each stream's `seq` is unbroken (players don't see claims, so their numbers don't skip); the snapshot's `seq` is where the caller's stream continues; wins and removals reach everyone by name, without ids; private notices reach only their player; only a token for that game can connect, by header or `access_token` query.
-- Authorisation: a participant token gets 403 on every host endpoint; host and display tokens get 403 on player commands; a player can only reach their own cards; a removed player's token stops working.
+- Authorization: a participant token gets 403 on every host endpoint; host and display tokens get 403 on player commands; a player can only reach their own cards; a removed player's token stops working.
 - Participant writes: a mark and a draw's auto-fill that overlap both survive (no lost update), against real Redis.
 - Redis store: sessions and participants round-trip; of many concurrent name reservations, card claims or saves from one participant version exactly one wins; every key carries the idle expiry; a session past 12 hours reads as gone; the lock admits one holder at a time, times out, frees itself after a crash and is never released by a former holder; removing a player revokes only their token.
 - Displays: a display link's token is in the URL fragment, never the query; a display sees public state and the join note but no claims, and can call no command; a disconnected display is told and its token stops working; at most 10 displays; players never get the join note.

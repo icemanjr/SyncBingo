@@ -330,7 +330,7 @@ public sealed class Session
 
         State = SessionState.BetweenRounds;
         CountdownEndsAt = null;
-        return Commit(now, new RoundCountdownCancelled(RoundNumber + 1));
+        return Commit(now, new RoundCountdownCanceled(RoundNumber + 1));
     }
 
     /// <summary>

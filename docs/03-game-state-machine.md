@@ -41,8 +41,8 @@ stateDiagram-v2
 | Pause | – | – | – | ✔ | Back to manual: cancels the auto-call schedule. No banner is shown |
 | Grab ball (host) | – | – | ✔ | ✖ | Manual mode only (FR-11). Not within 3 s of a mid-round rules change: "Give everyone a moment to read the new rules." (FR-47) |
 | Auto draw (scheduler) | – | – | ✖ | ✔ | Auto mode only |
-| Mark square | ✖ | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free centre only once earned (FR-26) |
-| Unmark square | ✖ | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the centre can never be unmarked; with *None* the centre is an ordinary square |
+| Mark square | ✖ | ✖ | ✔ | ✔ | *Free marking* on: any square. Off: called numbers only (FR-22), and the free center only once earned (FR-26) |
+| Unmark square | ✖ | ✖ | ✔ | ✔ | Per *Unmarking* (FR-24): any square, uncalled squares only, or never. With an *Always marked* free space the center can never be unmarked; with *None* the center is an ordinary square |
 | Undo (participant) | ✖ | ✖ | ✔ | ✔ | Always allowed: resets the card to its marks when the last ball was called (FR-25) |
 | Claim Bingo | ✖ | ✖ | ✔ | ✔ | Any time during a round, even while the next ball waits after a rules change. Always alerts the host, valid or not (FR-37a) |
 | Apply rules (Options → Apply) | ✔ | ✖ | ✔ | ✖ | Settings and pattern together, in one step. Before a round: picks its rules; a new card size (FR-26a) or a free space added or taken away deals everyone a new card. Mid-round: the same balls and marks continue; card size, free space, redraw policy and multiple wins are lobby only, so an Apply changing them is refused. Refused in auto mode ("Pause before changing the rules") and during the countdown, so the host can announce the change while nothing is being called |
@@ -107,7 +107,7 @@ Rules:
 - Detection alerts once per card, pattern and round; with *every declared win* it alerts again when more lines complete; with *once per round* a card that has won is not checked again.
 - Repeating an award changes nothing: the same card and pattern in the "once" modes, or the same claim in any mode (a double click).
 
-## 5. Win patterns (5×5, row-major, centre = free)
+## 5. Win patterns (5×5, row-major, center = free)
 
 Rows: any of the 5 rows. Columns: any of the 5 columns. Diagonals: either diagonal. **Normal Bingo** is those three together, a preset. Four Corners: cells 0, 4, 20, 24. Blackout: all 25.
 

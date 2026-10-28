@@ -64,7 +64,7 @@ SyncBingo/
 ### 3.2 Layers
 
 - **Domain** — `Session`, `Round`, `Participant`, `Card`, `ICardGenerator`, `BingoVariant`, `WinPattern`, `WinCondition`, game-code generator, state machine rules. Deterministic and trivially unit-testable (random source injected).
-- **Application** — one handler per command (`CreateSession`, `JoinSession`, `MarkSquare`, `DrawBall`, `StartRound`, …). Each handler: authorise → take the session lock (shared-state commands) → load → apply domain rule → persist → keep the auto-call schedule in step → publish (private notifications such as auto-fill first, then session events). Shared-state commands share one pipeline, `SessionCommandRunner`. Ports: `ISessionStore`, `IEventPublisher`, `ICallScheduler`, `IClock`, `IRandomSource` (domain), `ITokenService`, `IPasswordHasher`.
+- **Application** — one handler per command (`CreateSession`, `JoinSession`, `MarkSquare`, `DrawBall`, `StartRound`, …). Each handler: authorize → take the session lock (shared-state commands) → load → apply domain rule → persist → keep the auto-call schedule in step → publish (private notifications such as auto-fill first, then session events). Shared-state commands share one pipeline, `SessionCommandRunner`. Ports: `ISessionStore`, `IEventPublisher`, `ICallScheduler`, `IClock`, `IRandomSource` (domain), `ITokenService`, `IPasswordHasher`.
 - **Infrastructure** — `RedisSessionStore`, `RedisCallScheduler`, hashing, TTL policy.
 - **Api** — minimal API endpoints (REST commands), `GameHub` (SignalR, server→client only), authentication handler for session tokens, rate limiting, ProblemDetails, health checks, OpenAPI.
 
@@ -113,7 +113,7 @@ Auto mode needs exactly one instance to draw per tick, without a leader.
 
 - Mutations that change shared session state (draw, pause, start/end round, settings, win condition) run under a **short per-session Redis lock** and bump a session `version`. The lock is `SET NX` with a random owner value and a 10 s lease (a crashed holder's lock frees itself), released by a compare-and-delete script so a holder whose lease ran out can never release its successor's lock. A command waits up to 5 s for the lock, then fails (the API will answer 503).
 - Participant-only mutations (marks, Undo, the auto-fill switch) take no lock and touch just that participant's hash field, so 100 players tapping do not contend with the host. A player's redraw is rare and takes the session lock, so it cannot race the round countdown or a host redraw of every card.
-- Name uniqueness uses `HSETNX` on a normalised-name index, so two simultaneous joins with the same name cannot both succeed.
+- Name uniqueness uses `HSETNX` on a normalized-name index, so two simultaneous joins with the same name cannot both succeed.
 - Card uniqueness (FR-39) works the same way: dealing a card `SADD`s its fingerprint to the session's `cards` set and redeals if the fingerprint was already there, so concurrent joins or redraws never end up with identical cards.
 - Auto-fill is applied by the server at draw time, inside the draw's critical section, so a fill and the ball that triggers it are consistent.
 - A draw's auto-fill writes participants while those players may be marking (their path takes no session lock), so participant saves use **optimistic concurrency**: every participant record carries a version, and a save succeeds only if the record is still at the version that was loaded (a Lua compare-and-set in Redis). The loser reloads and applies its change again, up to 5 tries, then the player sees "please try again" (409). A player's change reloads the session as well, so a mark that raced *Clear cards* is judged again under the new state and refused. A removed player's save finds no record and fails.
@@ -126,7 +126,7 @@ React 19 + TypeScript (strict), Vite, React Router, Tailwind CSS v4; state lives
 ```
 web/src/
 ├─ app/            # Layout (header, footer, ad slots), AdSlot + ads.ts (provider switch, ADR 0012),
-│                  # palettes.ts (colour themes), theme.ts (light/dark), NotFound
+│                  # palettes.ts (color themes), theme.ts (light/dark), NotFound
 ├─ api/            # client.ts (openapi-fetch + ApiError) and schema.d.ts, generated from the API's OpenAPI
 ├─ realtime/       # gameConnection.ts (SignalR, seq tracking, resync), pairingConnection.ts (TV pairing)
 ├─ storage/        # sessions.ts (this browser's seat in each game), setDrafts.ts (set editor drafts)

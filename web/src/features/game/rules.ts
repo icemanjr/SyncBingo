@@ -112,7 +112,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
     settings: [
       {
         key: 'theme',
-        label: 'Colour theme',
+        label: 'Color theme',
         help: 'For everyone’s screens and the display. Players can pick their own on their phone.',
         choices: palettes.map((p) => ({ value: p.value, label: p.label })),
       },
@@ -135,7 +135,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'freeSpace',
         label: 'Free space',
-        help: 'Earned: marked once a called ball is not on the card. None: the centre is a square like any other, and every card is redealt.',
+        help: 'Earned: marked once a called ball is not on the card. None: the center is a square like any other, and every card is redealt.',
         betweenRounds: true,
         choices: [
           { value: 'AlwaysMarked', label: 'Always marked' },

@@ -1,6 +1,6 @@
 /**
  * A pattern drawn on a small card grid (FR-48), from the mask the server sends: bit *i* is cell *i*.
- * Filled and outlined, not colour alone; the free cell shows ★, or "earn it first" when it is earned.
+ * Filled and outlined, not color alone; the free cell shows ★, or "earn it first" when it is earned.
  */
 export function PatternGrid({
   mask,

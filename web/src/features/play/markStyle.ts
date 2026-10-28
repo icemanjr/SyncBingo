@@ -7,7 +7,7 @@ export type TextSize = 'small' | 'medium' | 'large' | 'max'
 /** How this player's marks look (FR-51), on this device only. */
 export interface MarkStyle {
   shape: MarkShape
-  colour: string
+  color: string
   /** 0.2 to 0.8 */
   opacity: number
   /** How big the text in the squares is (a number, or a word with custom sets); Max still fits two digits on a small phone. */
@@ -23,10 +23,10 @@ export const shapes: { value: MarkShape; label: string; symbol: string }[] = [
 ]
 
 /**
- * Mark colours: strong enough to see at 20% in both themes, and never a problem for the number, which is
- * drawn on top with a halo. "Ink" is the text colour itself: the highest contrast in either theme.
+ * Mark colors: strong enough to see at 20% in both themes, and never a problem for the number, which is
+ * drawn on top with a halo. "Ink" is the text color itself: the highest contrast in either theme.
  */
-export const colours: { value: string; label: string }[] = [
+export const colors: { value: string; label: string }[] = [
   { value: '#dc2626', label: 'Red' },
   { value: '#ea580c', label: 'Orange' },
   { value: '#16a34a', label: 'Green' },
@@ -56,7 +56,7 @@ export const textSizes: {
 
 export const defaultMarkStyle: MarkStyle = {
   shape: 'circle',
-  colour: '#2563eb',
+  color: '#2563eb',
   opacity: 0.45,
   textSize: 'medium',
 }
@@ -66,16 +66,15 @@ const clampOpacity = (value: number) => Math.min(0.8, Math.max(0.2, value))
 
 export function loadMarkStyle(): MarkStyle {
   try {
-    const saved = JSON.parse(
-      localStorage.getItem(storageKey) ?? 'null',
-    ) as Partial<MarkStyle> | null
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as
+      (Partial<MarkStyle> & { color?: string }) | null
     if (!saved) return defaultMarkStyle
     const shape = shapes.find((s) => s.value === saved.shape)?.value
-    const colour = colours.find((c) => c.value === saved.colour)?.value
+    const color = colors.find((c) => c.value === saved.color)?.value
     const textSize = textSizes.find((t) => t.value === saved.textSize)?.value
     return {
       shape: shape ?? defaultMarkStyle.shape,
-      colour: colour ?? defaultMarkStyle.colour,
+      color: color ?? defaultMarkStyle.color,
       opacity:
         typeof saved.opacity === 'number' ? clampOpacity(saved.opacity) : defaultMarkStyle.opacity,
       textSize: textSize ?? defaultMarkStyle.textSize,

@@ -85,7 +85,7 @@ public abstract record SessionEvent
 /// </summary>
 public sealed record RoundCountdownStarted(int Round, DateTimeOffset EndsAt, bool StartInAuto, string WinConditionId) : SessionEvent;
 
-public sealed record RoundCountdownCancelled(int Round) : SessionEvent;
+public sealed record RoundCountdownCanceled(int Round) : SessionEvent;
 
 /// <summary>The countdown reached zero. If it was started in auto mode, <see cref="AutoCallingStarted"/> and the first <see cref="BallCalled"/> follow.</summary>
 public sealed record RoundStarted(int Round) : SessionEvent;

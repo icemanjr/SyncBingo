@@ -22,7 +22,7 @@ Podman works in place of Docker: enable the user socket (`systemctl --user enabl
 
 ## 1a. Lean deployment (the live site, ADR 0011)
 
-One small instance (AWS Lightsail; size to be verified, docs/10) runs `docker-compose.lean.yml`: `SITE_DOMAIN=syncbingo.com docker compose -f docker-compose.lean.yml up -d`. Without `SITE_DOMAIN` it serves `https://localhost` with Caddy's own local certificate, to try the production setup on a laptop.
+One small instance (AWS Lightsail `micro_3_0`, below) runs `docker-compose.lean.yml`: `SITE_DOMAIN=syncbingo.com docker compose -f docker-compose.lean.yml up -d`. Without `SITE_DOMAIN` it serves `https://localhost` with Caddy's own local certificate, to try the production setup on a laptop.
 
 | Service | Role |
 |---------|------|

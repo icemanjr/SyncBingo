@@ -12,8 +12,8 @@ export function HowToPlayPage() {
   return (
     <Article title="How to play SyncBingo">
       <p>
-        SyncBingo is Bingo for a group in one room, played on the phones everyone already has. One
-        person hosts and draws the balls; everyone else plays on their own phone. This guide covers
+        SyncBingo is Bingo for a group in one room, played on the devices everyone already has. One
+        person hosts and draws the balls; everyone else plays on their own device. This guide covers
         both sides. For quick answers, see the <Link to="/faq">FAQ</Link>.
       </p>
 
@@ -22,7 +22,7 @@ export function HowToPlayPage() {
       <h3>Joining a game</h3>
       <ul>
         <li>
-          Scan the QR code the host shows with your phone’s camera, or open {window.location.host}{' '}
+          Scan the QR code the host shows with your device’s camera, or open {window.location.host}{' '}
           and choose <strong>Join a game</strong>, then type the game code.
         </li>
         <li>
@@ -68,7 +68,7 @@ export function HowToPlayPage() {
         <li>
           <strong>My marks</strong> changes how your marks look: a circle, star, heart, square or
           the whole square shaded, in the color, size and strength you like. You can also pick your
-          own color theme. These choices stay on your phone.
+          own color theme. These choices stay on your device.
         </li>
       </ul>
 
@@ -106,10 +106,10 @@ export function HowToPlayPage() {
         own. The ★ is the free space, which counts toward any pattern through it.
       </p>
 
-      <h3>If your phone sleeps</h3>
+      <h3>If your device goes to sleep</h3>
       <p>
-        Your name, card and marks are kept by the game, not your phone. Wake the phone and the game
-        catches up; or open the join link again in the same browser and choose{' '}
+        Your name, card and marks are kept by the game, not your device. Wake the device and the
+        game catches up; or open the join link again in the same browser and choose{' '}
         <strong>Back to my card</strong>. To leave for good, use <strong>More</strong> and{' '}
         <strong>Leave game</strong>.
       </p>
@@ -186,7 +186,8 @@ export function HowToPlayPage() {
       <p>
         <strong>Display</strong> opens a read-only view for a TV or projector: the call board, the
         last ball, the pattern, the join QR code between rounds, and every win. Open it in a new tab
-        on a laptop connected to the TV, or connect a smart TV directly: open {window.location.host}
+        on a device connected to the TV, such as a laptop, or connect a smart TV directly: open{' '}
+        {window.location.host}
         /tv in the TV’s browser and type the code it shows under <strong>Display</strong> and{' '}
         <strong>Connect a TV</strong>.
       </p>

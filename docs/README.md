@@ -39,4 +39,4 @@
 | **Participant** | A player in the session, identified only by a name that is unique within the session. |
 | **Game code** | 16-character random code (four groups of four, hyphenated) carried by the QR code. |
 | **Game password** | Chosen by the host; required to join, whether by QR or by typing the code. |
-| **Session token** | Opaque secret issued at join so a participant can recover after a sleeping phone or dropped connection. |
+| **Session token** | Opaque secret issued at join so a participant can recover after their device sleeps or the connection drops. |

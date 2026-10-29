@@ -100,7 +100,7 @@ docs/                          design documents and ADRs
 - **UI:**
   - Mobile-first, 48 px minimum tap targets, WCAG AA in light and dark and every theme (axe scans in e2e), reduced-motion support, no flashing.
   - The Full build shows a grayed-out "Serious Bingo – coming soon" tile on the landing page; the live site does not (`VITE_SERIOUS_BINGO_TEASER`).
-- **Wording** (docs/06 §2a): American spelling; **error messages use no contractions** ("cannot", "is not"), other text may; people see "game", never "session"; never call it "Kahoot-style", say "phone-first, drop-in party Bingo". User-facing text is asserted literally in Vitest and Playwright specs, so a rewording changes those too.
+- **Wording** (docs/06 §2a): say "device", never assume the reader has a phone or a laptop (those only as examples); American spelling; **error messages use no contractions** ("cannot", "is not"), other text may; people see "game", never "session"; never call it "Kahoot-style", say "phone-first, drop-in party Bingo". User-facing text is asserted literally in Vitest and Playwright specs, so a rewording changes those too.
 
 ## Running and checking things
 

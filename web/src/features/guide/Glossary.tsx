@@ -21,12 +21,12 @@ const glossary: { term: string; meaning: string }[] = [
   {
     term: 'Host',
     meaning:
-      'The person running the game: they draw the balls, check every Bingo and award the wins. The host doesn’t play; a host who wants to play too joins from a second phone.',
+      'The person running the game: they draw the balls, check every Bingo and award the wins. The host doesn’t play; a host who wants to play too joins from a second device.',
   },
   {
     term: 'Player',
     meaning:
-      'Anyone who joined with the game code and the password. Each player has their own card on their own phone.',
+      'Anyone who joined with the game code and the password. Each player has their own card on their own device.',
   },
   {
     term: 'Game code and password',

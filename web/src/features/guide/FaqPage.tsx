@@ -7,7 +7,7 @@ import { site } from '../../site'
 const questions: { q: string; a: ReactNode }[] = [
   {
     q: 'Do players need an app or an account?',
-    a: 'No. SyncBingo runs in the phone’s web browser. Players scan a QR code (or type a game code), type the password the host gives them and a name, and they’re playing. Nobody signs up.',
+    a: 'No. SyncBingo runs in a web browser, on a phone, tablet or computer. Players scan a QR code (or type a game code), type the password the host gives them and a name, and they’re playing. Nobody signs up.',
   },
   {
     q: 'Is it free?',
@@ -19,18 +19,18 @@ const questions: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'What does the host need?',
-    a: 'Any device with a browser: a laptop works best, since its screen holds the call board, the players and the Bingo calls side by side. A TV or projector helps the room follow along, but it isn’t required.',
+    a: 'Any device with a browser. A larger screen, such as a laptop’s, works best, since it holds the call board, the players and the Bingo calls side by side. A TV or projector helps the room follow along, but it isn’t required.',
   },
   {
     q: 'Can the host play too?',
-    a: 'Not from the host’s screen: the host runs the game and decides every win, so it stays fair. A host who wants to play joins from a second phone, like everyone else.',
+    a: 'Not from the host’s screen: the host runs the game and decides every win, so it stays fair. A host who wants to play joins from a second device, like everyone else.',
   },
   {
     q: 'Can someone join after the game has started?',
     a: 'Yes. Between rounds they get a card straight away. During a round they wait in the waiting room and get their card as soon as the round ends.',
   },
   {
-    q: 'What happens if my phone goes to sleep?',
+    q: 'What happens if my device goes to sleep?',
     a: 'Nothing is lost. Your name, card and marks are kept by the game; when you come back, your screen catches up with every ball called while you were away.',
   },
   {

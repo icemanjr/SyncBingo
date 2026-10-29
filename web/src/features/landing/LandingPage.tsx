@@ -3,7 +3,7 @@ import { Glossary } from '../guide/Glossary'
 
 const steps = [
   ['Host a game', 'Pick a password, display the game code on this device or a TV.'],
-  ['Everyone scans to join', 'Each player gets their own card on their own phone.'],
+  ['Everyone scans to join', 'Each player gets their own card on their own device.'],
   ['Call, mark, shout Bingo', 'The app checks every claim against the balls actually called.'],
 ] as const
 
@@ -35,7 +35,7 @@ export function LandingPage() {
           Bingo for a room full of phones.
         </h1>
         <p className="mt-3 mb-6 text-base leading-relaxed text-[#d9d3ea]">
-          One person hosts. Everyone else scans a code and plays on their own phone. No app, no
+          One person hosts. Everyone else scans a code and plays on their own device. No app, no
           sign-up.
         </p>
         <div className="flex flex-col gap-3">
@@ -76,11 +76,11 @@ export function LandingPage() {
           What is SyncBingo?
         </h2>
         <p>
-          SyncBingo is Bingo for a group in one room, played on the phones everyone already has. The
-          host runs the game from a laptop, tablet or phone. Everyone else scans a QR code, types
-          the game’s password and a name, and gets a card of their own. Balls are drawn on screen
-          and reach every phone at once, and the host can put the call board on a TV so the whole
-          room can follow.
+          SyncBingo is Bingo for a group in one room, played on the devices everyone already has.
+          The host runs the game from any device, such as a laptop, tablet or phone. Everyone else
+          scans a QR code, types the game’s password and a name, and gets a card of their own. Balls
+          are drawn on screen and reach every device at once, and the host can put the call board on
+          a TV so the whole room can follow.
         </p>
         <p>
           It suits a family party with small children, a classroom, an office get-together or a

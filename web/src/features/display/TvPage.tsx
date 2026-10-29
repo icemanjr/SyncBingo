@@ -83,12 +83,12 @@ export function TvPage({
           {qr && (
             <img
               src={qr}
-              alt="QR code to connect this TV from the host's phone"
+              alt="QR code to connect this TV from the host's device"
               className="h-44 w-44 rounded-2xl bg-white p-3"
             />
           )}
           <p className="text-xl text-ink-muted">
-            or scan with the host's phone · code expires in {Math.floor(left / 60)}:
+            or scan with the host's device · code expires in {Math.floor(left / 60)}:
             {String(left % 60).padStart(2, '0')}
           </p>
         </>

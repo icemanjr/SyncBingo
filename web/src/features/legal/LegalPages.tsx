@@ -74,8 +74,8 @@ export function PrivacyPage() {
         </li>
         <li>An optional note the host types to show on the TV with the join QR.</li>
         <li>
-          Random tokens that let each phone, the host and any TV get back into the game after a
-          reload; the server keeps only their hashes.
+          Random tokens that let each player’s device, the host and any TV get back into the game
+          after a reload; the server keeps only their hashes.
         </li>
       </ul>
       <p>
@@ -100,9 +100,9 @@ export function PrivacyPage() {
 
       <h2>On your device</h2>
       <p>
-        Your browser keeps your game token (so a sleeping phone can rejoin), your light or dark
-        choice and how you like your marks to look. A TV keeps its display token only until its tab
-        is closed. SyncBingo uses no cookies, no analytics and no tracking
+        Your browser keeps your game token (so a device that went to sleep can rejoin), your light
+        or dark choice and how you like your marks to look. A TV keeps its display token only until
+        its tab is closed. SyncBingo uses no cookies, no analytics and no tracking
         {ads ? '; the ads come from Google, which works differently (see Ads below).' : '.'}
       </p>
 

@@ -137,7 +137,7 @@ export function DisplayMenu({
           </label>
           <p id="join-note-help" className="text-sm text-ink-muted">
             Shown with the join QR on displays exactly as you type it, such as the password or a
-            hint. Never on phones. Leave it empty to show nothing.
+            hint. Never on players’ devices. Leave it empty to show nothing.
           </p>
           <div className="flex flex-wrap gap-2">
             <input

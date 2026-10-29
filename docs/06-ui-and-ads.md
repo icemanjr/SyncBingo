@@ -4,10 +4,12 @@
 
 | Screen | Route | Purpose |
 |--------|-------|---------|
-| Landing | `/` | **Host a game**, **Join a game**; in the Full portfolio build only, a grayed-out **Serious Bingo (coming soon)** |
+| Landing | `/` | **Host a game**, **Join a game**, how it works in three steps, **What is SyncBingo?** (an overview, with links to How to play and the FAQ) and **Words SyncBingo uses** (the glossary: game, round, lobby, the host who doesn't play, and the rest); in the Full portfolio build only, a grayed-out **Serious Bingo (coming soon)** |
 | Host setup | `/host/new` | Choose the game password; every other setting is in Options, in the lobby |
 | Host console | `/host/:code` | **Lobby:** how to join (QR, game code, password note) beside the next-round card and the players. **During a round:** the calling card (last ball, Grab ball) and the **call board** (FR-27), with Bingo calls, players and the round's end beside them. **Options**, **Display**, the leaderboard, a player's card and ending the game open as dialogs |
 | Custom set editor (host) | `/host/{code}/set` | Opened from the lobby's *Custom set* card (**Use a custom set** with numbers, **Edit set** with a set). A draft kept in this browser per game: set name; **Open a set file** (replaces the draft), **Add from a file** (merges, with the skip report), **Download this draft**; **Free space text** (blank: FREE; checked like a square and never the same as one); **Card size** (sent with the set; changing it fits the groups like Use groups); **Use groups** (one group per card column, fitted when turned on: extra groups' pairs become ungrouped, missing columns are added empty); **Add an entry** (with *Ball and square match*, one text box when ticked; a group); with Use groups, **Ungrouped pairs** first (with a warning and **Remove all**, confirmed, whenever it has pairs), then each group in column order with **Rename** (once, for all its entries), its short **Label** and **Move up/down**; without, one list of entries; each entry **Edit**, a group menu (including *Ungrouped*), **Delete**; a search box past 20 entries. At the end: the **possible cards** (a warning below 100: "Up to 72 players can each have their own card…"), what still stops the set being used, the host-responsibility acknowledgement, **Use this set** (lobby only) and **Back to numbers**. On phones each entry's text gets the full width, its controls a row below (FR-44, ADR 0009) |
+| How to play | `/how-to-play` | A guide for players (joining, the card, marking, Undo, auto-fill, calling Bingo, the patterns drawn, a device that goes to sleep) and hosts (starting, Options, running a round, checking a Bingo, between rounds, the TV, custom sets, ending), then the glossary. Linked from the landing page and every footer |
+| FAQ | `/faq` | Short answers: apps and accounts, cost, how many can play, playing apart (only the code and password are needed), the host not playing, joining late, a device that goes to sleep, who decides a Bingo, children, words instead of numbers, shorter games, how long games are kept, privacy, money, help |
 | Terms, Privacy | `/terms`, `/privacy` | Plain-language **drafts**, marked "Draft, pending legal review": no accounts or cookies, the password only as a hash, everything deleted 5 minutes after a game ends (4 h idle, 12 h at most), IP addresses only briefly in memory for rate limits, no access logs, analytics or third parties. With real ads on (ADR 0012), Privacy adds an **Ads** section: Google AdSense, every request child-directed, what Google receives, and how to change consent Linked from a footer on every page except the TV |
 | Display | `/display/:code` | Read-only view for a projector or TV (FR-28): call board, last ball, win pattern, round, win celebration, leaderboard when shown, and the join QR between rounds. No controls and **no ads** |
 | Join | `/join/:code` (QR) or `/join` (manual) | Enter game code (if manual) and password |
@@ -15,7 +17,7 @@
 | Play | `/play/:code` | Card, latest ball (if shown), Bingo button (during a round), **Undo** button (always, during a round), own auto-fill switch (if the host made it available), win highlight |
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
 | TV | `/tv` | A smart TV's own browser shows a short pairing code and a QR, then becomes the display once the host approves (ADR 0010). No ads |
-| Pair | `/pair/:pairingCode` | What the TV's QR opens on the host's phone: **Show game … on the TV** for each game this browser hosts |
+| Pair | `/pair/:pairingCode` | What the TV's QR opens on the host's device: **Show game … on the TV** for each game this browser hosts |
 | Not found | any other address | "Page not found", with **Back to the start** |
 
 ### Host console (sketch)
@@ -101,7 +103,7 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 - **Card tools** sit in one row of icon buttons with short labels: **Call board** (when shown), **Undo** (during a round), **My marks** (FR-51) and **More**, which holds **Leave game** (FR-53).
 - **Auto-fill and New card,** when the host allows them, sit just below.
 - **Join page:** the form is on one card. Arriving by QR shows **Game found from the QR code** with the code and a **Change** button instead of an empty code field. Under the name: "Everyone sees this name when you win." The button reads **Get my card**.
-- **Landing page:** a dark hero ("Bingo for a room full of phones.") with **Join a game** (amber, most visitors) and **Host a game**, then three "how it works" steps.
+- **Landing page:** a dark hero ("Bingo that keeps everyone in sync.", owner 2026-10-28, a play on the name) with **Join a game** (amber, most visitors) and **Host a game**, then three "how it works" steps.
 
 ### Visual design (2026-10-15)
 
@@ -304,7 +306,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 
 **Rules**
 
-- Banners only, and none on the display view (FR-28). No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
+- Banners only, and only on pages with content (FR-50 amended, ADR 0012): the landing page, How to play, the FAQ, the play screen and the host console. None on forms, legal pages, pairing, not found or the display view (FR-28), and none on a game screen while it shows a dead end (`useNoAds`). No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
 - Slots are **fixed-size containers reserved at layout time**, so an ad loading late (or not at all) never shifts the card or buttons.
 - Mobile (< 1024 px): one banner at the top and one at the bottom (e.g. 320×50 or 320×100).
 - Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centerd.
@@ -345,6 +347,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 
 - American spelling (owner, 2026-10-28): color, center, canceled, -ize. British English comes later as its own translation.
 - **Error messages don't use contractions** (owner, 2026-10-28): every refusal from the server and every error the web app shows reads "cannot", "is not", "does not", which feels more formal for an error. Everything else (help, notices, rules, buttons) may use them.
+- **Say "device"** (owner, 2026-10-28): text never assumes what someone is using. "These choices stay on your device", not "on your phone"; a phone, tablet or laptop may be named only as an example ("from any device, such as a laptop").
 - Server messages are written to be shown to people as they are (docs/05 §5); the game is a "game" to people, never a "session".
 - Never call SyncBingo "Kahoot-style"; it is phone-first, drop-in party Bingo.
 

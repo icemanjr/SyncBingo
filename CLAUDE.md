@@ -42,7 +42,7 @@ src/SyncBingo.Application/     use cases and ports
 src/SyncBingo.Infrastructure/  Redis store (Lua scripts, keys, content cache), scheduler, hashing, tokens, pairing store
 src/SyncBingo.Api/             endpoints (Endpoints/*), contracts, auth (session tokens), rate limits, SignalR hubs and publisher
 tests/                         Domain, Application (in-memory fakes), Api.IntegrationTests (Testcontainers), Infra (CDK)
-web/src/                       the React app (layout in docs/02 §7): app/, api/, realtime/, storage/, features/{game,host,play,display,sets,landing,legal}
+web/src/                       the React app (layout in docs/02 §7): app/, api/, realtime/, storage/, features/{game,host,play,display,sets,landing,guide,legal}
 e2e/                           Playwright specs, run in Compose
 infra/                         AWS CDK (C#): Lean and Full stacks
 deploy/                        the live server's setup, update script and timer
@@ -93,14 +93,14 @@ docs/                          design documents and ADRs
 ## Ads and UI constraints
 
 - **Ads:**
-  - Banners only: top and bottom on phones, left and right on desktops, in fixed-size reserved slots (`app/AdSlot.tsx`). None on the display or TV.
+  - Banners only: top and bottom on phones, left and right on desktops, in fixed-size reserved slots (`app/AdSlot.tsx`). Only on pages with content: routes with `<Layout ads>` (landing, How to play, FAQ, play screen, host console); a game screen calls `useNoAds` while it shows a dead end. None on forms, legal pages, pairing, not found, the display or TV (Google's "screens without publisher-content" policy).
   - Placeholders in development and the Full build. The live site uses Google AdSense once approved (ADR 0012); the build switches are `VITE_AD_PROVIDER` and the `VITE_ADSENSE_*` ids in `web/.env`.
   - Every ad request is child-directed.
   - Google's consent message for the EU, UK and Switzerland is the one allowed exception to "never pop-ups or anything that can cover the play area". Keep Auto ads off in the AdSense account.
 - **UI:**
   - Mobile-first, 48 px minimum tap targets, WCAG AA in light and dark and every theme (axe scans in e2e), reduced-motion support, no flashing.
   - The Full build shows a grayed-out "Serious Bingo – coming soon" tile on the landing page; the live site does not (`VITE_SERIOUS_BINGO_TEASER`).
-- **Wording** (docs/06 §2a): American spelling; **error messages use no contractions** ("cannot", "is not"), other text may; people see "game", never "session"; never call it "Kahoot-style", say "phone-first, drop-in party Bingo". User-facing text is asserted literally in Vitest and Playwright specs, so a rewording changes those too.
+- **Wording** (docs/06 §2a): say "device", never assume the reader has a phone or a laptop (those only as examples); American spelling; **error messages use no contractions** ("cannot", "is not"), other text may; people see "game", never "session"; never call it "Kahoot-style", say "phone-first, drop-in party Bingo". User-facing text is asserted literally in Vitest and Playwright specs, so a rewording changes those too.
 
 ## Running and checking things
 

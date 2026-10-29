@@ -6,21 +6,42 @@ import { HostConsole } from './features/host/HostConsole'
 import { DisplayView } from './features/display/DisplayView'
 import { PairPage } from './features/display/PairPage'
 import { TvPage } from './features/display/TvPage'
+import { FaqPage } from './features/guide/FaqPage'
+import { HowToPlayPage } from './features/guide/HowToPlayPage'
 import { LandingPage } from './features/landing/LandingPage'
 import { PrivacyPage, TermsPage } from './features/legal/LegalPages'
 import { JoinPage } from './features/play/JoinPage'
 import { PlayScreen } from './features/play/PlayScreen'
 import { SetEditor } from './features/sets/SetEditor'
 
-/** The site's pages (docs/06 §1). */
+/**
+ * The site's pages (docs/06 §1). Only pages with content show ads (`Layout ads`, ADR 0012): the guides and the
+ * game screens; forms, legal pages, the set editor, pairing and not found have none, and the display none at all.
+ */
 export function AppRoutes() {
   return (
     <Routes>
       <Route
         path="/"
         element={
-          <Layout>
+          <Layout ads>
             <LandingPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/how-to-play"
+        element={
+          <Layout ads>
+            <HowToPlayPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/faq"
+        element={
+          <Layout ads>
+            <FaqPage />
           </Layout>
         }
       />
@@ -51,7 +72,7 @@ export function AppRoutes() {
       <Route
         path="/host/:code"
         element={
-          <Layout wide>
+          <Layout wide ads>
             <HostConsole />
           </Layout>
         }
@@ -83,7 +104,7 @@ export function AppRoutes() {
       <Route
         path="/play/:code"
         element={
-          <Layout>
+          <Layout ads>
             <PlayScreen />
           </Layout>
         }

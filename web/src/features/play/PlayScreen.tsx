@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { useNoAds } from '../../app/adsScope'
 import { usePalette, usePaletteChoice } from '../../app/palettes'
 import { seats } from '../../storage/sessions'
 import { normalizeCode } from '../game/codes'
@@ -102,6 +103,8 @@ export function PlayScreen() {
   useEffect(() => {
     if (removed || gone || ended) seats.forget(code)
   }, [removed, gone, ended, code])
+  // Dead ends (not in this game, removed, ended, still loading) show no ads (ADR 0012).
+  useNoAds(!me || removed || gone || ended || !game.snapshot)
 
   if (!me) {
     return (

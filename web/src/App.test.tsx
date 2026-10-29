@@ -1,5 +1,5 @@
 import userEvent from '@testing-library/user-event'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AppRoutes } from './App'
@@ -21,7 +21,7 @@ describe('the landing page', () => {
     renderAt('/')
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Bingo for a room full of phones.' }),
+      screen.getByRole('heading', { level: 1, name: 'Bingo that keeps everyone in sync.' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Host a game' })).toHaveAttribute('href', '/host/new')
     expect(screen.getByRole('link', { name: 'Join a game' })).toHaveAttribute('href', '/join')
@@ -52,6 +52,75 @@ describe('the landing page', () => {
       'right',
       'top',
     ])
+  })
+})
+
+describe('where ads may appear (ADR 0012)', () => {
+  const slots = () => screen.queryAllByRole('complementary', { name: 'Advertisement' })
+
+  it.each(['/', '/how-to-play', '/faq'])('pages with content have ad slots: %s', (path) => {
+    renderAt(path)
+
+    expect(slots()).toHaveLength(4)
+  })
+
+  it.each([
+    '/join',
+    '/join/9ve4shp3k7mwa2qx',
+    '/host/new',
+    '/host/9ve4shp3k7mwa2qx/set',
+    '/terms',
+    '/privacy',
+    '/pair/k7m2qx',
+    '/no-such-page',
+  ])('forms, legal pages and dead ends have none: %s', (path) => {
+    renderAt(path)
+
+    expect(slots()).toHaveLength(0)
+  })
+
+  it('a game screen shows none while it is a dead end, such as a game this device never joined', () => {
+    renderAt('/play/9ve4shp3k7mwa2qx')
+
+    expect(screen.getByText('You have not joined this game on this device.')).toBeInTheDocument()
+    expect(slots()).toHaveLength(0)
+  })
+})
+
+describe('the guides', () => {
+  it('How to play covers players and hosts, with the patterns drawn and the glossary', () => {
+    renderAt('/how-to-play')
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'How to play SyncBingo' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'For players' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'For hosts' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Four Corners' })).toBeInTheDocument()
+    expect(screen.getByText('Waiting room')).toBeInTheDocument()
+    expect(document.title).toBe('How to play SyncBingo · SyncBingo')
+  })
+
+  it('the FAQ answers whether the host can play', () => {
+    renderAt('/faq')
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Can the host play too?' }),
+    ).toBeInTheDocument()
+  })
+
+  it('the landing page explains SyncBingo and its words, and every page links the guides', () => {
+    renderAt('/')
+
+    expect(screen.getByRole('heading', { name: 'What is SyncBingo?' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Words SyncBingo uses' })).toBeInTheDocument()
+    expect(screen.getByText(/The host doesn’t play/)).toBeInTheDocument()
+    const footer = screen.getByRole('contentinfo')
+    expect(within(footer).getByRole('link', { name: 'How to play' })).toHaveAttribute(
+      'href',
+      '/how-to-play',
+    )
+    expect(within(footer).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq')
   })
 })
 

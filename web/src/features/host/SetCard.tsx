@@ -108,9 +108,7 @@ export function NumbersCard({
     >
       <p className="text-xs font-bold tracking-widest text-ink-muted uppercase">Balls</p>
       <p className="font-display text-lg font-bold">Numbers 1–{balls}</p>
-      <p className="text-sm text-ink-muted">
-        Or play with your own words, sums or clues: a custom set.
-      </p>
+      <p className="text-sm text-ink-muted">Or play with your own words or clues: a custom set.</p>
       <Link
         to={`/host/${code}/set`}
         className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-accent-soft px-5 font-bold text-accent-text hover:bg-accent-soft/70 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-accent"

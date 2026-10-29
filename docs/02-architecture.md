@@ -138,11 +138,12 @@ web/src/
 │  ├─ play/        # join page, play screen, card, mark styles, rules panel
 │  ├─ display/     # display view, /tv pairing, /pair
 │  ├─ sets/        # the set editor and its pure logic (draft.ts, setFile.ts, text.ts)
+│  ├─ guide/       # How to play, FAQ and the glossary (content pages, ADR 0012)
 │  └─ legal/       # Terms and Privacy
 └─ test/           # Vitest setup, fixtures, fake API
 ```
 
-Routes: `/`, `/host/new`, `/host/:code`, `/host/:code/set` (set editor), `/join` (manual), `/join/:code` (QR target), `/play/:code`, `/display/:code`, `/tv`, `/pair/:pairingCode`, `/terms`, `/privacy`, and a not-found page for anything else.
+Routes: `/`, `/how-to-play`, `/faq`, `/host/new`, `/host/:code`, `/host/:code/set` (set editor), `/join` (manual), `/join/:code` (QR target), `/play/:code`, `/display/:code`, `/tv`, `/pair/:pairingCode`, `/terms`, `/privacy`, and a not-found page for anything else.
 
 State rules: each screen holds one snapshot (`useGame`), loaded from `GET /snapshot` and kept current by `applyEvent`; events it can't absorb, a gap in `seq` or a reconnect trigger a refetch. A command's reply may patch the snapshot at once (a mark or Undo returns the card's marks); there is no optimistic UI beyond that.
 

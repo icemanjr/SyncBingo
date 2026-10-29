@@ -38,7 +38,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'showBallToPlayers',
         label: 'Show the called ball',
-        help: 'The latest ball appears on phones.',
+        help: 'The latest ball appears on players’ devices.',
       },
       {
         key: 'highlightMatches',
@@ -113,7 +113,7 @@ export const settingSections: { title: string; settings: SettingInfo[] }[] = [
       {
         key: 'theme',
         label: 'Color theme',
-        help: 'For everyone’s screens and the display. Players can pick their own on their phone.',
+        help: 'For everyone’s screens and the display. Players can pick their own on their device.',
         choices: palettes.map((p) => ({ value: p.value, label: p.label })),
       },
     ],

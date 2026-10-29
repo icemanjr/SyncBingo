@@ -59,7 +59,7 @@ export function JoinStage({
           </div>
         </div>
         <p className="text-lg leading-relaxed text-[#d9d3ea]">
-          Players scan the QR with their phone camera, or type the game code at{' '}
+          Players scan the QR with their device’s camera, or type the game code at{' '}
           {window.location.host}, then the password you give them.
           <br />
           <br />

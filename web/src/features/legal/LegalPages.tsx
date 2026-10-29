@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Article } from '../../app/Article'
 import { adConfig } from '../../app/ads'
 import { site } from '../../site'
 
@@ -35,23 +35,21 @@ function LegalPage({
   children: ReactNode
 }) {
   return (
-    <article className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-6 leading-relaxed [&_h2]:mt-3 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_li]:ml-5 [&_li]:list-disc">
-      <p
-        role="note"
-        className="rounded-2xl border-2 border-notice-line bg-notice p-3 font-semibold text-notice-ink"
-      >
-        Draft, pending legal review. This page describes how SyncBingo works today; it is not yet
-        final.
-      </p>
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">{title}</h1>
+    <Article
+      title={title}
+      before={
+        <p
+          role="note"
+          className="rounded-2xl border-2 border-notice-line bg-notice p-3 font-semibold text-notice-ink"
+        >
+          Draft, pending legal review. This page describes how SyncBingo works today; it is not yet
+          final.
+        </p>
+      }
+    >
       <p className="text-sm text-ink-muted">Last updated {updated}</p>
       {children}
-      <p>
-        <Link to="/" className="font-semibold text-accent-text underline">
-          Back to SyncBingo
-        </Link>
-      </p>
-    </article>
+    </Article>
   )
 }
 
@@ -76,8 +74,8 @@ export function PrivacyPage() {
         </li>
         <li>An optional note the host types to show on the TV with the join QR.</li>
         <li>
-          Random tokens that let each phone, the host and any TV get back into the game after a
-          reload; the server keeps only their hashes.
+          Random tokens that let each player’s device, the host and any TV get back into the game
+          after a reload; the server keeps only their hashes.
         </li>
       </ul>
       <p>
@@ -102,9 +100,9 @@ export function PrivacyPage() {
 
       <h2>On your device</h2>
       <p>
-        Your browser keeps your game token (so a sleeping phone can rejoin), your light or dark
-        choice and how you like your marks to look. A TV keeps its display token only until its tab
-        is closed. SyncBingo uses no cookies, no analytics and no tracking
+        Your browser keeps your game token (so a device that went to sleep can rejoin), your light
+        or dark choice and how you like your marks to look. A TV keeps its display token only until
+        its tab is closed. SyncBingo uses no cookies, no analytics and no tracking
         {ads ? '; the ads come from Google, which works differently (see Ads below).' : '.'}
       </p>
 
@@ -186,7 +184,7 @@ export function TermsPage() {
 
       <h2>Playing fair and kind</h2>
       <ul>
-        <li>Choose names that are fine for everyone in the room; offensive names are refused.</li>
+        <li>Choose names that are fine for everyone playing; offensive names are refused.</li>
         <li>
           Don&apos;t try to break, overload or misuse the service, or other people&apos;s games.
         </li>

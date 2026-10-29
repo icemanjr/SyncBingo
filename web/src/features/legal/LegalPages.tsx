@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Article } from '../../app/Article'
 import { adConfig } from '../../app/ads'
 import { site } from '../../site'
 
@@ -35,23 +35,21 @@ function LegalPage({
   children: ReactNode
 }) {
   return (
-    <article className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-6 leading-relaxed [&_h2]:mt-3 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_li]:ml-5 [&_li]:list-disc">
-      <p
-        role="note"
-        className="rounded-2xl border-2 border-notice-line bg-notice p-3 font-semibold text-notice-ink"
-      >
-        Draft, pending legal review. This page describes how SyncBingo works today; it is not yet
-        final.
-      </p>
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">{title}</h1>
+    <Article
+      title={title}
+      before={
+        <p
+          role="note"
+          className="rounded-2xl border-2 border-notice-line bg-notice p-3 font-semibold text-notice-ink"
+        >
+          Draft, pending legal review. This page describes how SyncBingo works today; it is not yet
+          final.
+        </p>
+      }
+    >
       <p className="text-sm text-ink-muted">Last updated {updated}</p>
       {children}
-      <p>
-        <Link to="/" className="font-semibold text-accent-text underline">
-          Back to SyncBingo
-        </Link>
-      </p>
-    </article>
+    </Article>
   )
 }
 

@@ -34,3 +34,10 @@ Networks considered:
 - **Testing:**
   - Unit tests check the switches (placeholders by default, and with a missing id), the child-treatment tag on every unit, that only the visible pair of slots asks for ads, the fixed sizes, no ads on the TV, the consent link, the Privacy text and `ads.txt`.
   - The end-to-end suite keeps running with placeholders, so it never calls Google.
+
+## Amendment (2026-10-28): AdSense's first review
+AdSense refused the site for "Google-served ads on screens without publisher-content": its reviewer saw a short landing page and forms, since every game screen needs a code. The same policy forbids ads on screens used for alerts, navigation or behavioral purposes, and on dead ends ([Google's policy](https://support.google.com/publisherpolicies/answer/11112688)). The owner chose:
+- **Content:** the landing page gains **What is SyncBingo?** and a glossary of how SyncBingo uses its terms; new pages **How to play** (players and hosts) and **FAQ**, linked from every footer. Written to match how the game really works.
+- **Ads only where there is content:** the landing page, the guides and the game screens (the play screen and the host console: a game is its own content). None on the join and create forms, the set editor, Terms, Privacy, pairing or not found. A game screen drops its ads while it shows a dead end (game ended, removed, loading, not joined), through `useNoAds`.
+- Then request a new review.
+

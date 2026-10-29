@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNoAds } from '../../app/adsScope'
 import { usePalette } from '../../app/palettes'
 import { Link, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
@@ -55,6 +56,8 @@ export function HostConsole() {
   useEffect(() => {
     if (gone || ended) seats.forget(code)
   }, [gone, ended, code])
+  // Dead ends (not hosting, ended, still loading) show no ads (ADR 0012).
+  useNoAds(!token || gone || ended || !game.snapshot)
 
   if (!token) {
     return (

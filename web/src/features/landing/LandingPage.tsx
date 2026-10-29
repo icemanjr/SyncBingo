@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Glossary } from '../guide/Glossary'
 
 const steps = [
   ['Host a game', 'Pick a password, display the game code on this device or a TV.'],
@@ -68,6 +69,48 @@ export function LandingPage() {
             </p>
           </div>
         ))}
+      </section>
+
+      <section aria-labelledby="about" className="flex flex-col gap-3 px-1 leading-relaxed">
+        <h2 id="about" className="font-display text-2xl font-bold">
+          What is SyncBingo?
+        </h2>
+        <p>
+          SyncBingo is Bingo for a group in one room, played on the phones everyone already has. The
+          host runs the game from a laptop, tablet or phone. Everyone else scans a QR code, types
+          the game’s password and a name, and gets a card of their own. Balls are drawn on screen
+          and reach every phone at once, and the host can put the call board on a TV so the whole
+          room can follow.
+        </p>
+        <p>
+          It suits a family party with small children, a classroom, an office get-together or a
+          group of adults playing for bragging rights. The host decides how forgiving it is: marking
+          only called squares, auto-fill for missed balls and win celebrations for the youngest, or
+          no help at all for players who want to concentrate. Teachers can swap the numbers for
+          their own words, sums or clues.
+        </p>
+        <p>
+          There’s nothing to install and no accounts. A game keeps only the names people type and
+          their cards, and everything is deleted a few minutes after the host ends it.
+        </p>
+        <p className="flex flex-wrap gap-x-4 gap-y-2 font-semibold">
+          <Link to="/how-to-play" className="text-accent-text underline">
+            How to play
+          </Link>
+          <Link to="/faq" className="text-accent-text underline">
+            Questions and answers
+          </Link>
+        </p>
+      </section>
+
+      <section aria-labelledby="words" className="flex flex-col gap-3 px-1 leading-relaxed">
+        <h2 id="words" className="font-display text-2xl font-bold">
+          Words SyncBingo uses
+        </h2>
+        <p className="text-ink-muted">
+          Some of these mean something different in other games, so here is how SyncBingo uses them.
+        </p>
+        <Glossary />
       </section>
 
       {/* Build-time switch: off on the live Lean site, on for the Full portfolio build (ADR 0011). Written

@@ -103,7 +103,7 @@ Options holds every rule: the settings and the win patterns. Changes there are a
 - **Card tools** sit in one row of icon buttons with short labels: **Call board** (when shown), **Undo** (during a round), **My marks** (FR-51) and **More**, which holds **Leave game** (FR-53).
 - **Auto-fill and New card,** when the host allows them, sit just below.
 - **Join page:** the form is on one card. Arriving by QR shows **Game found from the QR code** with the code and a **Change** button instead of an empty code field. Under the name: "Everyone sees this name when you win." The button reads **Get my card**.
-- **Landing page:** a dark hero ("Bingo for a room full of phones.") with **Join a game** (amber, most visitors) and **Host a game**, then three "how it works" steps.
+- **Landing page:** a dark hero ("Bingo that keeps everyone in sync.", owner 2026-10-28, a play on the name) with **Join a game** (amber, most visitors) and **Host a game**, then three "how it works" steps.
 
 ### Visual design (2026-10-15)
 
@@ -347,7 +347,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 
 - American spelling (owner, 2026-10-28): color, center, canceled, -ize. British English comes later as its own translation.
 - **Error messages don't use contractions** (owner, 2026-10-28): every refusal from the server and every error the web app shows reads "cannot", "is not", "does not", which feels more formal for an error. Everything else (help, notices, rules, buttons) may use them.
-- **Say "device"** (owner, 2026-10-28): text never assumes what someone is using. "These choices stay on your device", not "on your phone"; a phone, tablet or laptop may be named only as an example ("from any device, such as a laptop"). The landing headline, "Bingo for a room full of phones", describes the room, not the reader.
+- **Say "device"** (owner, 2026-10-28): text never assumes what someone is using. "These choices stay on your device", not "on your phone"; a phone, tablet or laptop may be named only as an example ("from any device, such as a laptop").
 - Server messages are written to be shown to people as they are (docs/05 §5); the game is a "game" to people, never a "session".
 - Never call SyncBingo "Kahoot-style"; it is phone-first, drop-in party Bingo.
 

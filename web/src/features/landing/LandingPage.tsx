@@ -32,7 +32,7 @@ export function LandingPage() {
         <Ball text="N 37" className="-top-3 right-12 h-24 w-24 bg-ball text-2xl text-ball-ink" />
         <Ball text="G 52" className="top-14 -right-4 h-16 w-16 bg-letter-g text-lg text-white" />
         <h1 className="font-display text-4xl leading-none font-extrabold tracking-tight">
-          Bingo for a room full of phones.
+          Bingo that keeps everyone in sync.
         </h1>
         <p className="mt-3 mb-6 text-base leading-relaxed text-[#d9d3ea]">
           One person hosts. Everyone else scans a code and plays on their own device. No app, no

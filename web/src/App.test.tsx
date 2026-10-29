@@ -21,7 +21,7 @@ describe('the landing page', () => {
     renderAt('/')
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Bingo for a room full of phones.' }),
+      screen.getByRole('heading', { level: 1, name: 'Bingo that keeps everyone in sync.' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Host a game' })).toHaveAttribute('href', '/host/new')
     expect(screen.getByRole('link', { name: 'Join a game' })).toHaveAttribute('href', '/join')

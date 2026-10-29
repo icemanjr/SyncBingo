@@ -12,9 +12,10 @@ export function HowToPlayPage() {
   return (
     <Article title="How to play SyncBingo">
       <p>
-        SyncBingo is Bingo for a group in one room, played on the devices everyone already has. One
-        person hosts and draws the balls; everyone else plays on their own device. This guide covers
-        both sides. For quick answers, see the <Link to="/faq">FAQ</Link>.
+        SyncBingo is Bingo for any group, played on the devices everyone already has, in the same
+        room or apart on a voice or video call. One person hosts and draws the balls; everyone else
+        plays on their own device. This guide covers both sides. For quick answers, see the{' '}
+        <Link to="/faq">FAQ</Link>.
       </p>
 
       <h2>For players</h2>
@@ -34,6 +35,10 @@ export function HowToPlayPage() {
           Press <strong>Get my card</strong>. If a round is already being played, you wait in the{' '}
           <strong>waiting room</strong> and get your card as soon as the round ends. Meanwhile you
           can choose how your marks look and follow the call board.
+        </li>
+        <li>
+          Playing from somewhere else? Ask the host for the game code and password (for example in
+          the call’s chat), then join as above by typing the code.
         </li>
       </ul>
 
@@ -124,9 +129,10 @@ export function HowToPlayPage() {
           code.
         </li>
         <li>
-          The lobby shows a QR code and the game code. Put it on a screen people can see, or read
-          the code out. Add a <strong>password note</strong> to show the password (or a hint) under
-          the QR code on the TV.
+          The lobby shows a QR code and the game code. Put it on a screen people can see, read the
+          code out, or on a video call share your screen or paste the code in the chat. Add a{' '}
+          <strong>password note</strong> to show the password (or a hint) under the QR code on the
+          TV.
         </li>
         <li>
           Players appear in the list as they join, up to 100. You can see any player’s card, and

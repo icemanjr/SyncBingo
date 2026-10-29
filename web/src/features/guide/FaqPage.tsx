@@ -15,11 +15,15 @@ const questions: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'How many people can play?',
-    a: 'Up to 100 players in one game, plus as many TVs or projectors as the room needs (up to 10).',
+    a: 'Up to 100 players in one game, plus as many TVs or projectors as you need (up to 10).',
   },
   {
     q: 'What does the host need?',
-    a: 'Any device with a browser. A larger screen, such as a laptop’s, works best, since it holds the call board, the players and the Bingo calls side by side. A TV or projector helps the room follow along, but it isn’t required.',
+    a: 'Any device with a browser. A larger screen, such as a laptop’s, works best, since it holds the call board, the players and the Bingo calls side by side. A TV or projector, or a shared screen on a video call, helps everyone follow along, but it isn’t required.',
+  },
+  {
+    q: 'Do players have to be in the same room?',
+    a: 'No. Players only need the game code, the password and a way to hear the host, so a group on a voice or video call can play too. The host can share the code and password in the call’s chat, and share their screen to show the call board.',
   },
   {
     q: 'Can the host play too?',

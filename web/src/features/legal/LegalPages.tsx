@@ -184,7 +184,7 @@ export function TermsPage() {
 
       <h2>Playing fair and kind</h2>
       <ul>
-        <li>Choose names that are fine for everyone in the room; offensive names are refused.</li>
+        <li>Choose names that are fine for everyone playing; offensive names are refused.</li>
         <li>
           Don&apos;t try to break, overload or misuse the service, or other people&apos;s games.
         </li>

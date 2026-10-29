@@ -23,7 +23,7 @@ const questions: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Do players have to be in the same room?',
-    a: 'No. Players only need the game code, the password and a way to hear the host, so a group on a voice or video call can play too. The host can share the code and password in the call’s chat, and share their screen to show the call board.',
+    a: 'No. Players only need the game code and the password, which the host can share in person, on a call or in a message. The balls appear on every player’s device (unless the host turns that off), so a group can play from anywhere. On a video call, the host can also share their screen to show the call board.',
   },
   {
     q: 'Can the host play too?',

@@ -13,8 +13,8 @@ export function HowToPlayPage() {
     <Article title="How to play SyncBingo">
       <p>
         SyncBingo is Bingo for any group, played on the devices everyone already has, in the same
-        room or apart on a voice or video call. One person hosts and draws the balls; everyone else
-        plays on their own device. This guide covers both sides. For quick answers, see the{' '}
+        room or anywhere else. One person hosts and draws the balls; everyone else plays on their
+        own device. This guide covers both sides. For quick answers, see the{' '}
         <Link to="/faq">FAQ</Link>.
       </p>
 

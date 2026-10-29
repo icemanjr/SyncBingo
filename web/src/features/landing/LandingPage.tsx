@@ -77,11 +77,12 @@ export function LandingPage() {
         </h2>
         <p>
           SyncBingo is Bingo for any group, played on the devices everyone already has. Players can
-          be in the same room or apart on a voice or video call: all they need is to hear the host.
-          The host runs the game from any device, such as a laptop, tablet or phone. Everyone else
-          scans a QR code or types the game code, then the game’s password and a name, and gets a
-          card of their own. Balls are drawn on screen and reach every device at once, and the host
-          can put the call board on a TV, or share their screen on the call, so everyone can follow.
+          be in the same room or anywhere else: all they need is the game code and password from the
+          host, in person, on a call or in a message. The host runs the game from any device, such
+          as a laptop, tablet or phone. Everyone else scans a QR code or types the game code, then
+          the game’s password and a name, and gets a card of their own. Balls are drawn on screen
+          and reach every device at once, and the host can put the call board on a TV, or share
+          their screen on a video call, so everyone can follow.
         </p>
         <p>
           It suits a family party with small children, a classroom, an office get-together or a

@@ -89,7 +89,7 @@ export function LandingPage() {
           group of adults playing for bragging rights. The host decides how forgiving it is: marking
           only called squares, auto-fill for missed balls and win celebrations for the youngest, or
           no help at all for players who want to concentrate. Teachers can swap the numbers for
-          their own words, sums or clues.
+          their own words or clues.
         </p>
         <p>
           There’s nothing to install and no accounts. A game keeps only the names people type and

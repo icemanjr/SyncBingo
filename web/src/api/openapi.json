@@ -7,7 +7,9 @@
   "paths": {
     "/api/sessions": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "CreateGame",
         "requestBody": {
           "content": {
@@ -85,7 +87,9 @@
     },
     "/api/sessions/{code}/join-info": {
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "GetJoinInfo",
         "parameters": [
           {
@@ -163,7 +167,9 @@
     },
     "/api/sessions/{code}/join": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "JoinGame",
         "parameters": [
           {
@@ -251,7 +257,9 @@
     },
     "/api/tv/pairings": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "StartTvPairing",
         "responses": {
           "400": {
@@ -319,7 +327,9 @@
     },
     "/api/sessions/{code}/snapshot": {
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "GetSnapshot",
         "parameters": [
           {
@@ -417,7 +427,9 @@
     },
     "/api/sessions/{code}/participants/{id}/card": {
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "InspectCard",
         "parameters": [
           {
@@ -523,7 +535,9 @@
     },
     "/api/sessions/{code}/leaderboard": {
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "GetLeaderboard",
         "parameters": [
           {
@@ -621,7 +635,9 @@
     },
     "/api/sessions/{code}/marks": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "Mark",
         "parameters": [
           {
@@ -729,7 +745,9 @@
     },
     "/api/sessions/{code}/cards/{cardId}/undo": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "Undo",
         "parameters": [
           {
@@ -836,7 +854,9 @@
     },
     "/api/sessions/{code}/claims": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ClaimBingo",
         "parameters": [
           {
@@ -944,7 +964,9 @@
     },
     "/api/sessions/{code}/me": {
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "LeaveGame",
         "parameters": [
           {
@@ -1035,7 +1057,9 @@
     },
     "/api/sessions/{code}/me/auto-fill": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "SetAutoFill",
         "parameters": [
           {
@@ -1143,7 +1167,9 @@
     },
     "/api/sessions/{code}/cards/redraw": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "RedrawCard",
         "parameters": [
           {
@@ -1251,7 +1277,9 @@
     },
     "/api/sessions/{code}/content": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "UseContent",
         "parameters": [
           {
@@ -1357,7 +1385,9 @@
         }
       },
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "UseNumbers",
         "parameters": [
           {
@@ -1446,7 +1476,9 @@
         }
       },
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "DownloadContent",
         "parameters": [
           {
@@ -1544,7 +1576,9 @@
     },
     "/api/sessions/{code}/content/sharing": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "SetContentSharing",
         "parameters": [
           {
@@ -1645,7 +1679,9 @@
     },
     "/api/sessions/{code}/rules": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ApplyRules",
         "parameters": [
           {
@@ -1753,7 +1789,9 @@
     },
     "/api/sessions/{code}/patterns": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "AddPattern",
         "parameters": [
           {
@@ -1854,7 +1892,9 @@
     },
     "/api/sessions/{code}/patterns/{id}": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "RenamePattern",
         "parameters": [
           {
@@ -1963,7 +2003,9 @@
     },
     "/api/sessions/{code}/rounds/countdown": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "StartCountdown",
         "parameters": [
           {
@@ -2069,7 +2111,9 @@
         }
       },
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "CancelCountdown",
         "parameters": [
           {
@@ -2160,7 +2204,9 @@
     },
     "/api/sessions/{code}/cards/clear": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ClearCards",
         "parameters": [
           {
@@ -2261,7 +2307,9 @@
     },
     "/api/sessions/{code}/rounds/current/end": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "EndRound",
         "parameters": [
           {
@@ -2352,7 +2400,9 @@
     },
     "/api/sessions/{code}/auto": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "StartAutoMode",
         "parameters": [
           {
@@ -2450,7 +2500,9 @@
     },
     "/api/sessions/{code}/pause": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "Pause",
         "parameters": [
           {
@@ -2541,7 +2593,9 @@
     },
     "/api/sessions/{code}/balls": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "GrabBall",
         "parameters": [
           {
@@ -2639,7 +2693,9 @@
     },
     "/api/sessions/{code}/wins": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "AwardWin",
         "parameters": [
           {
@@ -2747,7 +2803,9 @@
     },
     "/api/sessions/{code}/claims/{claimId}/dismiss": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "DismissClaim",
         "parameters": [
           {
@@ -2847,7 +2905,9 @@
     },
     "/api/sessions/{code}/participants/{id}": {
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "RemovePlayer",
         "parameters": [
           {
@@ -2946,7 +3006,9 @@
     },
     "/api/sessions/{code}/leaderboard/show": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ShowLeaderboard",
         "parameters": [
           {
@@ -3047,7 +3109,9 @@
     },
     "/api/sessions/{code}/end": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "EndGame",
         "parameters": [
           {
@@ -3138,7 +3202,9 @@
     },
     "/api/sessions/{code}/display-links": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "CreateDisplayLink",
         "parameters": [
           {
@@ -3234,7 +3300,9 @@
         }
       },
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "RevokeDisplayLinks",
         "parameters": [
           {
@@ -3325,7 +3393,9 @@
     },
     "/api/sessions/{code}/displays": {
       "get": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ListDisplays",
         "parameters": [
           {
@@ -3426,7 +3496,9 @@
     },
     "/api/sessions/{code}/displays/{id}": {
       "delete": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "DisconnectDisplay",
         "parameters": [
           {
@@ -3525,7 +3597,9 @@
     },
     "/api/sessions/{code}/display-pairings": {
       "post": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "ApproveTvPairing",
         "parameters": [
           {
@@ -3626,7 +3700,9 @@
     },
     "/api/sessions/{code}/board-side": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "SetBoardSide",
         "parameters": [
           {
@@ -3727,7 +3803,9 @@
     },
     "/api/sessions/{code}/join-note": {
       "put": {
-        "tags": ["SyncBingo.Api"],
+        "tags": [
+          "SyncBingo.Api"
+        ],
         "operationId": "SetJoinNote",
         "parameters": [
           {
@@ -3830,7 +3908,9 @@
   "components": {
     "schemas": {
       "AutoFillBody": {
-        "required": ["on"],
+        "required": [
+          "on"
+        ],
         "type": "object",
         "properties": {
           "on": {
@@ -3839,28 +3919,43 @@
         }
       },
       "AwardRequest": {
-        "required": ["participantId"],
+        "required": [
+          "participantId"
+        ],
         "type": "object",
         "properties": {
           "participantId": {
             "type": "string"
           },
           "cardId": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "wins": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "claimId": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           }
         }
       },
       "BallBody": {
-        "required": ["number", "letter", "sequence"],
+        "required": [
+          "number",
+          "letter",
+          "sequence"
+        ],
         "type": "object",
         "properties": {
           "number": {
@@ -3875,15 +3970,27 @@
             "format": "int32"
           },
           "call": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "square": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "BallCall": {
-        "required": ["sequence", "number", "letter", "calledAt", "source"],
+        "required": [
+          "sequence",
+          "number",
+          "letter",
+          "calledAt",
+          "source"
+        ],
         "type": "object",
         "properties": {
           "sequence": {
@@ -3905,15 +4012,24 @@
             "$ref": "#/components/schemas/DrawSource"
           },
           "call": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "square": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "BoardGroup": {
-        "required": ["label", "balls"],
+        "required": [
+          "label",
+          "balls"
+        ],
         "type": "object",
         "properties": {
           "label": {
@@ -3929,11 +4045,16 @@
         }
       },
       "BoardSide": {
-        "enum": ["Ball", "Square"],
+        "enum": [
+          "Ball",
+          "Square"
+        ],
         "default": "Ball"
       },
       "BoardSideRequest": {
-        "required": ["side"],
+        "required": [
+          "side"
+        ],
         "type": "object",
         "properties": {
           "side": {
@@ -3942,7 +4063,10 @@
         }
       },
       "CardBody": {
-        "required": ["cardId", "cells"],
+        "required": [
+          "cardId",
+          "cells"
+        ],
         "type": "object",
         "properties": {
           "cardId": {
@@ -3959,7 +4083,9 @@
         }
       },
       "CardRequest": {
-        "required": ["cardId"],
+        "required": [
+          "cardId"
+        ],
         "type": "object",
         "properties": {
           "cardId": {
@@ -3969,7 +4095,11 @@
         }
       },
       "CardShape": {
-        "required": ["rows", "columns", "freeCell"],
+        "required": [
+          "rows",
+          "columns",
+          "freeCell"
+        ],
         "type": "object",
         "properties": {
           "rows": {
@@ -3981,16 +4111,28 @@
             "format": "int32"
           },
           "freeCell": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           }
         }
       },
       "CardSize": {
-        "enum": ["FiveByFive", "FourByFour", "ThreeByThree"]
+        "enum": [
+          "FiveByFive",
+          "FourByFour",
+          "ThreeByThree"
+        ]
       },
       "CardSizeView": {
-        "required": ["size", "rows", "columns", "patterns"],
+        "required": [
+          "size",
+          "rows",
+          "columns",
+          "patterns"
+        ],
         "type": "object",
         "properties": {
           "size": {
@@ -4013,7 +4155,11 @@
         }
       },
       "CardView": {
-        "required": ["cardId", "cells", "marks"],
+        "required": [
+          "cardId",
+          "cells",
+          "marks"
+        ],
         "type": "object",
         "properties": {
           "cardId": {
@@ -4032,7 +4178,10 @@
             "format": "uint32"
           },
           "faces": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
             }
@@ -4100,7 +4249,10 @@
             "default": false
           },
           "completed": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
             }
@@ -4111,7 +4263,9 @@
         }
       },
       "ClaimAccepted": {
-        "required": ["claimedAt"],
+        "required": [
+          "claimedAt"
+        ],
         "type": "object",
         "properties": {
           "claimedAt": {
@@ -4121,10 +4275,16 @@
         }
       },
       "ClaimStatus": {
-        "enum": ["Pending", "Awarded", "Dismissed"]
+        "enum": [
+          "Pending",
+          "Awarded",
+          "Dismissed"
+        ]
       },
       "ClearCardsRequest": {
-        "required": ["redrawCards"],
+        "required": [
+          "redrawCards"
+        ],
         "type": "object",
         "properties": {
           "redrawCards": {
@@ -4133,7 +4293,9 @@
         }
       },
       "ContentSharingRequest": {
-        "required": ["playersMayDownload"],
+        "required": [
+          "playersMayDownload"
+        ],
         "type": "object",
         "properties": {
           "playersMayDownload": {
@@ -4142,7 +4304,13 @@
         }
       },
       "ContentView": {
-        "required": ["name", "groupItems", "board", "squares", "labels"],
+        "required": [
+          "name",
+          "groupItems",
+          "board",
+          "squares",
+          "labels"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -4179,7 +4347,9 @@
         }
       },
       "CountdownRequest": {
-        "required": ["startInAuto"],
+        "required": [
+          "startInAuto"
+        ],
         "type": "object",
         "properties": {
           "startInAuto": {
@@ -4188,7 +4358,10 @@
         }
       },
       "CountdownStarted": {
-        "required": ["round", "endsAt"],
+        "required": [
+          "round",
+          "endsAt"
+        ],
         "type": "object",
         "properties": {
           "round": {
@@ -4202,7 +4375,9 @@
         }
       },
       "CreateGameRequest": {
-        "required": ["password"],
+        "required": [
+          "password"
+        ],
         "type": "object",
         "properties": {
           "password": {
@@ -4219,15 +4394,24 @@
             ]
           },
           "winCondition": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "DisplayKind": {
-        "enum": ["Link", "Tv"]
+        "enum": [
+          "Link",
+          "Tv"
+        ]
       },
       "DisplayLinkCreated": {
-        "required": ["displayId", "displayUrl"],
+        "required": [
+          "displayId",
+          "displayUrl"
+        ],
         "type": "object",
         "properties": {
           "displayId": {
@@ -4240,7 +4424,11 @@
         }
       },
       "DisplayRecord": {
-        "required": ["displayId", "kind", "createdAt"],
+        "required": [
+          "displayId",
+          "kind",
+          "createdAt"
+        ],
         "type": "object",
         "properties": {
           "displayId": {
@@ -4256,13 +4444,25 @@
         }
       },
       "DrawSource": {
-        "enum": ["Manual", "Auto"]
+        "enum": [
+          "Manual",
+          "Auto"
+        ]
       },
       "FreeSpace": {
-        "enum": ["AlwaysMarked", "Earned", "None"]
+        "enum": [
+          "AlwaysMarked",
+          "Earned",
+          "None"
+        ]
       },
       "GameCreated": {
-        "required": ["code", "joinUrl", "hostToken", "snapshot"],
+        "required": [
+          "code",
+          "joinUrl",
+          "hostToken",
+          "snapshot"
+        ],
         "type": "object",
         "properties": {
           "code": {
@@ -4321,7 +4521,10 @@
             "format": "int32"
           },
           "countdownEndsAt": {
-            "type": ["null", "string"],
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "date-time"
           },
           "winCondition": {
@@ -4358,7 +4561,10 @@
             }
           },
           "calls": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/BallCall"
             }
@@ -4368,14 +4574,20 @@
             "format": "int32"
           },
           "nextBallFrom": {
-            "type": ["null", "string"],
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "date-time"
           },
           "settings": {
             "$ref": "#/components/schemas/VisibleSettings"
           },
           "leaderboard": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/LeaderboardEntry"
             }
@@ -4389,7 +4601,10 @@
             "format": "int64"
           },
           "joinNote": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "leaderboardVisible": {
             "type": "boolean"
@@ -4407,7 +4622,12 @@
         }
       },
       "HostBody": {
-        "required": ["settings", "participants", "pendingClaims", "rounds"],
+        "required": [
+          "settings",
+          "participants",
+          "pendingClaims",
+          "rounds"
+        ],
         "type": "object",
         "properties": {
           "settings": {
@@ -4434,7 +4654,11 @@
         }
       },
       "Joined": {
-        "required": ["participantId", "token", "snapshot"],
+        "required": [
+          "participantId",
+          "token",
+          "snapshot"
+        ],
         "type": "object",
         "properties": {
           "participantId": {
@@ -4449,7 +4673,10 @@
         }
       },
       "JoinInfo": {
-        "required": ["roundInProgress", "round"],
+        "required": [
+          "roundInProgress",
+          "round"
+        ],
         "type": "object",
         "properties": {
           "roundInProgress": {
@@ -4462,16 +4689,24 @@
         }
       },
       "JoinNoteRequest": {
-        "required": ["note"],
+        "required": [
+          "note"
+        ],
         "type": "object",
         "properties": {
           "note": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "JoinRequest": {
-        "required": ["password", "name"],
+        "required": [
+          "password",
+          "name"
+        ],
         "type": "object",
         "properties": {
           "password": {
@@ -4482,9 +4717,13 @@
           }
         }
       },
-      "JsonElement": {},
+      "JsonElement": { },
       "LeaderboardEntry": {
-        "required": ["participantId", "name", "wins"],
+        "required": [
+          "participantId",
+          "name",
+          "wins"
+        ],
         "type": "object",
         "properties": {
           "participantId": {
@@ -4500,7 +4739,10 @@
         }
       },
       "LeaderboardView": {
-        "required": ["entries", "rounds"],
+        "required": [
+          "entries",
+          "rounds"
+        ],
         "type": "object",
         "properties": {
           "entries": {
@@ -4518,7 +4760,11 @@
         }
       },
       "MarkRequest": {
-        "required": ["cardId", "cell", "marked"],
+        "required": [
+          "cardId",
+          "cell",
+          "marked"
+        ],
         "type": "object",
         "properties": {
           "cardId": {
@@ -4535,7 +4781,9 @@
         }
       },
       "MarksBody": {
-        "required": ["marks"],
+        "required": [
+          "marks"
+        ],
         "type": "object",
         "properties": {
           "marks": {
@@ -4545,10 +4793,16 @@
         }
       },
       "MultipleWins": {
-        "enum": ["OncePerRound", "OncePerPattern", "EveryDeclaredWin"]
+        "enum": [
+          "OncePerRound",
+          "OncePerPattern",
+          "EveryDeclaredWin"
+        ]
       },
       "PairingApproval": {
-        "required": ["pairingCode"],
+        "required": [
+          "pairingCode"
+        ],
         "type": "object",
         "properties": {
           "pairingCode": {
@@ -4557,7 +4811,11 @@
         }
       },
       "PairingCreated": {
-        "required": ["pairingId", "pairingCode", "expiresAt"],
+        "required": [
+          "pairingId",
+          "pairingCode",
+          "expiresAt"
+        ],
         "type": "object",
         "properties": {
           "pairingId": {
@@ -4573,7 +4831,11 @@
         }
       },
       "ParticipantSummary": {
-        "required": ["participantId", "name", "joinedAt"],
+        "required": [
+          "participantId",
+          "name",
+          "joinedAt"
+        ],
         "type": "object",
         "properties": {
           "participantId": {
@@ -4593,7 +4855,9 @@
         }
       },
       "PatternNameRequest": {
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -4602,7 +4866,10 @@
         }
       },
       "PatternRequest": {
-        "required": ["name", "cells"],
+        "required": [
+          "name",
+          "cells"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -4618,7 +4885,13 @@
         }
       },
       "PatternView": {
-        "required": ["id", "name", "masks", "isLine", "announcedAs"],
+        "required": [
+          "id",
+          "name",
+          "masks",
+          "isLine",
+          "announcedAs"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4643,7 +4916,12 @@
         }
       },
       "PlayerView": {
-        "required": ["participantId", "name", "autoFillOn", "cards"],
+        "required": [
+          "participantId",
+          "name",
+          "autoFillOn",
+          "cards"
+        ],
         "type": "object",
         "properties": {
           "participantId": {
@@ -4668,7 +4946,11 @@
         }
       },
       "PresetView": {
-        "required": ["id", "name", "patternIds"],
+        "required": [
+          "id",
+          "name",
+          "patternIds"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4689,28 +4971,52 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "title": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "status": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "detail": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "instance": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "RedrawPolicy": {
-        "enum": ["HostControls", "ParticipantsMayRedraw"]
+        "enum": [
+          "HostControls",
+          "ParticipantsMayRedraw"
+        ]
       },
       "RoundSummary": {
-        "required": ["number", "startedAt", "endedAt", "winConditionsUsed", "wins"],
+        "required": [
+          "number",
+          "startedAt",
+          "endedAt",
+          "winConditionsUsed",
+          "wins"
+        ],
         "type": "object",
         "properties": {
           "number": {
@@ -4722,7 +5028,10 @@
             "format": "date-time"
           },
           "endedAt": {
-            "type": ["null", "string"],
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "date-time"
           },
           "winConditionsUsed": {
@@ -4738,7 +5047,10 @@
             }
           },
           "contentName": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4756,12 +5068,18 @@
             ]
           },
           "winCondition": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "RulesView": {
-        "required": ["settings", "winCondition"],
+        "required": [
+          "settings",
+          "winCondition"
+        ],
         "type": "object",
         "properties": {
           "settings": {
@@ -4773,29 +5091,53 @@
         }
       },
       "SessionState": {
-        "enum": ["BetweenRounds", "Starting", "Manual", "Auto", "Ended"]
+        "enum": [
+          "BetweenRounds",
+          "Starting",
+          "Manual",
+          "Auto",
+          "Ended"
+        ]
       },
       "SettingsBody": {
         "type": "object",
         "properties": {
           "autoCallIntervalSeconds": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "showBallToPlayers": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "highlightMatches": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "showCallBoard": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "autoFillAvailable": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "winHighlight": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "winDetection": {
             "oneOf": [
@@ -4818,10 +5160,16 @@
             ]
           },
           "freeMarking": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "requireMarksForClaims": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "unmarking": {
             "oneOf": [
@@ -4864,7 +5212,10 @@
             ]
           },
           "showRoundNumbers": {
-            "type": ["null", "boolean"]
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "multipleWins": {
             "oneOf": [
@@ -4879,7 +5230,11 @@
         }
       },
       "SnapshotBody": {
-        "required": ["game", "you", "host"],
+        "required": [
+          "game",
+          "you",
+          "host"
+        ],
         "type": "object",
         "properties": {
           "game": {
@@ -4908,14 +5263,26 @@
         }
       },
       "Theme": {
-        "enum": ["Classic", "Ocean", "Forest", "Halloween", "Winter"],
+        "enum": [
+          "Classic",
+          "Ocean",
+          "Forest",
+          "Halloween",
+          "Winter"
+        ],
         "default": "Classic"
       },
       "Unmarking": {
-        "enum": ["Off", "MismarksOnly", "Any"]
+        "enum": [
+          "Off",
+          "MismarksOnly",
+          "Any"
+        ]
       },
       "VisibleRequest": {
-        "required": ["visible"],
+        "required": [
+          "visible"
+        ],
         "type": "object",
         "properties": {
           "visible": {
@@ -4982,7 +5349,12 @@
         }
       },
       "WinDetection": {
-        "enum": ["Off", "AlertHost", "AlertHostAndPause", null]
+        "enum": [
+          "Off",
+          "AlertHost",
+          "AlertHostAndPause",
+          null
+        ]
       },
       "WinRecord": {
         "required": [
@@ -5026,12 +5398,19 @@
             "default": 1
           },
           "announced": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "WinSource": {
-        "enum": ["Claimed", "Detected", "Manual"]
+        "enum": [
+          "Claimed",
+          "Detected",
+          "Manual"
+        ]
       }
     }
   },

@@ -47,8 +47,8 @@ export function HowToPlayPage() {
         Your card is yours alone: no one else in the game has the same one. On a standard 5 × 5 card
         the columns are B, I, N, G and O, and each column holds numbers from its own range (B is 1
         to 15, I is 16 to 30, and so on). The middle square is the <strong>free space</strong>. The
-        host may use a smaller card (4 × 4 or 3 × 3) for a quicker game, or a custom set of words,
-        sums or clues instead of numbers.
+        host may use a smaller card (4 × 4 or 3 × 3) for a quicker game, or a custom set of words or
+        clues instead of numbers.
       </p>
 
       <h3>Marking</h3>
@@ -79,15 +79,18 @@ export function HowToPlayPage() {
 
       <h3>Calling Bingo</h3>
       <p>
-        When your card has the pattern for this round, press <strong>BINGO!</strong>. Your call goes
-        to the host straight away. The host checks it against the balls actually called (a wrong
-        mark never wins) and awards the win, and everyone’s screen shows “Ava had a Bingo!”. If you
-        miss a Bingo, the host may still spot it: SyncBingo can alert the host to every card that
-        has a winning line.
+        When your card has all squares marked for a winning pattern, press <strong>BINGO!</strong>.
+        Your call goes to the host straight away. The host checks it against the balls actually
+        called (a wrong mark never wins) and awards the win, and everyone’s screen shows “Ava had a
+        Bingo!”. If you miss a Bingo, the host may still spot it: SyncBingo can alert the host to
+        every card that has a winning line.
       </p>
 
       <h3>Patterns</h3>
-      <p>The host chooses what wins each round, and can pick several at once. The standard ones:</p>
+      <p>
+        The host chooses the current win conditions, and can pick several at once. The standard
+        ones:
+      </p>
       <div className="flex flex-wrap gap-5">
         {examplePatterns.map((pattern) => (
           <figure key={pattern.name} className="flex flex-col items-center gap-1">
@@ -129,10 +132,10 @@ export function HowToPlayPage() {
           code.
         </li>
         <li>
-          The lobby shows a QR code and the game code. Put it on a screen people can see, read the
-          code out, or on a video call share your screen or paste the code in the chat. Add a{' '}
-          <strong>password note</strong> to show the password (or a hint) under the QR code on the
-          TV.
+          The lobby shows a QR code and the game code. Connect a separate display (TV or projector)
+          from <strong>Display</strong>, read the code out, or on a video call share your screen or
+          paste the code in the chat. Add a <strong>password note</strong> to show the password (or
+          a hint) under the QR code on the TV.
         </li>
         <li>
           Players appear in the list as they join, up to 100. You can see any player’s card, and
@@ -146,9 +149,9 @@ export function HowToPlayPage() {
         Choose the patterns, the card size, the free space (always marked, earned or none), how
         forgiving marking is, whether players see the called ball, the call board and highlighted
         squares, whether auto-fill is offered, how many times a card can win in a round, and a color
-        theme for everyone’s screens. Settings that shape a whole round, such as the card size,
-        change only between rounds. For young children, keep marking to called squares and turn on
-        auto-fill; for adults who want to concentrate, turn the help off.
+        theme for everyone’s screens. Some settings can only be set between rounds, such as the card
+        size. For young children, keep marking to called squares and turn on auto-fill; for adults
+        who want to concentrate, turn the help off.
       </p>
 
       <h3>Running a round</h3>
@@ -200,11 +203,11 @@ export function HowToPlayPage() {
 
       <h3>Custom sets</h3>
       <p>
-        Instead of numbers, play with your own balls and squares: “2 + 5” is called and players mark
-        “7”, or a definition is called and they mark the word. In the lobby, choose{' '}
-        <strong>Use a custom set</strong> to build one (8 to 500 entries), optionally in groups, one
-        for each card column. Download the set as a file to use again in another game. It’s a
-        favorite for classrooms: vocabulary, times tables, science terms.
+        Instead of numbers, play with your own balls and squares: for example, “Moo” is called and
+        players mark “Cow”, or “Person, place, thing or idea” is called and they mark “Noun”. In the
+        lobby, choose <strong>Use a custom set</strong> to build one (8 to 500 entries), optionally
+        in groups, one for each card column. Download the set as a file to use again in another
+        game. It’s a favorite for classrooms: vocabulary, parts of speech, science terms.
       </p>
 
       <h3>Ending the game</h3>

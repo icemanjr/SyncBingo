@@ -57,7 +57,7 @@ const questions: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Can we play with words instead of numbers?',
-    a: 'Yes, with a custom set: the host enters pairs of what is called and what players mark, such as a definition and its word, or a sum and its answer. Teachers use it for vocabulary, times tables and science terms. A set can be saved as a file and used again.',
+    a: 'Yes, with a custom set: the host enters pairs of what is called and what players mark, such as a definition and its word, or an animal’s sound and the animal. Teachers use it for vocabulary, parts of speech and science terms. A set can be saved as a file and used again.',
   },
   {
     q: 'Can we play a shorter game?',

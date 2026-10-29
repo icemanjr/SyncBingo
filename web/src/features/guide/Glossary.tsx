@@ -11,7 +11,7 @@ const glossary: { term: string; meaning: string }[] = [
   {
     term: 'Round',
     meaning:
-      'One go at winning, from Start Round until the cards are wiped clean of marks. Several people can win in one round, and the host can change what wins partway through.',
+      'Everything between two resets: a round starts with every ball available and every card clear, and ends when the host clears the cards. Several people can win in one round, and the host can change what wins partway through.',
   },
   {
     term: 'Lobby',
@@ -46,12 +46,12 @@ const glossary: { term: string; meaning: string }[] = [
   {
     term: 'Ball',
     meaning:
-      'What the host draws, such as N 37: 75 balls on a 5 × 5 card, 60 on 4 × 4 and 45 on 3 × 3. With a custom set, a ball can be a sum, a word or a clue.',
+      'What the host draws, such as N 37: 75 balls on a 5 × 5 card, 60 on 4 × 4 and 45 on 3 × 3. With a custom set, a ball can be a word, a sound or a clue.',
   },
   {
     term: 'Call board',
     meaning:
-      'Every ball, with the ones called so far lit up, so anyone who missed a call can check it.',
+      'A list of every available ball, shown within their groups. Balls which have already been drawn are marked, allowing players to double check a misheard ball or verify a possibly missed square.',
   },
   {
     term: 'Pattern',
@@ -66,17 +66,17 @@ const glossary: { term: string; meaning: string }[] = [
   {
     term: 'Waiting room',
     meaning:
-      'Join while a round is being played and you wait here; you get your card as soon as the round ends.',
+      'A place to wait for a round to end so you can get a card. You can change the color theme or the look of your marks while you wait.',
   },
   {
     term: 'Display',
     meaning:
-      'The big-screen view for a TV or projector: the call board, the last ball, the join QR code and the winners, with no controls.',
+      'The big-screen view for a TV or projector: the call board, the last ball, the join QR code and the winners, with no controls. The host connects each display to their game, from Display in the host console.',
   },
   {
     term: 'Custom set',
     meaning:
-      'The host’s own balls and squares instead of numbers: “2 + 5” is called and players mark “7”, or a definition is called and they mark the word.',
+      'The host’s own balls and squares instead of numbers: for example, “Moo” is called and players mark “Cow”, or “Person, place, thing or idea” is called and they mark “Noun”.',
   },
 ]
 

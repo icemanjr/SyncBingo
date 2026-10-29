@@ -18,7 +18,7 @@ There are no accounts, no downloads and no personal data. A session lives only a
 - **Live, synchronized calls.** When a ball is drawn, it reaches every phone at once. The host chooses automatic calling on a timer, or calls each ball aloud.
 - **Digital cards.** 75-ball cards on 5 × 5, or quicker games on 4 × 4 (60 balls) and 3 × 3 (45 balls), that fit a small phone screen without scrolling. Players mark their own squares; careless marking can cost you, unless the host limits marking to called numbers for young children.
 - **Many ways to win.** Normal Bingo (row, column or diagonal), Four Corners, the letters **B I N G O**, Blackout, or patterns the host draws; several can be in play at once. The host can switch mid-round, say from Normal to Blackout, without clearing the cards.
-- **Your own balls.** A custom set turns the game into vocabulary, times tables or trivia: "2 + 5" is called and players mark "7", or a definition is called and they mark the word. The host builds it in a set editor and keeps it as a file.
+- **Your own balls.** A custom set turns the game into vocabulary, science terms or trivia: "Moo" is called and players mark "Cow", or "Person, place, thing or idea" is called and they mark "Noun". The host builds it in a set editor and keeps it as a file.
 - **On the big screen.** A read-only display for a TV or projector, paired with a short code, shows the call board, the join QR and the winners.
 - **Color themes.** The host picks the game's colors (Ocean, Forest, Halloween, Winter…); each player can choose their own, in light or dark.
 - **The host is in charge.** Pause for a prize, start a new round, inspect a card, award a win, show the leaderboard.

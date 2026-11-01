@@ -18,6 +18,7 @@
 | Leaderboard | overlay/route | Wins per participant; host can show to everyone |
 | TV | `/tv` | A smart TV's own browser shows a short pairing code and a QR, then becomes the display once the host approves (ADR 0010). No ads |
 | Pair | `/pair/:pairingCode` | What the TV's QR opens on the host's device: **Show game … on the TV** for each game this browser hosts |
+| Game summary | `/host/:code/summary` | The host's summary after ending the game (FR-40a): totals, final results, every round and its winners; **Print or save as PDF** and **Export as CSV**. Kept only in that browser tab. No ads |
 | Not found | any other address | "Page not found", with **Back to the start** |
 
 ### Host console (sketch)
@@ -309,7 +310,7 @@ The host opens **Display → Connect a TV** and types the code (or scans the QR 
 - Banners only, and only on pages with content (FR-50 amended, ADR 0012): the landing page, How to play, the FAQ, the play screen and the host console. None on forms, legal pages, pairing, not found or the display view (FR-28), and none on a game screen while it shows a dead end (`useNoAds`). No pop-ups, interstitials, expanding or sticky-overlay formats, and nothing that can cover the play area.
 - Slots are **fixed-size containers reserved at layout time**, so an ad loading late (or not at all) never shifts the card or buttons.
 - Mobile (< 1024 px): one banner at the top and one at the bottom (e.g. 320×50 or 320×100).
-- Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centerd.
+- Desktop (≥ 1024 px): one banner on each side (e.g. 160×600), with the game centered.
 - The play area is sized so the full card and Bingo button fit on a small phone between the two reserved banners without scrolling.
 
 **Implementation**

@@ -57,6 +57,24 @@ describe('the display view (FR-28)', () => {
     expect(api.sent[0]?.headers.get('Authorization')).toBe('Bearer display-token')
   })
 
+  it('when the game ends, shows the final results', async () => {
+    sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
+    fakeApi({
+      [snapshotPath]: {
+        body: displaySnapshot({
+          state: 'Ended',
+          leaderboardVisible: true,
+          leaderboard: [{ participantId: 'a', name: 'Ava', wins: 3 }],
+        }),
+      },
+    })
+    renderDisplay()
+
+    const results = await screen.findByRole('region', { name: 'Final results' })
+    expect(results).toHaveTextContent('1. Ava')
+    expect(screen.getByText('This game has ended')).toBeInTheDocument()
+  })
+
   it('between rounds, shows the join QR and the password note as typed', async () => {
     sessionStorage.setItem(`syncbingo:display:${code}`, 'display-token')
     fakeApi({ [snapshotPath]: { body: displaySnapshot({ joinNote: 'Password: harvest' }) } })

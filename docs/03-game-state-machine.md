@@ -25,7 +25,7 @@ stateDiagram-v2
 - **Starting** is the 10-second countdown (FR-45). Joining and redraws are closed from its first second; the host can **Cancel** back to the lobby. At zero the scheduler starts the round, under any round-scoped settings that were waiting, and every player's marks are reset for those settings.
 - **InRound** starts in **Manual** (the host draws with *Grab ball*), or in **Auto** if the toggle said so, with its first ball drawn at zero. **Auto** draws on a timer until the host presses *Pause*. Players can mark in both.
 - **Clear cards** ends the round (if one is running), clears marks and called balls, and returns to the lobby, so late arrivals can join before the next round. **End round** stops the round but leaves the cards and calls on screen.
-- **Ended** is reached by the host ending the session or by TTL expiry. All data is then discarded.
+- **Ended** is reached by the host ending the session; an idle or too-old game simply expires instead. Ending from a round closes that round first (it records its end and balls called), and the leaderboard becomes everyone's final results; the host's device keeps the game summary (FR-40a). All data is deleted 5 minutes later.
 
 ## 2. Commands by state
 

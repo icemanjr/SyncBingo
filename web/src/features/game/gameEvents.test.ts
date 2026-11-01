@@ -92,6 +92,13 @@ describe('applyEvent', () => {
     })
   })
 
+  it('fetches the final results when the game ends', () => {
+    const applied = applyEvent(aHostSnapshot(), event('SessionEnded'))
+
+    expect(applied.snapshot.game.state).toBe('Ended')
+    expect(applied.refetch).toBe(true)
+  })
+
   it('asks for the snapshot after an event it does not know', () => {
     expect(applyEvent(aHostSnapshot(), event('SomethingNew')).refetch).toBe(true)
   })

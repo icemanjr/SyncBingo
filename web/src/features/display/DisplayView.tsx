@@ -36,18 +36,42 @@ export function DisplayView() {
     if (disconnected || gone) forgetDisplayToken(code)
   }, [disconnected, gone, code])
 
-  const centerd = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
+  const centered = (text: string) => <p className="m-auto p-8 text-center text-3xl">{text}</p>
 
   if (!token)
-    return centerd(
+    return centered(
       `Open this display from the host’s Display menu, or connect a TV at ${window.location.host}/tv.`,
     )
-  if (disconnected) return centerd('The host disconnected this display.')
-  if (gone) return centerd('This game has ended. Thanks for playing!')
-  if (!game.snapshot) return centerd(game.error ? game.error.detail : 'Connecting…')
+  if (disconnected) return centered('The host disconnected this display.')
+  if (gone) return centered('This game has ended. Thanks for playing!')
+  if (!game.snapshot) return centered(game.error ? game.error.detail : 'Connecting…')
 
   const view = game.snapshot.game
-  if (view.state === 'Ended') return centerd('This game has ended. Thanks for playing!')
+  if (view.state === 'Ended')
+    return (
+      <div className="m-auto flex w-full max-w-3xl flex-col items-center gap-8 p-10 text-center">
+        <p className="font-display text-6xl font-extrabold tracking-tight">This game has ended</p>
+        {view.leaderboard && view.leaderboard.length > 0 && (
+          <section
+            aria-label="Final results"
+            className="w-full rounded-3xl bg-surface p-8 text-left shadow-card"
+          >
+            <h2 className="mb-4 font-display text-4xl font-bold">Final results</h2>
+            <ol className="flex flex-col gap-2 text-3xl">
+              {view.leaderboard.slice(0, 10).map((entry, i) => (
+                <li key={entry.participantId} className="flex justify-between gap-4">
+                  <span className="truncate">
+                    {i + 1}. {entry.name}
+                  </span>
+                  <span className="font-bold tabular-nums">{entry.wins}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+        <p className="text-3xl text-ink-muted">Thanks for playing!</p>
+      </div>
+    )
 
   const inRound = view.state === 'Manual' || view.state === 'Auto'
   const lobby = view.state === 'BetweenRounds'

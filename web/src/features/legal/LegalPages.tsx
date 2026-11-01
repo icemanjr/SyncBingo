@@ -57,7 +57,7 @@ export function PrivacyPage() {
   // The page describes the build it is part of: real ads only where the build shows them (ADR 0012).
   const ads = adConfig().provider === 'adsense'
   return (
-    <LegalPage title="Privacy" updated={ads ? '27 October 2026' : '16 October 2026'}>
+    <LegalPage title="Privacy" updated="31 October 2026">
       <p>
         SyncBingo is a party Bingo game. It has no accounts and no sign-up, and it keeps as little
         as it can, for as short a time as it can. It is run by {site.operator}.
@@ -104,6 +104,11 @@ export function PrivacyPage() {
         or dark choice and how you like your marks to look. A TV keeps its display token only until
         its tab is closed. SyncBingo uses no cookies, no analytics and no tracking
         {ads ? '; the ads come from Google, which works differently (see Ads below).' : '.'}
+      </p>
+      <p>
+        When the host ends a game, the host’s browser keeps a summary of it (the players’ names,
+        each round and who won) in that tab, for the host to print or save. SyncBingo keeps no copy:
+        it disappears when the tab is closed.
       </p>
 
       <h2>Who else sees it</h2>

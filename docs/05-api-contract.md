@@ -48,9 +48,9 @@ The snapshot also accepts a host or display token. Every other endpoint here act
 | `POST /sessions/{code}/claims/{claimId}/dismiss` | – | Clear a claim without awarding it. |
 | `GET /sessions/{code}/participants/{id}/card` | – | Inspect a card to verify a claim (FR-38): `{ participantId, name, autoFillOn, cards[] }` with marks. |
 | `DELETE /sessions/{code}/participants/{id}` | – | Kick. |
-| `GET /sessions/{code}/leaderboard` | – | `{ entries, rounds }`: wins per participant and the round summaries. |
+| `GET /sessions/{code}/leaderboard` | – | `{ entries, rounds }`: wins per participant and the round summaries `{ number, startedAt, endedAt, winConditionsUsed, wins, contentName, ballsCalled }`. The host's browser builds the game summary from this (FR-40a); it still answers for the 5 minutes an ended game is kept. |
 | `POST /sessions/{code}/leaderboard/show` | `{ visible }` | Show or hide the leaderboard on participants' screens. |
-| `POST /sessions/{code}/end` | – | End the session; data discarded. |
+| `POST /sessions/{code}/end` | – | End the game: a round in progress ends with it (`RoundEnded`, then `SessionEnded`), the leaderboard becomes visible to everyone as the final results (FR-40a), and everything is deleted 5 minutes later. |
 | `POST /sessions/{code}/display-links` | – | `201 { displayId, displayUrl }`: a read-only display link (FR-28), `{origin}/display/{code}#t={token}`. The token is in the URL fragment, never the query, so it never reaches a server log. At most 10 displays per game (409 beyond). |
 | `DELETE /sessions/{code}/display-links` | – | Revoke every display link (paired TVs stay); each open display gets `DisplayDisconnected` and its token stops working. |
 | `PUT /sessions/{code}/join-note` | `{ note }` | The note shown with the join QR (FR-49), up to 80 characters; empty or `null` clears it. Any state but ended, even auto mode. |

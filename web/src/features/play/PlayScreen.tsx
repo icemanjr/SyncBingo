@@ -62,7 +62,9 @@ const SentForMs = 4000
  */
 export function PlayScreen() {
   const code = normalizeCode(useParams().code ?? '')
-  const seat = seats.load(code)
+  // Read once, when the screen opens: the game's end makes this device forget it, and the screen must
+  // still show the end (and the final results) rather than "not in this game".
+  const [seat] = useState(() => seats.load(code))
   const me = seat?.role === 'player' ? seat : undefined
   const game = useGame(code, me?.token)
   const player = useMemo(() => playerApi(code, me?.token ?? ''), [code, me?.token])
@@ -131,7 +133,7 @@ export function PlayScreen() {
   }
 
   const { game: view, you } = game.snapshot
-  if (view.state === 'Ended') return <GameEnded />
+  if (view.state === 'Ended') return <GameEnded results={view.leaderboard} />
 
   const card = you?.cards[0]
   const inRound = view.state === 'Manual' || view.state === 'Auto'

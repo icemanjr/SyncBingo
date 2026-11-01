@@ -5051,6 +5051,11 @@
               "null",
               "string"
             ]
+          },
+          "ballsCalled": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },

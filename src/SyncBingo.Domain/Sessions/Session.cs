@@ -1174,6 +1174,10 @@ public sealed class Session
             : Result.Success((int)Math.Min(MaxParticipants - currentParticipants, Variant.PossibleCards - currentParticipants));
     }
 
+    /// <summary>
+    /// The host ends the game. A round in progress ends with it, so the summary report has its end and its
+    /// balls (FR-40a), and the leaderboard becomes everyone's final results.
+    /// </summary>
     public Result<IReadOnlyList<SessionEvent>> End(DateTimeOffset now)
     {
         if (State == SessionState.Ended)
@@ -1181,8 +1185,18 @@ public sealed class Session
             return WrongState("end the game");
         }
 
+        var events = new List<SessionEvent>();
+        if (IsInRound)
+        {
+            CloseRound(now);
+            events.Add(new RoundEnded(RoundNumber));
+        }
+
         State = SessionState.Ended;
-        return Commit(now, new SessionEnded());
+        CountdownEndsAt = null;
+        LeaderboardVisible = true;
+        events.Add(new SessionEnded());
+        return Commit(now, events);
     }
 
     private bool IsOpenClaim(Claim claim, string participantId, int cardId) =>
@@ -1219,7 +1233,8 @@ public sealed class Session
         NextBallFrom = null;
     }
 
-    private void CloseRound(DateTimeOffset now) => ReplaceCurrentRound(CurrentRound! with { EndedAt = now });
+    private void CloseRound(DateTimeOffset now) =>
+        ReplaceCurrentRound(CurrentRound! with { EndedAt = now, BallsCalled = _calls.Count });
 
     private void ReplaceCurrentRound(RoundSummary summary) => _rounds[^1] = summary;
 

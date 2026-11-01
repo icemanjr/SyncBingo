@@ -92,7 +92,8 @@ The host changes settings and the win pattern in **Options**, as a draft, and pr
 | ID | Requirement |
 |----|-------------|
 | FR-40 | The session tracks, for the current session only: rounds played, win condition(s) used in each round, who won each round, total winners. |
-| FR-41 | A **leaderboard** (wins per participant) is available to the host between rounds and at the end, so the host can announce the biggest winners. The host may display it to everyone. |
+| FR-40a | **Game summary** (owner, 2026-10-31). When the host ends the game, the host's device gets a summary: the date, totals (players, rounds, balls called, wins), the final results and every round (times and length, balls called, patterns, the set, and each win: who, what it was announced as, and how it came about: a Bingo press, detection, or the host's own award). Wins only; dismissed Bingo presses are left out. Shown as a printable page (**Print or save as PDF**, printed in plain light colors) with **Export as CSV** (one row per win; values that a spreadsheet would run as formulas are escaped). Kept only in that browser tab (sessionStorage); the server keeps nothing after the game. Ending mid-round ends that round too, and every round records its balls called. At the end, players' devices and the display show the **final results** (the leaderboard). |
+| FR-41 | A **leaderboard** (wins per participant) is available to the host between rounds and at the end, so the host can announce the biggest winners. The host may display it to everyone; when the host ends the game it becomes everyone's final results (FR-40a). |
 | FR-42 | Nothing persists after the session ends or expires. |
 
 ### 3.5 Advertising

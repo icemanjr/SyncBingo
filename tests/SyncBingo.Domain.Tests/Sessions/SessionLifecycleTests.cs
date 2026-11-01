@@ -91,12 +91,52 @@ public sealed class SessionLifecycleTests
     [Fact]
     public void Ending_the_session_is_final()
     {
-        var session = InState(SessionState.Manual);
+        var session = InState(SessionState.BetweenRounds);
 
         session.End(Now).Single<SessionEnded>();
 
         session.State.ShouldBe(SessionState.Ended);
         session.StartCountdown(startInAuto: false, Now).Error!.Code.ShouldBe(DomainErrorCode.WrongState);
+    }
+
+    [Fact]
+    public void Ending_mid_round_ends_the_round_too_with_its_end_and_its_balls_for_the_summary()
+    {
+        var session = InState(SessionState.Manual);
+        session.DrawBall(DrawSource.Manual, new SeededRandom(1), Now).IsSuccess.ShouldBeTrue();
+        session.DrawBall(DrawSource.Manual, new SeededRandom(2), Now).IsSuccess.ShouldBeTrue();
+        var later = Now.AddMinutes(12);
+
+        var events = session.End(later).Value;
+
+        events.Select(e => e.GetType()).ShouldBe([typeof(RoundEnded), typeof(SessionEnded)]);
+        session.Rounds[^1].EndedAt.ShouldBe(later);
+        session.Rounds[^1].BallsCalled.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Ending_the_game_shows_everyone_the_final_leaderboard()
+    {
+        var session = InState(SessionState.BetweenRounds);
+        session.LeaderboardVisible.ShouldBeFalse();
+
+        session.End(Now).IsSuccess.ShouldBeTrue();
+
+        session.LeaderboardVisible.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void A_round_records_how_many_balls_were_called_when_it_ends()
+    {
+        var session = InState(SessionState.Manual);
+        for (var i = 0; i < 3; i++)
+        {
+            session.DrawBall(DrawSource.Manual, new SeededRandom(i), Now).IsSuccess.ShouldBeTrue();
+        }
+
+        session.EndRound(Now).IsSuccess.ShouldBeTrue();
+
+        session.Rounds[^1].BallsCalled.ShouldBe(3);
     }
 
     [Theory]

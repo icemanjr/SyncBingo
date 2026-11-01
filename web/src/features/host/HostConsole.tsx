@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNoAds } from '../../app/adsScope'
 import { usePalette } from '../../app/palettes'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { seats } from '../../storage/sessions'
 import { CallBoard } from '../game/CallBoard'
 import { normalizeCode } from '../game/codes'
@@ -24,6 +24,7 @@ import { OptionsPanel } from './OptionsPanel'
 import { PlayersPanel } from './PlayersPanel'
 import { CallingCard, RoundActions, StartCard } from './RoundControls'
 import { NumbersCard, SetCard } from './SetCard'
+import { allPatterns, summaries } from '../summary/summary'
 
 /** Whole minutes in a .NET TimeSpan as JSON sends it ("00:10:00"). */
 const lockMinutes = (span: string) => {
@@ -41,7 +42,9 @@ const lockMinutes = (span: string) => {
  */
 export function HostConsole() {
   const code = normalizeCode(useParams().code ?? '')
-  const seat = seats.load(code)
+  // Read once, when the screen opens: the game's end makes this device forget it, and the screen must
+  // still show the end (and the final results) rather than "not in this game".
+  const [seat] = useState(() => seats.load(code))
   const token = seat?.role === 'host' ? seat.token : undefined
   const game = useGame(code, token)
   const host = useMemo(() => hostApi(code, token ?? ''), [code, token])
@@ -50,6 +53,7 @@ export function HostConsole() {
   const [open, setOpen] = useState<'options' | 'displays' | 'leaderboard' | 'end'>()
   const [tab, setTab] = useState<'board' | 'bingo' | 'players'>('board')
   const end = useAction()
+  const navigate = useNavigate()
   // The game is over (ended, or expired so the server no longer knows it): this browser forgets it.
   const gone = isGone(game.error)
   const ended = game.snapshot?.game.state === 'Ended'
@@ -70,7 +74,7 @@ export function HostConsole() {
     )
   }
 
-  if (gone) return <GameEnded hostLink />
+  if (gone) return <GameEnded hostLink summaryCode={code} />
 
   if (!game.snapshot) {
     return (
@@ -81,7 +85,7 @@ export function HostConsole() {
   }
 
   const { game: view, host: hostView } = game.snapshot
-  if (view.state === 'Ended') return <GameEnded hostLink />
+  if (view.state === 'Ended') return <GameEnded hostLink summaryCode={code} />
 
   const calls = view.calls ?? []
   const called = new Set(calls.map((call) => call.number))
@@ -397,10 +401,32 @@ export function HostConsole() {
           <section className="flex flex-col gap-4 rounded-[20px] bg-surface p-5">
             <h2 className="font-display text-xl font-bold">End the game for everyone?</h2>
             <p className="text-ink-muted">
-              Every screen shows that the game has ended. This can't be undone.
+              Every screen shows the final results, and you get a summary of the game to print or
+              export. This can't be undone.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button look="danger" disabled={end.busy} onClick={() => void end.run(host.endGame)}>
+              <Button
+                look="danger"
+                disabled={end.busy}
+                onClick={() =>
+                  void end.run(async () => {
+                    // Fetched before and after ending: the round ending closes is in the second, and the
+                    // first is kept if the game is gone by then (FR-40a).
+                    const before = await host.leaderboard()
+                    await host.endGame()
+                    const board = await host.leaderboard().catch(() => before)
+                    summaries.save({
+                      code,
+                      endedAt: new Date().toISOString(),
+                      players: players.length,
+                      leaderboard: board.entries,
+                      rounds: board.rounds,
+                      patterns: allPatterns(view),
+                    })
+                    await navigate(`/host/${code}/summary`)
+                  })
+                }
+              >
                 End game
               </Button>
               <Button look="quiet" onClick={close}>

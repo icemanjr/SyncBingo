@@ -40,6 +40,35 @@ afterEach(() => {
   connection = undefined
 })
 
+describe('when the game ends', () => {
+  it('says so and shows the final results, even after this device forgets the game', async () => {
+    seats.save(code, { role: 'player', token: 'player-token', participantId: 'p1', name: 'Ava' })
+    let ended = false
+    fakeApi({
+      [snapshotPath]: () => ({
+        body: ended
+          ? aPlayerSnapshot({
+              state: 'Ended',
+              leaderboardVisible: true,
+              leaderboard: [{ participantId: 'p1', name: 'Ava', wins: 2 }],
+            })
+          : aPlayerSnapshot({ state: 'Manual' }),
+      }),
+    })
+    renderAt(`/play/${code}`)
+    await screen.findByRole('grid', { name: 'Your card' })
+
+    ended = true
+    act(() => {
+      connection?.onEvent({ type: 'SessionEnded', seq: 1, data: {} })
+    })
+
+    expect(await screen.findByRole('heading', { name: 'Final results' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'This game has ended' })).toBeInTheDocument()
+    expect(seats.load(code)).toBeUndefined()
+  })
+})
+
 describe('joining', () => {
   it("lets a player change the code the QR found, in case it's the wrong game", async () => {
     fakeApi({})

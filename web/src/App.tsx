@@ -13,6 +13,7 @@ import { PrivacyPage, TermsPage } from './features/legal/LegalPages'
 import { JoinPage } from './features/play/JoinPage'
 import { PlayScreen } from './features/play/PlayScreen'
 import { SetEditor } from './features/sets/SetEditor'
+import { SummaryPage } from './features/summary/SummaryPage'
 
 /**
  * The site's pages (docs/06 §1). Only pages with content show ads (`Layout ads`, ADR 0012): the guides and the
@@ -82,6 +83,14 @@ export function AppRoutes() {
         element={
           <Layout>
             <SetEditor />
+          </Layout>
+        }
+      />
+      <Route
+        path="/host/:code/summary"
+        element={
+          <Layout>
+            <SummaryPage />
           </Layout>
         }
       />

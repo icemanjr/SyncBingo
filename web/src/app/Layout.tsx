@@ -28,10 +28,10 @@ export function Layout({
       <div className="flex min-h-dvh flex-col bg-page text-ink lg:flex-row lg:items-start lg:justify-center lg:gap-4 lg:p-4">
         {showAds && (
           <>
-            <div className="flex justify-center lg:hidden">
+            <div className="flex justify-center lg:hidden print:hidden">
               <AdSlot position="top" />
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block print:hidden">
               <AdSlot position="left" />
             </div>
           </>
@@ -39,7 +39,7 @@ export function Layout({
         <main
           className={`flex w-full flex-1 flex-col gap-4 p-4 ${wide ? 'max-w-[1100px]' : 'max-w-3xl'}`}
         >
-          <header className="flex items-center justify-between gap-3">
+          <header className="flex items-center justify-between gap-3 print:hidden">
             <Link
               to="/"
               className="flex min-h-12 items-center gap-2 rounded-xl font-display text-xl font-extrabold tracking-tight text-ink focus-visible:outline-4 focus-visible:outline-accent"
@@ -50,7 +50,7 @@ export function Layout({
             <ThemeToggle />
           </header>
           {children}
-          <footer className="mt-auto flex flex-wrap justify-center gap-2 pt-2 text-sm text-ink-muted">
+          <footer className="mt-auto flex flex-wrap justify-center gap-2 pt-2 text-sm text-ink-muted print:hidden">
             {(
               [
                 ['/how-to-play', 'How to play'],
@@ -81,10 +81,10 @@ export function Layout({
         </main>
         {showAds && (
           <>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block print:hidden">
               <AdSlot position="right" />
             </div>
-            <div className="flex justify-center lg:hidden">
+            <div className="flex justify-center lg:hidden print:hidden">
               <AdSlot position="bottom" />
             </div>
           </>

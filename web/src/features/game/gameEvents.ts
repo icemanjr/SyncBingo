@@ -107,7 +107,8 @@ export function applyEvent(snapshot: Snapshot, event: GameEvent): Applied {
     case 'JoinNoteChanged':
       return with_({ joinNote: data.note ?? null })
     case 'SessionEnded':
-      return with_({ state: 'Ended' })
+      // The final results: ending makes the leaderboard everyone's, so fetch it (FR-40a).
+      return { ...with_({ state: 'Ended' }), refetch: true }
     case 'LeaderboardVisibilityChanged':
       return {
         ...with_({ leaderboardVisible: data.visible ?? game.leaderboardVisible }),

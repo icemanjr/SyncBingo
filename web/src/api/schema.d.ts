@@ -874,6 +874,11 @@ export interface components {
             winConditionsUsed: string[];
             wins: components["schemas"]["WinRecord"][];
             contentName?: null | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            ballsCalled: number;
         };
         RulesRequest: {
             settings?: null | components["schemas"]["SettingsBody"];

@@ -38,8 +38,9 @@
 		}
 		respond @noAdsTxt 404
 
-		# Client-side routes such as /join/... load index.html.
-		try_files {path} /index.html
+		# Content pages are pre-built (/faq is /faq/index.html); the app's own routes, such as /join/..., load
+		# the empty shell, app.html (docs/07).
+		try_files {path} {path}/index.html /app.html
 		file_server
 	}
 }

@@ -7,6 +7,7 @@ const storageKey = 'syncbingo:theme'
 const darkQuery = '(prefers-color-scheme: dark)'
 
 export function loadThemePreference(): ThemePreference {
+  if (import.meta.env.SSR) return 'system' // a pre-built page has no device to ask
   try {
     const saved = localStorage.getItem(storageKey)
     return saved === 'light' || saved === 'dark' ? saved : 'system'

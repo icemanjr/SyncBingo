@@ -3,10 +3,13 @@ using SyncBingo.Domain.Rules;
 
 namespace SyncBingo.Domain.Tests.Content;
 
-/// <summary>The sample sets in <c>samples/</c> (for tests and screenshots) stay valid sets.</summary>
+/// <summary>
+/// The sample sets in <c>samples/</c> (for tests and screenshots) stay valid sets, and so do the ready-made sets
+/// the site offers (<c>web/public/sets/</c>), judged by the server's own rules.
+/// </summary>
 public sealed class SampleSetTests
 {
-    private static string Samples()
+    private static string Root()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (!File.Exists(Path.Combine(dir!.FullName, "SyncBingo.slnx")))
@@ -14,7 +17,33 @@ public sealed class SampleSetTests
             dir = dir.Parent;
         }
 
-        return Path.Combine(dir.FullName, "samples");
+        return dir.FullName;
+    }
+
+    private static string Samples() => Path.Combine(Root(), "samples");
+
+    private static string Library() => Path.Combine(Root(), "web", "public", "sets");
+
+    public static TheoryData<string> LibraryFiles()
+    {
+        var files = new TheoryData<string>();
+        foreach (var path in Directory.GetFiles(Library(), "*.json"))
+        {
+            files.Add(Path.GetFileName(path));
+        }
+
+        return files;
+    }
+
+    [Theory]
+    [MemberData(nameof(LibraryFiles))]
+    public void Every_ready_made_set_is_valid_and_fills_a_5x5_card(string file)
+    {
+        var set = ContentSetFile.Read(File.ReadAllText(Path.Combine(Library(), file)));
+
+        set.IsSuccess.ShouldBeTrue(set.Error?.Message);
+        var rules = ContentVariant.For(StandardVariants.Classic75, set.Value);
+        rules.IsSuccess.ShouldBeTrue(rules.Error?.Message);
     }
 
     public static TheoryData<string> Files()

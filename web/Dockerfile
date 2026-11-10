@@ -11,7 +11,8 @@ COPY . .
 # Off for the live (Lean) site; the Full portfolio build passes true (ADR 0011).
 ARG VITE_SERIOUS_BINGO_TEASER=false
 ENV VITE_SERIOUS_BINGO_TEASER=$VITE_SERIOUS_BINGO_TEASER
-# Placeholders unless "adsense": the live site, once AdSense approves it (ADR 0012); the ids are in .env.
+# Placeholders unless "adsense" (the live site, once AdSense approves it; the ids are in .env) or "none" (no ad
+# slots: the live site until then, ADR 0012).
 ARG VITE_AD_PROVIDER=placeholder
 ENV VITE_AD_PROVIDER=$VITE_AD_PROVIDER
 RUN npm run build

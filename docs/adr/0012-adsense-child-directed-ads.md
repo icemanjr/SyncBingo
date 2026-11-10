@@ -41,3 +41,16 @@ AdSense refused the site for "Google-served ads on screens without publisher-con
 - **Ads only where there is content:** the landing page, the guides and the game screens (the play screen and the host console: a game is its own content). None on the join and create forms, the set editor, Terms, Privacy, pairing or not found. A game screen drops its ads while it shows a dead end (game ended, removed, loading, not joined), through `useNoAds`.
 - Then request a new review.
 
+## Amendment (2026-11-09): AdSense's second review
+AdSense refused again, for "Low value content": a site must offer substantial unique value, have a consistent presence on the web, and show genuine user interest. What Google could see:
+- **Raw HTML:** every page was the same empty shell (the content appears only once the app runs);
+- **No crawl files:** no `robots.txt` or sitemap;
+- **No search presence**, and the site was about a month old with no real traffic.
+
+The owner chose:
+- **Crawlable content pages:** pre-built as real HTML, each with its own title, description and canonical link, plus `robots.txt` and `sitemap.xml` (docs/07 §1b).
+- **A library of ready-made sets** (`/sets`): useful, original content.
+- **No ad slots on the live site until approval** (`VITE_AD_PROVIDER=none`), so reviewers don't see empty "Ad" boxes.
+- **Google Search Console** for the domain, with the sitemap submitted.
+- **Then wait** until Google has indexed the pages and the site has real visitors before the next review. Code can't create "user interest", and resubmitting without real change tends to get the same answer.
+

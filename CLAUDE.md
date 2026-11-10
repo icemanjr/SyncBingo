@@ -93,10 +93,11 @@ docs/                          design documents and ADRs
 ## Ads and UI constraints
 
 - **Ads:**
-  - Banners only: top and bottom on phones, left and right on desktops, in fixed-size reserved slots (`app/AdSlot.tsx`). Only on pages with content: routes with `<Layout ads>` (landing, How to play, FAQ, play screen, host console); a game screen calls `useNoAds` while it shows a dead end. None on forms, legal pages, pairing, not found, the display or TV (Google's "screens without publisher-content" policy).
-  - Placeholders in development and the Full build. The live site uses Google AdSense once approved (ADR 0012); the build switches are `VITE_AD_PROVIDER` and the `VITE_ADSENSE_*` ids in `web/.env`.
+  - Banners only: top and bottom on phones, left and right on desktops, in fixed-size reserved slots (`app/AdSlot.tsx`). Only on pages with content: routes with `<Layout ads>` (landing, How to play, FAQ, Ready-made sets, play screen, host console); a game screen calls `useNoAds` while it shows a dead end. None on forms, legal pages, pairing, not found, the display or TV (Google's "screens without publisher-content" policy).
+  - Placeholders in development and the Full build; on the live site no ad slots at all (`VITE_AD_PROVIDER=none`, the CI default) until AdSense approves it, then `adsense` (ADR 0012). The AdSense ids are in `web/.env`.
   - Every ad request is child-directed.
   - Google's consent message for the EU, UK and Switzerland is the one allowed exception to "never pop-ups or anything that can cover the play area". Keep Auto ads off in the AdSense account.
+- **Pre-built pages:** the content pages (`web/src/pages.ts`) are rendered to HTML at build time for search engines and reviewers (`scripts/prerender.mjs`, docs/07 §1b), and game routes load the empty shell `app.html`. Code on those pages must render without a browser: use `site.host`, not `window.location`; show device-specific state only after `useHydrated()`. A new content page goes in `pages.ts` (and the CloudFront list, which a test checks).
 - **UI:**
   - Mobile-first, 48 px minimum tap targets, WCAG AA in light and dark and every theme (axe scans in e2e), reduced-motion support, no flashing.
   - The Full build shows a grayed-out "Serious Bingo – coming soon" tile on the landing page; the live site does not (`VITE_SERIOUS_BINGO_TEASER`).

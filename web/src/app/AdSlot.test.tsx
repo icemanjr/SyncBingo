@@ -48,6 +48,14 @@ describe('ad slots (FR-50, FR-52, ADR 0012)', () => {
     expect(screen.queryByRole('button', { name: 'Privacy and cookie settings' })).toBeNull()
   })
 
+  it('are left out entirely with the provider "none", the live site until AdSense approves it', () => {
+    vi.stubEnv('VITE_AD_PROVIDER', 'none')
+    renderAt('/')
+
+    expect(screen.queryAllByRole('complementary', { name: 'Advertisement' })).toHaveLength(0)
+    expect(adScripts()).toHaveLength(0)
+  })
+
   it('stay placeholders when the provider is on but an ad unit is missing', () => {
     useAdSense()
     vi.stubEnv('VITE_ADSENSE_SLOT_TOWER', '')

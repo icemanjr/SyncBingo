@@ -22,7 +22,7 @@ export function Layout({
   ads?: boolean
 }) {
   const [off, setOff] = useState(false)
-  const showAds = ads && !off
+  const showAds = ads && !off && adConfig().provider !== 'none'
   return (
     <AdsOff.Provider value={setOff}>
       <div className="flex min-h-dvh flex-col bg-page text-ink lg:flex-row lg:items-start lg:justify-center lg:gap-4 lg:p-4">
@@ -55,6 +55,7 @@ export function Layout({
               [
                 ['/how-to-play', 'How to play'],
                 ['/faq', 'FAQ'],
+                ['/sets', 'Ready-made sets'],
                 ['/terms', 'Terms'],
                 ['/privacy', 'Privacy'],
               ] as const

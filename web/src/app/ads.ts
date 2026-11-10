@@ -1,14 +1,17 @@
 /**
  * Which ads the banner slots show (FR-52, ADR 0012), from the build's settings: placeholders unless the
  * build sets `VITE_AD_PROVIDER=adsense` and every AdSense id, so a half-configured build never loads a
- * third-party script. Read when used, so tests can stub them.
+ * third-party script. `none` shows no ad slots at all: the live site until AdSense approves it, so reviewers
+ * don't see empty "Ad" boxes (ADR 0012 amended). Read when used, so tests can stub them.
  */
 export type AdConfig =
   | { provider: 'placeholder' }
+  | { provider: 'none' }
   | { provider: 'adsense'; client: string; bannerSlot: string; towerSlot: string }
 
 export function adConfig(): AdConfig {
   const env = import.meta.env
+  if (env.VITE_AD_PROVIDER === 'none') return { provider: 'none' }
   const client = env.VITE_ADSENSE_CLIENT
   const bannerSlot = env.VITE_ADSENSE_SLOT_BANNER
   const towerSlot = env.VITE_ADSENSE_SLOT_TOWER

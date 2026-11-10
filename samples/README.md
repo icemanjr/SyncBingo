@@ -1,7 +1,8 @@
 # Sample sets
 
-Custom content sets (ADR 0009) kept in the repository **for testing and screenshots only**. They are not
-built into the app or offered to hosts; a host could upload one like any other set file.
+Custom content sets (ADR 0009) kept in the repository **for testing and screenshots**. The sets offered to
+hosts on the site's **Ready-made sets** page live in `web/public/sets/` (Science vocabulary is a copy of the
+one here); the same test checks both folders.
 
 | File | What it is |
 |------|------------|

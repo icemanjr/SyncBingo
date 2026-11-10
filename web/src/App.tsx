@@ -8,6 +8,7 @@ import { PairPage } from './features/display/PairPage'
 import { TvPage } from './features/display/TvPage'
 import { FaqPage } from './features/guide/FaqPage'
 import { HowToPlayPage } from './features/guide/HowToPlayPage'
+import { SetsPage } from './features/guide/SetsPage'
 import { LandingPage } from './features/landing/LandingPage'
 import { PrivacyPage, TermsPage } from './features/legal/LegalPages'
 import { JoinPage } from './features/play/JoinPage'
@@ -43,6 +44,14 @@ export function AppRoutes() {
         element={
           <Layout ads>
             <FaqPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/sets"
+        element={
+          <Layout ads>
+            <SetsPage />
           </Layout>
         }
       />

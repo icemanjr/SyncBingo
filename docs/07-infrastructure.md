@@ -20,6 +20,21 @@ CI builds both images on every PR, for **linux/amd64 and linux/arm64** (ADR 0011
 
 Podman works in place of Docker: enable the user socket (`systemctl --user enable --now podman.socket`), set `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`, and use `podman compose` or `docker-compose`.
 
+## 1b. Pre-built content pages (ADR 0012 amended, 2026-11-09)
+
+The app renders in the browser, so its raw HTML is an empty shell. Search engines and AdSense's reviewers read raw HTML first, so `npm run build` also renders the content pages ahead of time:
+
+- **Which pages:** `/`, `/how-to-play`, `/faq`, `/sets`, `/terms` and `/privacy`, listed in `web/src/pages.ts` with each page's title and description.
+- **How:**
+  1. `vite build --ssr src/prerender.tsx` builds a server copy of the routes.
+  2. `scripts/prerender.mjs` renders each page with `react-dom/server` into the built `index.html`, with its own `<title>`, description and canonical link, as `dist/<page>/index.html`. The landing page becomes `dist/index.html`.
+  3. The browser adopts that HTML (`hydrateRoot` in `main.tsx`).
+- **App routes** (`/join/…`, `/play/…`, `/host/…`) load the empty shell, kept as `dist/app.html`.
+- **robots.txt and sitemap.xml:** the same script writes them. Search engines skip the game routes, which need a code; Google's ad crawler may read everything.
+- **Serving:** Caddy (live) and nginx (local) try the file, then `<path>/index.html`, then `/app.html`. In the Full profile, a CloudFront Function does the same (`WebStack.PrebuiltPages`, checked against `pages.ts` by the infra tests).
+- **What a pre-built page can't know:** the device's saved theme, and its screen width for ads. These appear once the app has taken over (`useHydrated`), so the HTML being adopted always matches.
+- **The public address:** `VITE_SITE_ORIGIN` in `web/.env` (https://syncbingo.com).
+
 ## 1a. Lean deployment (the live site, ADR 0011)
 
 One small instance (AWS Lightsail `micro_3_0`, below) runs `docker-compose.lean.yml`: `SITE_DOMAIN=syncbingo.com docker compose -f docker-compose.lean.yml up -d`. Without `SITE_DOMAIN` it serves `https://localhost` with Caddy's own local certificate, to try the production setup on a laptop.

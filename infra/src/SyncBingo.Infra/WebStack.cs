@@ -11,21 +11,31 @@ namespace SyncBingo.Infra;
 /// The web app on S3 behind CloudFront, and CloudFront's routes to the API (docs/07 §2):
 /// <list type="bullet">
 /// <item>default: the private bucket, read through origin access control. Paths without a file extension are
-/// the app's own routes (<c>/join/…</c>, <c>/host/…</c>), so a CloudFront Function serves <c>index.html</c> for them.
+/// pages: the content pages are pre-built (<c>/faq</c> is <c>/faq/index.html</c>), and the app's own routes
+/// (<c>/join/…</c>, <c>/host/…</c>) load the empty shell, <c>app.html</c>; a CloudFront Function picks which.
 /// That is done per request, not with error pages, which would turn the API's own 404s into the app's page.</item>
 /// <item><c>/api/*</c> and <c>/hubs/*</c>: the load balancer, uncached, every method, with the viewer's headers
 /// and CloudFront's own (<c>CloudFront-Viewer-Address</c> among them, for the rate limits). WebSockets pass through.</item>
 /// </list>
-/// CI uploads the built app with <c>aws s3 sync</c> and then invalidates <c>/index.html</c>; hashed assets never change.
+/// <c>full-up.sh</c> uploads the built app with <c>aws s3 sync</c>, the pages uncached, then invalidates them;
+/// hashed assets never change.
 /// </summary>
 public sealed class WebStack : Stack
 {
-    private const string SpaRoutes = """
+    /// <summary>The pre-built content pages, as <c>web/src/pages.ts</c> lists them (the infra tests check they agree).</summary>
+    internal static readonly string[] PrebuiltPages = ["/how-to-play", "/faq", "/sets", "/terms", "/privacy"];
+
+    private static readonly string SpaRoutes = $$"""
         function handler(event) {
           var request = event.request;
-          var last = request.uri.split('/').pop();
-          if (last.indexOf('.') === -1) {
+          var uri = request.uri.replace(/\/$/, '');
+          var last = uri.split('/').pop();
+          if (uri === '') {
             request.uri = '/index.html';
+          } else if ([{{string.Join(", ", PrebuiltPages.Select(page => $"'{page}'"))}}].indexOf(uri) !== -1) {
+            request.uri = uri + '/index.html';
+          } else if (last.indexOf('.') === -1) {
+            request.uri = '/app.html';
           }
           return request;
         }
@@ -54,7 +64,7 @@ public sealed class WebStack : Stack
         {
             Code = FunctionCode.FromInline(SpaRoutes),
             Runtime = FunctionRuntime.JS_2_0,
-            Comment = "App routes serve index.html",
+            Comment = "Pre-built pages, or the app shell for app routes",
         });
 
         var api = new BehaviorOptions

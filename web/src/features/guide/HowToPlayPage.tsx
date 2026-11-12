@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { Article } from '../../app/Article'
+import { site } from '../../site'
 import { PatternGrid } from '../game/PatternGrid'
 import { Glossary } from './Glossary'
 import { examplePatterns } from './patternShapes'
@@ -23,8 +24,8 @@ export function HowToPlayPage() {
       <h3>Joining a game</h3>
       <ul>
         <li>
-          Scan the QR code the host shows with your device’s camera, or open {window.location.host}{' '}
-          and choose <strong>Join a game</strong>, then type the game code.
+          Scan the QR code the host shows with your device’s camera, or open {site.host} and choose{' '}
+          <strong>Join a game</strong>, then type the game code.
         </li>
         <li>
           Type the game password the host gives you, and a name of up to 20 characters. Everyone
@@ -196,7 +197,7 @@ export function HowToPlayPage() {
         <strong>Display</strong> opens a read-only view for a TV or projector: the call board, the
         last ball, the pattern, the join QR code between rounds, and every win. Open it in a new tab
         on a device connected to the TV, such as a laptop, or connect a smart TV directly: open{' '}
-        {window.location.host}
+        {site.host}
         /tv in the TV’s browser and type the code it shows under <strong>Display</strong> and{' '}
         <strong>Connect a TV</strong>.
       </p>
@@ -207,7 +208,8 @@ export function HowToPlayPage() {
         players mark “Cow”, or “Person, place, thing or idea” is called and they mark “Noun”. In the
         lobby, choose <strong>Use a custom set</strong> to build one (8 to 500 entries), optionally
         in groups, one for each card column. Download the set as a file to use again in another
-        game. It’s a favorite for classrooms: vocabulary, parts of speech, science terms.
+        game, or start from one of the <Link to="/sets">ready-made sets</Link>. It’s a favorite for
+        classrooms: vocabulary, parts of speech, science terms.
       </p>
 
       <h3>Ending the game</h3>

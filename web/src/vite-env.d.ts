@@ -9,7 +9,9 @@ interface ImportMetaEnv {
   readonly VITE_LEGAL_EMAIL: string
   /** Where people get help with a game. */
   readonly VITE_SUPPORT_EMAIL: string
-  /** "adsense" shows real ads (the live site, once approved); anything else shows placeholders (ADR 0012). */
+  /** The site's public address, for canonical links, the sitemap and pre-built pages. */
+  readonly VITE_SITE_ORIGIN: string
+  /** "adsense" shows real ads (the live site, once approved); "none" no ad slots; anything else placeholders (ADR 0012). */
   readonly VITE_AD_PROVIDER?: string
   /** The AdSense publisher id, `ca-pub-` and 16 digits; also writes `ads.txt` and the site-verification tag. */
   readonly VITE_ADSENSE_CLIENT?: string

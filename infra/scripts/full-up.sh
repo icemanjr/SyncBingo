@@ -39,11 +39,12 @@ say "3/5 Building the web app (the Full build shows the Serious Bingo teaser, AD
 (cd "$repo/web" && npm ci --no-audit --no-fund && VITE_SERIOUS_BINGO_TEASER=true npm run build)
 
 say "4/5 Uploading it to s3://$bucket"
-# Hashed assets never change, so they cache for a year; pages must be revalidated (as Caddy does).
-aws s3 sync "$repo/web/dist" "s3://$bucket" --delete --exclude index.html \
+# Hashed assets never change, so they cache for a year; everything else (the pre-built pages, the app shell,
+# robots.txt, the sitemap, the ready-made sets) must be revalidated, as Caddy does.
+aws s3 sync "$repo/web/dist/assets" "s3://$bucket/assets" --delete \
   --cache-control "public, max-age=31536000, immutable"
-aws s3 cp "$repo/web/dist/index.html" "s3://$bucket/index.html" --cache-control "no-cache"
-aws cloudfront create-invalidation --distribution-id "$distribution" --paths "/index.html" > /dev/null
+aws s3 sync "$repo/web/dist" "s3://$bucket" --delete --exclude "assets/*" --cache-control "no-cache"
+aws cloudfront create-invalidation --distribution-id "$distribution" --paths "/*" > /dev/null
 
 say "5/5 Waiting for the site and the API to answer through CloudFront"
 for _ in $(seq 1 60); do

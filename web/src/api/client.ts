@@ -9,7 +9,8 @@ export type Schemas = components['schemas']
  * An absolute base, because `Request` outside a browser page can't resolve relative URLs.
  */
 export const api = createClient<paths>({
-  baseUrl: window.location.origin,
+  // The build renders some pages without a browser (scripts/prerender.mjs); they make no requests.
+  baseUrl: import.meta.env.SSR ? 'http://localhost' : window.location.origin,
   // Looked up on each call rather than captured once, so tests can stand in for the server.
   fetch: (request) => globalThis.fetch(request),
 })

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useHydrated } from './hydrated'
 import { useTheme, type ThemePreference } from './theme'
 
 const icon = (path: ReactNode) => (
@@ -48,7 +49,9 @@ const choices: { value: ThemePreference; label: string; icon: ReactNode }[] = [
 
 /** Light, dark, or follow the device (FR-50); remembered on this device. */
 export function ThemeToggle() {
-  const [preference, setPreference] = useTheme()
+  const [saved, setPreference] = useTheme()
+  // A pre-built page can't know this device's choice: show "System" until the app has taken over.
+  const preference = useHydrated() ? saved : 'system'
   return (
     <div
       role="radiogroup"

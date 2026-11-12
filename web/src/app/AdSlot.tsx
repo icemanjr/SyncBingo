@@ -13,6 +13,7 @@ export function AdSlot({ position }: { position: Position }) {
   const [width, height] = tower ? [160, 600] : [320, 50]
   const ads = adConfig()
   const wide = useWideScreen()
+  if (ads.provider === 'none') return null // Layout leaves slots out then; this is only a safeguard
   return (
     <aside
       aria-label="Advertisement"
@@ -95,5 +96,6 @@ function useWideScreen(): boolean {
       }
     },
     () => window.matchMedia(wideQuery).matches,
+    () => false, // a pre-built page has no screen; the browser decides once the app runs
   )
 }

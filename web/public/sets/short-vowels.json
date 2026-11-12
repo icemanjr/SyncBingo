@@ -1,0 +1,111 @@
+{
+  "format": 1,
+  "name": "Short vowel sounds",
+  "groups": [
+    {
+      "name": "Short a",
+      "label": "a",
+      "pairs": [
+        ["kăt /kæt/", "cat"],
+        ["hăt /hæt/", "hat"],
+        ["băt /bæt/", "bat"],
+        ["măp /mæp/", "map"],
+        ["kăp /kæp/", "cap"],
+        ["băg /bæɡ/", "bag"],
+        ["răg /ræɡ/", "rag"],
+        ["jăm /dʒæm/", "jam"],
+        ["hăm /hæm/", "ham"],
+        ["făn /fæn/", "fan"],
+        ["măn /mæn/", "man"],
+        ["păn /pæn/", "pan"],
+        ["văn /væn/", "van"],
+        ["dăd /dæd/", "dad"],
+        ["săd /sæd/", "sad"]
+      ]
+    },
+    {
+      "name": "Short e",
+      "label": "e",
+      "pairs": [
+        ["bĕd /bɛd/", "bed"],
+        ["rĕd /rɛd/", "red"],
+        ["fĕd /fɛd/", "fed"],
+        ["hĕn /hɛn/", "hen"],
+        ["pĕn /pɛn/", "pen"],
+        ["tĕn /tɛn/", "ten"],
+        ["nĕt /nɛt/", "net"],
+        ["wĕt /wɛt/", "wet"],
+        ["jĕt /dʒɛt/", "jet"],
+        ["lĕg /lɛɡ/", "leg"],
+        ["pĕg /pɛɡ/", "peg"],
+        ["wĕb /wɛb/", "web"],
+        ["vĕt /vɛt/", "vet"],
+        ["mĕn /mɛn/", "men"],
+        ["yĕs /jɛs/", "yes"]
+      ]
+    },
+    {
+      "name": "Short i",
+      "label": "i",
+      "pairs": [
+        ["pĭg /pɪɡ/", "pig"],
+        ["bĭg /bɪɡ/", "big"],
+        ["dĭg /dɪɡ/", "dig"],
+        ["wĭg /wɪɡ/", "wig"],
+        ["fĭn /fɪn/", "fin"],
+        ["pĭn /pɪn/", "pin"],
+        ["wĭn /wɪn/", "win"],
+        ["sĭt /sɪt/", "sit"],
+        ["hĭt /hɪt/", "hit"],
+        ["kĭt /kɪt/", "kit"],
+        ["lĭp /lɪp/", "lip"],
+        ["zĭp /zɪp/", "zip"],
+        ["kĭd /kɪd/", "kid"],
+        ["mĭks /mɪks/", "mix"],
+        ["sĭks /sɪks/", "six"]
+      ]
+    },
+    {
+      "name": "Short o",
+      "label": "o",
+      "pairs": [
+        ["nŏt /nɑt/", "not"],
+        ["lŏt /lɑt/", "lot"],
+        ["nŏd /nɑd/", "nod"],
+        ["hŏp /hɑp/", "hop"],
+        ["mŏp /mɑp/", "mop"],
+        ["tŏp /tɑp/", "top"],
+        ["pŏt /pɑt/", "pot"],
+        ["hŏt /hɑt/", "hot"],
+        ["dŏt /dɑt/", "dot"],
+        ["bŏks /bɑks/", "box"],
+        ["fŏks /fɑks/", "fox"],
+        ["kŏb /kɑb/", "cob"],
+        ["rŏd /rɑd/", "rod"],
+        ["jŏb /dʒɑb/", "job"],
+        ["rŏb /rɑb/", "rob"]
+      ]
+    },
+    {
+      "name": "Short u",
+      "label": "u",
+      "pairs": [
+        ["bŭg /bʌɡ/", "bug"],
+        ["rŭg /rʌɡ/", "rug"],
+        ["hŭg /hʌɡ/", "hug"],
+        ["mŭg /mʌɡ/", "mug"],
+        ["kŭp /kʌp/", "cup"],
+        ["pŭp /pʌp/", "pup"],
+        ["sŭn /sʌn/", "sun"],
+        ["rŭn /rʌn/", "run"],
+        ["fŭn /fʌn/", "fun"],
+        ["bŭs /bʌs/", "bus"],
+        ["nŭt /nʌt/", "nut"],
+        ["kŭt /kʌt/", "cut"],
+        ["hŭt /hʌt/", "hut"],
+        ["tŭb /tʌb/", "tub"],
+        ["mŭd /mʌd/", "mud"]
+      ]
+    }
+  ]
+}

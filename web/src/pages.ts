@@ -26,7 +26,7 @@ export const prebuiltPages: { path: string; title: string; description: string }
     path: '/sets',
     title: 'Ready-made sets · SyncBingo',
     description:
-      'Free Bingo sets to download and play: animal sounds, opposites, grammar words and science vocabulary, for classrooms and families.',
+      'Free Bingo sets to download and play: animal sounds, opposites, grammar words, short vowel sounds and science vocabulary, for classrooms and families.',
   },
   {
     path: '/terms',

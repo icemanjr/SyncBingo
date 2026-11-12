@@ -1,0 +1,111 @@
+{
+  "format": 1,
+  "name": "Short vowel sounds",
+  "groups": [
+    {
+      "name": "Short a",
+      "label": "a",
+      "pairs": [
+        ["kăt", "cat"],
+        ["hăt", "hat"],
+        ["băt", "bat"],
+        ["măp", "map"],
+        ["kăp", "cap"],
+        ["băg", "bag"],
+        ["răg", "rag"],
+        ["jăm", "jam"],
+        ["hăm", "ham"],
+        ["făn", "fan"],
+        ["măn", "man"],
+        ["păn", "pan"],
+        ["văn", "van"],
+        ["dăd", "dad"],
+        ["săd", "sad"]
+      ]
+    },
+    {
+      "name": "Short e",
+      "label": "e",
+      "pairs": [
+        ["bĕd", "bed"],
+        ["rĕd", "red"],
+        ["fĕd", "fed"],
+        ["hĕn", "hen"],
+        ["pĕn", "pen"],
+        ["tĕn", "ten"],
+        ["nĕt", "net"],
+        ["wĕt", "wet"],
+        ["jĕt", "jet"],
+        ["lĕg", "leg"],
+        ["pĕg", "peg"],
+        ["wĕb", "web"],
+        ["vĕt", "vet"],
+        ["mĕn", "men"],
+        ["yĕs", "yes"]
+      ]
+    },
+    {
+      "name": "Short i",
+      "label": "i",
+      "pairs": [
+        ["pĭg", "pig"],
+        ["bĭg", "big"],
+        ["dĭg", "dig"],
+        ["wĭg", "wig"],
+        ["fĭn", "fin"],
+        ["pĭn", "pin"],
+        ["wĭn", "win"],
+        ["sĭt", "sit"],
+        ["hĭt", "hit"],
+        ["kĭt", "kit"],
+        ["lĭp", "lip"],
+        ["zĭp", "zip"],
+        ["kĭd", "kid"],
+        ["mĭks", "mix"],
+        ["sĭks", "six"]
+      ]
+    },
+    {
+      "name": "Short o",
+      "label": "o",
+      "pairs": [
+        ["dŏg", "dog"],
+        ["lŏg", "log"],
+        ["fŏg", "fog"],
+        ["hŏp", "hop"],
+        ["mŏp", "mop"],
+        ["tŏp", "top"],
+        ["pŏt", "pot"],
+        ["hŏt", "hot"],
+        ["dŏt", "dot"],
+        ["bŏks", "box"],
+        ["fŏks", "fox"],
+        ["kŏb", "cob"],
+        ["rŏd", "rod"],
+        ["jŏb", "job"],
+        ["jŏg", "jog"]
+      ]
+    },
+    {
+      "name": "Short u",
+      "label": "u",
+      "pairs": [
+        ["bŭg", "bug"],
+        ["rŭg", "rug"],
+        ["hŭg", "hug"],
+        ["mŭg", "mug"],
+        ["kŭp", "cup"],
+        ["pŭp", "pup"],
+        ["sŭn", "sun"],
+        ["rŭn", "run"],
+        ["fŭn", "fun"],
+        ["bŭs", "bus"],
+        ["nŭt", "nut"],
+        ["kŭt", "cut"],
+        ["hŭt", "hut"],
+        ["tŭb", "tub"],
+        ["mŭd", "mud"]
+      ]
+    }
+  ]
+}

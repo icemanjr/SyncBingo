@@ -56,6 +56,19 @@ export const librarySets: LibrarySet[] = [
     ],
   },
   {
+    file: 'short-vowels.json',
+    name: 'Short vowel sounds',
+    about:
+      'For early readers working on phonemes: one column for each short vowel sound (a as in cat, e as in bed, i as in pig, o as in dog, u as in bug), 15 simple words each. The host calls the word’s sounds, written with the short-vowel mark (kăt), and players find the word (cat) in its vowel’s column.',
+    entries: 75,
+    grouped: true,
+    examples: [
+      ['kăt', 'cat'],
+      ['bŏks', 'box'],
+      ['bŭg', 'bug'],
+    ],
+  },
+  {
     file: 'science-vocabulary.json',
     name: 'Science vocabulary',
     about:
